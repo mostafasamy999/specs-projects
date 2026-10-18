@@ -2,8 +2,8 @@
 **Product:** TalentLink360 HR  
 **Module:** New Activities — Visits & Tasks  
 **Document Type:** Functional & Technical Specification  
-**Version:** 1.0 — Draft  
-**Status:** Pending review and validation
+**Version:** 1.1 — Approved  
+**Status:** Open questions resolved 2026-10-18 (see [open-questions.md](open-questions.md))
 
 > Related: [current-state.md](current-state.md) · [open-questions.md](open-questions.md)
 
@@ -58,7 +58,7 @@ The new implementation must be isolated from the existing Visit/Task module.
 - Views activity details and progress.
 - Performs permitted activity actions.
 
-**Permission rule:** Actual capabilities must follow backend authorization and existing application permissions. The exact role-to-action matrix requires confirmation.
+**Permission rule (resolved):** Both layers apply. The user's role (Manager or Employee, via existing app permissions) decides which screens they can access. Flags returned by the backend for each activity decide which actions (create, assign, progress update, status change, and so on) are shown. The app never shows an action the backend has not allowed.
 
 ## 4. Navigation and Screen Structure
 
@@ -80,7 +80,7 @@ The dashboard is the default entry screen.
 
 Visit Summary and Tasks Summary must have distinct designs that suit their respective activity types.
 
-The exact chart metric, summary cards, and summary fields must match the available dashboard API response.
+**Approved metrics:** a Visits-vs-Tasks donut chart, a stacked status bar, and per-status progress rows, all fed by `GetTaskAndVisitDashboard`.
 
 ### 4.2 Activities List
 
@@ -103,7 +103,7 @@ Do not display unavailable fields as if they were real data.
 
 The Add action opens the existing or approved creation flow for a Visit or Task.
 
-The creation flow must distinguish Visit-specific fields from Task-specific fields. The precise form fields, validation rules, and submission APIs must be verified before implementation.
+The creation flow must distinguish Visit-specific fields from Task-specific fields. **Approved baseline:** the existing `new_activity_create` form and its validation, submitted via `InsertVisitOrTask`.
 
 ### 4.4 Filter Sheet
 
@@ -123,20 +123,27 @@ Support the following quick-filter options:
 - Current
 - Previous
 - Department
-- Tasks
-- Visits
+- Tasks / Visits (type)
+- Main activities
+- Scope
+- Status
+- Priority
 
 Expected behavior:
 
 | Quick filter | Expected behavior |
 |---|---|
-| Current | Show activities matching the approved current-period definition |
-| Previous | Show activities matching the approved previous-period definition |
+| Current | Activities with a scheduled start at or after today 00:00 (no end bound) |
+| Previous | Activities with a scheduled start before today 00:00 (no start bound) |
 | Department | Filter activities using the selected department scope |
 | Tasks | Restrict results to Tasks |
 | Visits | Restrict results to Visits |
+| Main | Show master (main) activities |
+| Scope | All (team + mine + private), My team, My activities, or Private only |
+| Status | Filter by status |
+| Priority | Filter by priority |
 
-The exact meaning of Current and Previous must be confirmed with the product owner or backend contract. Do not assume that they mean today and yesterday without verification.
+Current and Previous never overlap and leave no gap: together they cover every activity.
 
 Quick filters must remain consistent with the active list filters and dashboard state.
 
@@ -168,8 +175,11 @@ Examples:
 
 - Start date/time must not exceed end date/time.
 - Invalid dependent selections must not be submitted.
-- Empty selections must be represented according to the API contract.
-- The meaning of `null`, an empty array, and omitted parameters must be confirmed for each endpoint.
+- An empty selection means **All** and may be sent as `null`.
+- **Company:** defaults to All, which sends the list of all company IDs the user is allowed to see.
+- **Department:** follows the same pattern, so All sends all allowed department IDs.
+- **Employee:** follows the same pattern, so All sends all allowed employee IDs.
+- **Privacy:** defaults to `isPrivate = true`.
 
 ## 7. Company, Department, and Employee Selection
 
@@ -203,7 +213,7 @@ Support workload-based statuses:
 - Very Busy
 - Overloaded
 
-These statuses must be derived from employee workload data, not hardcoded per employee.
+**Resolved:** the backend returns the workload status for each employee in the `GetEmployeeTasksORVisits` response. The app displays it and does not calculate thresholds.
 
 Tapping a workload status should show the employee's grouped workload, including relevant Visits and Tasks when returned by the API.
 
@@ -214,7 +224,7 @@ The picker should support:
 - Relevant assigned activity summaries
 - Loading, empty, and error states
 
-The workload thresholds and their mapping to status labels must be confirmed. Do not invent thresholds or assume that a missing workload response means Available.
+If the status is missing or the request fails, show an unknown/error state and never default to Available.
 
 ## 9. Search and Sorting
 
@@ -233,11 +243,13 @@ Search should use debouncing to avoid excessive API requests.
 
 - Support date-based sorting.
 - Preserve the selected sorting direction and field when refreshing the list, unless the user changes them.
-- Confirm the supported date field and sort direction values with the API contract.
+- Sort field: the activity's **scheduled start**. Directions: newest first (default) and oldest first.
 
 ## 10. API Requirements
 
-The feature should be designed around the following API capabilities. These are logical API responsibilities, not confirmed endpoint names.
+All endpoints are `POST` under `v2/Mobile/VisitAndTask/`. Confirmed: Dashboard = `GetTaskAndVisitDashboard`, List = `GetVisitAndTaskAssignedToLoggedInUser`, Priorities = `GetPriorityList`, Workload = `GetEmployeeTasksORVisits`, Progress = `UpdateTaskProgress`. See [current-state.md](current-state.md) for the full list.
+
+**Status IDs:** 1 Pending, 2 In Progress, 3 Cancelled, 4 Completed, 5 Rejected, 7 Partially Completed. ID 6 is not used.
 
 ### API A — Dashboard
 
@@ -291,21 +303,13 @@ Expected data:
 - Employee ID
 - Relevant activity IDs
 - Activity names
-- Workload information required to derive availability status
-
-The exact response shape and workload calculation rules must be confirmed.
+- Workload status (Available / Busy / Very Busy / Overloaded), returned by the backend
 
 ### API E — Update Activity Progress
 
 Purpose: Update the progress of an activity.
 
-The progress update contract includes a numeric progress value represented as a `double` in the client domain where appropriate.
-
-Confirm:
-- Accepted progress range
-- Whether progress applies to Visits, Tasks, or both
-- Whether the endpoint returns the updated activity
-- Validation and authorization rules
+**Resolved:** progress is an `int` from 0 to 100 and applies to both Visits and Tasks. Authorization follows the backend flags on each activity (§3).
 
 ### API F — Supporting Lookups
 
@@ -434,7 +438,7 @@ Use the existing application error-handling and localization conventions. Avoid 
 ### Employee assignment
 - Given the company is not selected, then the employee picker is unavailable.
 - Given the selected company changes, then invalid employee selections are cleared.
-- Given workload data is available, then employee workload status is derived using the approved rules.
+- Given workload data is available, then the employee's workload status shows the value returned by the backend.
 - Given an employee workload request fails, then the failure is handled without incorrectly marking the employee Available.
 
 ### Progress and errors
@@ -455,7 +459,7 @@ Use the existing application error-handling and localization conventions. Avoid 
 
 ## 17. Open Questions Before Implementation
 
-Tracked with current answers and status in [open-questions.md](open-questions.md).
+All resolved on 2026-10-18. The answers are in [open-questions.md](open-questions.md) and folded into the sections above. The original questions are kept here for history:
 
 1. What are the exact dashboard and list API endpoints, request parameters, and response envelopes?
 2. What are the exact definitions of Current and Previous?

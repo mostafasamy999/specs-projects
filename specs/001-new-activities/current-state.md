@@ -58,12 +58,16 @@ The old module (`visit/`, `visit_and_task/`, `add_visit/`, `add_task/`, `visit_d
 | Workload | Map of employeeId to activities for **today** (`day: DateTime.now()`) | `new_get_employees_workload_use_case.dart` |
 | Progress value | `int` in the repository contract | `new_activity_repository.dart:85` |
 
-## Gaps vs spec
+## Gaps vs spec v1.1 (after the 2026-10-18 answers)
 
-- **Workload statuses (§8):** The code has no Available / Busy / Very Busy / Overloaded classification. Only the raw per-employee list exists. This is blocked on the thresholds (Q4).
-- **Progress type (§10 E):** The spec says `double`, but the code uses `int`. Pick one.
-- **Quick filters (§5):** The code has extra chips (`main`, `scope`, `status`, `priority`) beyond the spec's five. Either update the spec or trim the code.
-- **Current/Previous (§5):** The code follows a definition the spec says not to assume without sign-off (Q2).
-- **Fake data (§13):** `domain/usecase/new_activities/fake/*` exists but nothing imports it. DI wires the real repository, so the comment "fake until the backend is ready" at `di/use_case_injector.dart:805` is stale. Either delete the fakes or wire a `FakeNewActivityRepository` behind a flag.
-- **Tests (§16):** `test/` has no `new_activit*` tests.
-- **Feature folder (§12):** The spec suggests a per-feature folder, but the repo is per-layer. The spec should say "follow the per-layer `new_*` convention".
+Code changes needed:
+- **Previous range (Q2):** `NewActivitiesTimeScope.previous` ends at yesterday 00:00. It must end at today 00:00 so yesterday's activities are no longer dropped.
+- **Workload status (Q4):** read the backend-provided status from `GetEmployeeTasksORVisits`, add it to the entity, and show it in the picker. Never default to Available.
+- **Fake data (§13):** `domain/usecase/new_activities/fake/*` is unused, and the DI comment at `di/use_case_injector.dart:805` is stale. Delete both or wire them up.
+- **Tests (§16):** there are no `new_activit*` tests in `test/`.
+
+To verify:
+- **"All" filters (Q5):** check that the list request sends all allowed company, department and employee IDs when "All" is selected, and that `isPrivate` defaults to true.
+- **Permissions (Q9):** check that the details actions are gated on the backend flags as well as the user's role.
+
+Already aligned: the endpoints (Q1), status IDs (Q3), create form (Q6), `int` progress from 0 to 100 (Q7), sorting (Q8), dashboard metrics (Q10) and quick-filter chips (Q11).
