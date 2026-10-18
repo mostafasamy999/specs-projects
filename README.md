@@ -1,5 +1,5 @@
 # TalentLink Specs
-
+ 
 Spec-driven development (SDD) specs for the TalentLink360 HR Flutter app
 (`~/StudioProjects/talentlink`).
 
