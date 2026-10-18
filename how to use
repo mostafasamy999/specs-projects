@@ -1,0 +1,29 @@
+Treat the specs as the source of truth for each feature and update them before or alongside the code, never after. In practice that comes down to five habits.
+
+**1. Resolve the open questions first**
+- Take `open-questions.md` to the product owner and the backend dev. Questions 4 (workload thresholds), 7 (progress range and `int` vs `double`) and 11 (extra quick-filter chips) block real decisions.
+- As each one is answered, mark it **Resolved**, update `spec.md`, and bump the version (1.0 → 1.1).
+
+**2. Then write `plan.md` and `tasks.md`**
+- Cover only the gaps in `current-state.md`: workload statuses, the progress type, the orphaned fake files, and tests.
+- Give each task a check you can verify, such as "cubit test X passes" or "chip Y hidden when type = Task".
+
+**3. Use the specs when you work with me (or any AI)**
+- Start a session with something like: "Implement task 3 from `~/work/talentlink-specs/specs/001-new-activities/tasks.md`."
+- I'll stay inside the agreed scope instead of guessing, and the spec's "don't invent" rules carry over.
+- You could also add one line to the shared AI config at `~/work/ai config` saying feature specs live in `~/work/talentlink-specs` and should be checked first.
+
+**4. Keep the specs in sync with the code**
+- When code changes behavior, update the spec in the same sitting. If they disagree, one of them is wrong, so decide which.
+- `current-state.md` goes stale. Refresh it when you start new work on the feature, not continuously.
+- Commit the specs with messages like `spec(001): resolve Q4 workload thresholds`.
+
+**5. Add new features the same way**
+- Create `specs/002-<name>/` with `spec.md` and `open-questions.md`, and add a row to the README index.
+- Write the spec before coding, even a one-page one.
+
+**Optional**
+- Push the repo to a private GitHub repo so it's backed up and your team or backend dev can review it.
+- Alternatively, move the specs into the app repo under `docs/specs/`. They would then version together with the code and appear in PRs. That's often better for a single-app team.
+
+The highest-value next step is getting the 11 open questions answered. Everything else depends on them.
