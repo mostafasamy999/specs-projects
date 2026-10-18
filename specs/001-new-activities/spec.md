@@ -179,7 +179,7 @@ Examples:
 - **Company:** defaults to All, which sends the list of all company IDs the user is allowed to see.
 - **Department:** follows the same pattern, so All sends all allowed department IDs.
 - **Employee:** follows the same pattern, so All sends all allowed employee IDs.
-- **Privacy:** defaults to `isPrivate = true`.
+- **Privacy:** defaults to `isPrivate = true`, which means private activities are **included along with** public ones, not shown on their own.
 
 ## 7. Company, Department, and Employee Selection
 
