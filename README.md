@@ -24,4 +24,4 @@ Rules:
 
 | ID | Feature | Status |
 |---|---|---|
-| [001](specs/001-new-activities/spec.md) | New Activities: Visits & Tasks | v1.1 approved, plan + tasks ready (WP2/WP4 blocked on backend) |
+| [001](specs/001-new-activities/spec.md) | New Activities: Visits & Tasks | v1.1 approved; waiting on backend Q12–Q14. Start at [NEXT.md](specs/001-new-activities/NEXT.md) |

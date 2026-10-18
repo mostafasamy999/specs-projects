@@ -4,11 +4,11 @@ Derived from [plan.md](plan.md). Work top to bottom, one commit per task (or per
 
 Legend: 🔒 blocked on a backend dependency (B1/B2 in the plan).
 
-## Backend requests (send now)
+## Backend requests (sent 2026-10-18, see open-questions Q12–Q14)
 
-- [ ] **T0.1** Ask the backend for B1: a workload status field on `GetEmployeeTasksORVisits`, with its name and value set.
-- [ ] **T0.2** Ask the backend for B2: per-activity permission flags on `GetVisitOrTaskDetails` / `GetVisitOrTaskMasterData`.
-- [ ] **T0.3** Ask the backend whether `endDateTime` is inclusive or exclusive. This is needed for T1.1.
+- [x] **T0.1** Asked the backend for B1: a workload status field on `GetEmployeeTasksORVisits`, with its name and value set.
+- [x] **T0.2** Asked the backend for B2: per-activity permission flags on `GetVisitOrTaskDetails` / `GetVisitOrTaskMasterData`.
+- [x] **T0.3** Asked the backend whether `endDateTime` is inclusive or exclusive. This is needed for T1.1. *Waiting for answers to all three (Q12–Q14).*
 
 ## WP1: Previous range
 

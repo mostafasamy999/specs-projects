@@ -3,7 +3,8 @@
 **Module:** New Activities — Visits & Tasks  
 **Document Type:** Functional & Technical Specification  
 **Version:** 1.1 — Approved  
-**Status:** Open questions resolved 2026-10-18 (see [open-questions.md](open-questions.md))
+**Status:** Product questions resolved on 2026-10-18. Three backend questions are pending (Q12–Q14 in [open-questions.md](open-questions.md)): workload status field, permission flags, and `endDateTime` bounds.  
+**Work docs:** [plan.md](plan.md) · [tasks.md](tasks.md) · [NEXT.md](NEXT.md)
 
 > Related: [current-state.md](current-state.md) · [open-questions.md](open-questions.md)
 
@@ -459,7 +460,7 @@ Use the existing application error-handling and localization conventions. Avoid 
 
 ## 17. Open Questions Before Implementation
 
-All resolved on 2026-10-18. The answers are in [open-questions.md](open-questions.md) and folded into the sections above. The original questions are kept here for history:
+Product questions were resolved on 2026-10-18. Backend questions Q12–Q14 are pending. The answers are in [open-questions.md](open-questions.md) and folded into the sections above. The original questions are kept here for history:
 
 1. What are the exact dashboard and list API endpoints, request parameters, and response envelopes?
 2. What are the exact definitions of Current and Previous?

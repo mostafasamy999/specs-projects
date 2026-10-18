@@ -3,9 +3,10 @@
 Status values:
 - **Open:** no answer yet.
 - **Assumed in code:** the code already uses an answer. Confirm it or change the code.
+- **Waiting on backend:** the question was sent, and the answer will unblock tasks.
 - **Resolved:** the answer is confirmed and folded into `spec.md`.
 
-All questions were answered by the product owner on 2026-10-18 and folded into spec v1.1.
+The product questions (Q1–Q11) were answered by the product owner on 2026-10-18 and folded into spec v1.1. The backend questions (Q12–Q14) were sent on 2026-10-18 and are still waiting for answers.
 
 | # | Question | Status | Answer | Code impact |
 |---|---|---|---|---|
@@ -20,3 +21,16 @@ All questions were answered by the product owner on 2026-10-18 and folded into s
 | 9 | Permissions | Resolved | Both: the user's role decides screen access, and backend flags on each activity decide which actions are available. | Verify that the details screen gates actions on the backend flags. |
 | 10 | Dashboard metrics | Resolved | The current UI is approved: a Visits-vs-Tasks donut, a stacked status bar and per-status progress rows. | None |
 | 11 | Extra quick-filter chips | Resolved | Keep `main`, `scope`, `status` and `priority`. The spec is updated. | None |
+
+## Backend questions (sent 2026-10-18)
+
+| # | Question | Status | Answer | Unblocks |
+|---|---|---|---|---|
+| 12 | Workload status on `GetEmployeeTasksORVisits`: field name, type (enum ID or string), and the value set Available / Busy / Very Busy / Overloaded | Waiting on backend | | WP2 (T2.1–T2.6) |
+| 13 | Per-activity permission flags on `GetVisitOrTaskDetails` / `GetVisitOrTaskMasterData` (`canChangeStatus`, `canReschedule`, `canUpdateProgress`, `canToggleEnabled`, and start/complete/check-in-out/add-note if they are permission-based) | Waiting on backend | | WP4 (T4.1–T4.2) |
+| 14 | Is `endDateTime` inclusive or exclusive on the list and dashboard requests? | Waiting on backend | | T1.1 (fallback: assume inclusive and send today 00:00 − 1s) |
+
+When an answer arrives:
+1. Fill in the **Answer** column and set the status to Resolved.
+2. Fold the answer into `spec.md` (§8 workload, §3 permissions, §5 Previous) and bump the version.
+3. Remove the 🔒 from the matching tasks in `tasks.md`.
