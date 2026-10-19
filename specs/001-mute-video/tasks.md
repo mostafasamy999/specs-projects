@@ -26,6 +26,8 @@ Legend: 🔒 blocked on an open question.
 
 ## WP3: Separation off the UI isolate, plus memory
 
+> T3.1 and T3.2 moved to [002-music-removal-isolate](../002-music-removal-isolate/tasks.md).
+
 - [ ] **T3.1** Spike: check whether `flutter_onnxruntime` can create a session and run inside a background isolate (with `BackgroundIsolateBinaryMessenger`). Record the result in `current-state.md`.
   **Verify:** a written yes or no, with the device and OS used.
 - [ ] **T3.2** Add `SeparationWorker` (full isolate, or pack/unpack-only per T3.1), and make `MusicRemovalRepositoryImpl` call it.
