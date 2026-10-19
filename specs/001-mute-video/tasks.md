@@ -6,22 +6,23 @@ Legend: 🔒 blocked on an open question.
 
 ## WP0: Setup
 
-- [ ] **T0.1** Add `bloc_test` and `mocktail` as dev dependencies.
+- [x] **T0.1** Add `bloc_test` and `mocktail` as dev dependencies.
   **Verify:** `flutter pub get` succeeds, and `flutter test` passes 15 out of 15 tests.
 
 ## WP1: No stuck busy state
 
-- [ ] **T1.1** `SeparationModelRepositoryImpl`: add `on Object` → `modelDownloadFailed`, and make the cleanup unable to throw.
+- [x] **T1.1** `SeparationModelRepositoryImpl`: add `on Object` → `modelDownloadFailed`, and make the cleanup unable to throw.
   **Verify:** a new test with a fake `ModelStorage` whose `rename` throws returns `DataFailed(modelDownloadFailed)`.
-- [ ] **T1.2** `VideoRepositoryImpl`: add `on Object` fallbacks for pick, mute and save.
+- [x] **T1.2** `VideoRepositoryImpl`: add `on Object` fallbacks for pick, mute and save.
   **Verify:** a test where the picker or datasource throws `MissingPluginException` returns the matching failure.
-- [ ] **T1.3** `MuteVideoCubit`: add a catch-all around each action, ending in `_fail`.
+- [x] **T1.3** `MuteVideoCubit`: add a catch-all around each action, ending in `_fail`.
   **Verify:** a cubit test where each use case throws `StateError` ends with `status == failure` and `isBusy == false`.
 
 ## WP2: Diagnostics out of release builds 🔒 Q5 (default: Option A)
 
-- [ ] **T2.1** Show the memory-probe icon, route and DI only when `kDebugMode || kProfileMode` is true (or delete them if Q5 = B).
+- [x] **T2.1** Show the memory-probe icon, route and DI only when `kDebugMode || kProfileMode` is true (or delete them if Q5 = B).
   **Verify:** in a `flutter run --release` build there is no memory icon in the app bar, and `/memory-probe` falls back to the main screen.
+  *Done 2026-10-19 (`AppFlags.diagnostics`). Checked on the Medium Phone API 36 emulator: the release APK shows no icon, and the debug APK does. The route fallback is guarded in code (`when AppFlags.diagnostics`) and can't be reached from the release UI.*
 
 ## WP3: Separation off the UI isolate, plus memory
 
@@ -35,12 +36,14 @@ Legend: 🔒 blocked on an open question.
 
 ## WP4: Temporary files and native resources
 
-- [ ] **T4.1** `MusicRemovalRepositoryImpl`: use `try/finally` cleanup of both PCM files.
+- [x] **T4.1** `MusicRemovalRepositoryImpl`: use `try/finally` cleanup of both PCM files.
   **Verify:** a test where the separator throws leaves no `*.pcm` files in the temp directory.
-- [ ] **T4.2** Delete the previous result when a new video is picked, and sweep files older than 24 hours on start.
+- [x] **T4.2** Delete the previous source and result when they're replaced (new pick, new result), and on start delete every `muted_`/`nomusic_`/`audio_` file from earlier launches.
   **Verify:** after pick → remove sound → pick, the cache holds only the current files (check with `adb shell run-as … ls cache`, or Xcode's container view).
-- [ ] **T4.3** Android `AudioPipeline`: add `try/finally` release in extract and mux, delete partial output on error, and map `NoVideoTrackException` to `no_video_track`.
+  *Done 2026-10-19. Unit tests: `temp_files_datasource_test`, `mute_video_cubit_test`. Device: `integration_test/native_cleanup_test.dart` (group T4.2) on the API 36 emulator, with the real native mute. It uses a queued picker instead of the system picker UI, so the image_picker copy step itself wasn't exercised.*
+- [x] **T4.3** Android `AudioPipeline`: add `try/finally` release in extract and mux, delete partial output on error, and map `NoVideoTrackException` to `no_video_track`.
   **Verify:** muxing with a missing PCM path returns `mux_failed`, leaves no `nomusic_*.mp4`, and a second run straight after works (the codec is not leaked).
+  *Done 2026-10-19. Device: `integration_test/native_cleanup_test.dart` (group T4.3) on the API 36 emulator. Against the old code, the "leaves no file" test fails (an orphan `nomusic_*.mp4`), and with the fix it passes. **Limit:** the 30-failures-then-real-run test passes on the old code too, so on this emulator it does not detect a codec leak. The release fix is checked by code review only.*
 
 ## WP5: Native correctness
 

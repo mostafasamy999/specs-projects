@@ -40,7 +40,9 @@ This plan closes the gaps in [review.md](review.md) so the app meets spec v1.0 Â
 - `MusicRemovalRepositoryImpl._process`: use a `try/finally` that deletes the extracted PCM and the voice PCM on every path.
 - Add `data/local/temp_files.dart` (or a method on `VideoRepository`) that deletes earlier results:
   - when a new source is picked: delete the old `muted` result, and the old source copy only if it lives in the app cache, since `image_picker` copies files there;
-  - on app start: delete `muted_*`, `nomusic_*` and `audio_*` older than 24 hours in the cache or temp directory.
+  - when a new result replaces an old one: delete the old result;
+  - on app start: delete every `muted_*`, `nomusic_*` and `audio_*` file in the cache or temp directory that is older than the launch. No state survives a restart, so nothing can still use them. This replaced the first idea of a 24-hour cutoff, which would have kept dead files for up to a day.
+  - Deletion is guarded: only files inside the temp directory are ever deleted, so gallery originals are safe.
 - Android `AudioPipeline`: add `try/finally` with release calls in `extractToPcm` and `muxWithNewAudio`, and delete the output file when an exception happens. Use `VideoMuter.removeSound` as the pattern.
 - Android `muxAudio`: map `NoVideoTrackException` â†’ `no_video_track`, to match iOS.
 
