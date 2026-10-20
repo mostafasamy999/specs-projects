@@ -414,8 +414,8 @@ Search: prefix query `nameLower >= q && nameLower < q + ''` (Arabic: store no
 
 1. Create Firebase project (stay on **Spark**, no billing) → enable **Email/Password** auth and **Firestore** (production mode, region close to Egypt — cannot be changed later). Do **not** enable Storage.
 2. `flutterfire configure` (Android + iOS).
-3. Android: `ACCESS_FINE_LOCATION` + `ACCESS_COARSE_LOCATION` in `AndroidManifest.xml`; `<queries>` entry for `https` intents (url_launcher on Android 11+).
-4. iOS: `NSLocationWhenInUseUsageDescription`, `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription` (Arabic text) in `Info.plist`; `LSApplicationQueriesSchemes` with `comgooglemaps` if opening the Google Maps app directly.
+3. Android: `ACCESS_FINE_LOCATION` + `ACCESS_COARSE_LOCATION` in `AndroidManifest.xml`; `<queries>` entries for `VIEW https` and `DIAL tel` intents (url_launcher on Android 11+). No `CAMERA` / storage permission — `image_picker` uses the system camera intent and photo picker (CR-005).
+4. iOS: `NSLocationWhenInUseUsageDescription`, `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription` (Arabic text) in `Info.plist`; `LSApplicationQueriesSchemes` = `comgooglemaps`, `tel` (CR-005).
 5. Deploy `firestore.rules` and `firestore.indexes.json` via Firebase CLI (`firebase deploy --only firestore`).
 6. Bootstrap first admin: register as admin in app → Console → `users/{uid}.status = "active"` (R3.10).
 

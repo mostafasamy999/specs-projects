@@ -6,6 +6,30 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-005 — 2026-10-20 — Platform permissions & url_launcher config (T0.3)
+
+**Request:** Start Phase 0.3.
+
+**Decision / done:**
+- **Android `AndroidManifest.xml`:**
+  - `ACCESS_FINE_LOCATION` + `ACCESS_COARSE_LOCATION`.
+  - `<queries>`: `VIEW` + `https` (Google Maps links, R11.3) and `DIAL` + `tel` (tap-to-call, R11.2 — added beyond D§10, which only listed `https`).
+  - **No `CAMERA` / storage permissions:** `image_picker` uses the system camera intent and the Android photo picker. Declaring `CAMERA` without requesting it at runtime would break the camera intent.
+- **iOS `Info.plist`:** Arabic strings —
+  - `NSLocationWhenInUseUsageDescription`: «نحتاج الوصول إلى موقعك لتحديد عنوان المنزل حتى يصلك الطلب.»
+  - `NSCameraUsageDescription`: «نحتاج الوصول إلى الكاميرا لتصوير صور المنتجات.»
+  - `NSPhotoLibraryUsageDescription`: «نحتاج الوصول إلى الصور لاختيار صور المنتجات.»
+  - `LSApplicationQueriesSchemes` = `comgooglemaps`, `tel`.
+- No packages added (they belong to T0.4); no Maps API key.
+- Verified: `plutil -lint` OK; `flutter build apk --debug` and `flutter build ios --simulator` succeed; permissions present in the built APK (`aapt2 dump permissions`) and the built `Info.plist`.
+
+**Affected:**
+- Design: D§10 steps 3–4
+- Tasks: T0.3 ✅
+- STATUS.md progress
+
+---
+
 ## CR-004 — 2026-10-20 — Flutter project created, Firebase connected, Firestore deployed (T0.1, T0.2b, T0.2c)
 
 **Request:** Execute T0.1, T0.2b, T0.2c; `<org>` = `mostafasamy`; keep the current Flutter version (no channel switch).

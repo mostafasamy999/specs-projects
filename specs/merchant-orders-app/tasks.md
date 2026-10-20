@@ -10,7 +10,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 - [x] **0.2a** Create Firebase project `merchant-orders-39dd1` (Spark, no billing); enable Email/Password; create Firestore `(default)` in `europe-west1`; publish rules D§5. _(D§10, R14.6)_ — done 2026-10-20 (CR-003)
 - [x] **0.2b** Run `flutterfire configure --project=merchant-orders-39dd1 --platforms=android,ios` **inside the project root**; init Firebase in `main.dart`. _(D§10)_ — done 2026-10-20 (CR-004)
 - [x] **0.2c** Add `firebase.json`, `firestore.rules` (= D§5), `firestore.indexes.json` (= D§6) to the repo; `firebase deploy --only firestore`. _(D§5, D§6)_ — done 2026-10-20 (CR-004)
-- [ ] **0.3** Add location (GPS), camera, photos permissions with Arabic usage strings + url_launcher queries config (no Maps API key). _(D§10, R2)_
+- [x] **0.3** Add location (GPS), camera, photos permissions with Arabic usage strings + url_launcher queries config (no Maps API key). _(D§10, R2)_ — done 2026-10-20 (CR-005)
 - [ ] **0.4** Add remaining D§1.1 packages (moved from T0.1); set up folder structure, `get_it` DI, `go_router` skeleton with placeholder screens. _(D§2, D§1.1)_
 - [ ] **0.5** App theme: Cairo font, RTL, `locale: Locale('ar')`, Material localization delegates, status colors, `app_strings.dart`. _(R14.1, D§3.4)_
 - [ ] **0.6** Core widgets: AppButton, AppTextField, StatusBadge, LoadingView, ErrorView, EmptyView, ConfirmDialog. _(D§2)_

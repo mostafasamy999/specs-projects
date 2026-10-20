@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-20 (CR-004)_
+_Last updated: 2026-10-20 (CR-005)_
 
 ## 1. Where things live
 
@@ -60,13 +60,13 @@ _Last updated: 2026-10-20 (CR-004)_
 | T0.2b `flutterfire configure` + `firebase_options.dart` + init in `main.dart` | ✅ done 2026-10-20 (CR-004) |
 | T0.2c `firebase.json` / `.firebaserc` / `firestore.rules` / `firestore.indexes.json` in repo + deploy | ✅ done 2026-10-20 (CR-004) |
 | Smoke test | ✅ `flutter analyze` clean; Android: `FirebaseApp initialization successful`; iOS: app renders after `initializeApp`, no exceptions |
-| Everything from T0.3 onward | ⬜ **waiting for the user's go-ahead** |
+| T0.3 Permissions (Arabic strings) + url_launcher queries | ✅ done 2026-10-20 (CR-005) |
+| Everything from T0.4 onward | ⬜ **waiting for the user's go-ahead** |
 
 ## 5. Next session — exact order
 
-1. Wait for the user to say to start Phase 0.3.
-2. T0.3: location / camera / photos permissions (Arabic usage strings) + url_launcher `<queries>` / `LSApplicationQueriesSchemes`.
-3. Then T0.1's "Add packages from D§1.1" (flutter_bloc, get_it, go_router, geolocator, …) together with T0.4, which uses them.
+1. Wait for the user to say to start T0.4.
+2. T0.4: add the remaining D§1.1 packages (flutter_bloc, equatable, get_it, go_router, geolocator, geocoding, url_launcher, image_picker, flutter_image_compress, hydrated_bloc, intl, flutter_localizations), folder structure, DI, router skeleton.
 
 ## 6. Rules for whoever continues
 
