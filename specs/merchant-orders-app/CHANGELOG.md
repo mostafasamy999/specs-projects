@@ -6,6 +6,23 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-003 — 2026-10-20 — Firebase environment provisioned + session handoff
+
+**Request:** Record the real Firebase setup and make the spec resumable in a new session; Flutter project goes in `/Users/mostafasamy/StudioProjects/`.
+
+**Decision:**
+- Firebase project `merchant-orders-39dd1` created on Spark (no billing). Email/Password on, Email link off. Firestore `(default)`, Standard, Native, `europe-west1`, production mode. Rules from D§5 published via Console. Analytics, Gemini, Storage not enabled. Verified in Console.
+- Flutter project path: `/Users/mostafasamy/StudioProjects/merchant_orders`; Flutter **stable** channel; `<org>` for bundle ID still open.
+- `flutterfire configure` must run inside the project root (earlier attempt failed with `FlutterAppRequiredException`).
+- New `STATUS.md` = single source of current state and next steps.
+
+**Affected:**
+- New: `STATUS.md`
+- Design: D§10.1 *(new)*
+- Tasks: T0.1 (path, stable channel), T0.2 split into T0.2a ✅ / T0.2b / T0.2c; T2.6/T2.7 order fixed
+
+---
+
 ## CR-002 — 2026-10-20 — No billing: images in Firestore, GPS-only location
 
 **Request:** Product images are very small; location should be GPS only, not Google Maps.

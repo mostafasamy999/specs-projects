@@ -419,6 +419,28 @@ Search: prefix query `nameLower >= q && nameLower < q + ''` (Arabic: store no
 5. Deploy `firestore.rules` and `firestore.indexes.json` via Firebase CLI (`firebase deploy --only firestore`).
 6. Bootstrap first admin: register as admin in app → Console → `users/{uid}.status = "active"` (R3.10).
 
+### 10.1 Provisioned environment (CR-003, verified 2026-10-20)
+
+| Item | Value |
+|---|---|
+| Project ID / number | `merchant-orders-39dd1` / `658495017371` |
+| Plan | Spark, no billing |
+| Auth | Email/Password on · Email link off · no other providers |
+| Firestore | `(default)` · Standard · Native · `europe-west1` · production mode |
+| Rules | §5 published via Console |
+| Indexes | not deployed yet (T0.2c) |
+| Apps | none registered yet (T0.2b) |
+| Flutter project path | `/Users/mostafasamy/StudioProjects/merchant_orders` |
+
+Repo layout for Firebase CLI (project root):
+```
+merchant_orders/
+├── firebase.json            # firestore → rules + indexes (+ flutter section written by flutterfire)
+├── .firebaserc              # { "projects": { "default": "merchant-orders-39dd1" } }
+├── firestore.rules          # must equal §5 (deploy overwrites Console)
+└── firestore.indexes.json   # from §6
+```
+
 ## 11. Phase 2 candidates
 
 Push notifications on status change (FCM + HMS Push) · Cloud Functions for counters & order numbers · date-range demand reports / export · in-app maps via Google Maps SDK (map picker, all-customers map — needs billing) · move images to Cloud Storage if catalog grows (needs Blaze) · phone OTP · per-order delivery address · delivery fee · HMS Map Kit for Huawei devices.

@@ -2,10 +2,14 @@
 
 Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). Complete in order; each phase ends in a runnable app.
 
+> **Current state & environment values → see `STATUS.md`.**
+
 ## Phase 0 — Project setup
 
-- [ ] **0.1** Create Flutter project (`com.<company>.merchant_orders`), Android minSdk 23, iOS 15. Add packages from D§1.1. _(R14.2)_
-- [ ] **0.2** Create Firebase project (Spark, no billing); enable Email/Password + Firestore; run `flutterfire configure`. _(D§10, R14.6)_
+- [ ] **0.1** Create Flutter project at `/Users/mostafasamy/StudioProjects/merchant_orders` (`com.<org>.merchant_orders`, ask user for `<org>`), Flutter **stable**, Android minSdk 23, iOS 15. Add packages from D§1.1. _(R14.2)_
+- [x] **0.2a** Create Firebase project `merchant-orders-39dd1` (Spark, no billing); enable Email/Password; create Firestore `(default)` in `europe-west1`; publish rules D§5. _(D§10, R14.6)_ — done 2026-10-20 (CR-003)
+- [ ] **0.2b** Run `flutterfire configure --project=merchant-orders-39dd1 --platforms=android,ios` **inside the project root**; init Firebase in `main.dart`. _(D§10)_
+- [ ] **0.2c** Add `firebase.json`, `firestore.rules` (= D§5), `firestore.indexes.json` (= D§6) to the repo; `firebase deploy --only firestore`. _(D§5, D§6)_
 - [ ] **0.3** Add location (GPS), camera, photos permissions with Arabic usage strings + url_launcher queries config (no Maps API key). _(D§10, R2)_
 - [ ] **0.4** Set up folder structure, `get_it` DI, `go_router` skeleton with placeholder screens. _(D§2)_
 - [ ] **0.5** App theme: Cairo font, RTL, `locale: Locale('ar')`, Material localization delegates, status colors, `app_strings.dart`. _(R14.1, D§3.4)_
@@ -33,8 +37,8 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 - [ ] **2.3** Admin product form (create/edit, validation, image replace). _(R6.1, R6.3)_
 - [ ] **2.4** Admin products list (search, red "عجز <n>" badge when stock < 0, active toggle). _(R6.4, R6.5)_
 - [ ] **2.5** Customer products grid (real-time, search) + product details with stock text ("متوفر: n" / "متاح بالطلب") and quantity selector 1…99. _(R8)_
-- [ ] **2.7** "Receive stock" dialog (positive qty → `increment`) + manual stock correction in form. _(R6.8, R6.9)_
 - [ ] **2.6** Products + productImages rules; deploy; indexes for products. _(D§5, D§6)_
+- [ ] **2.7** "Receive stock" dialog (positive qty → `increment`) + manual stock correction in form. _(R6.8, R6.9)_
 
 ## Phase 3 — Cart & orders (customer)
 
