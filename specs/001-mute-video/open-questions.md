@@ -7,7 +7,7 @@ Status values:
 
 | # | Question | Status | Answer | Code impact |
 |---|---|---|---|---|
-| 1 | What is the **maximum video length** for Remove music (and for Remove sound)? What is the lowest device we support (RAM and OS)? | Open | | Decides WP3: either a duration limit plus a message, or streaming separation. The suggested default is 5 min on devices with 3 GB of RAM or more |
+| 1 | What is the **maximum video length** for Remove music (and for Remove sound)? What is the lowest device we support (RAM and OS)? | Open | | Decides WP3: either a duration limit plus a message, or streaming separation. The suggested default is 5 min on devices with 3 GB of RAM or more. [003](../003-choose-part/spec.md) uses this limit to ask the user to choose a part (003 P2) |
 | 2 | Is Remove music allowed to take a long time (about N× real time on a mid-range phone)? Should the user be able to **cancel**, or leave the app while it runs (keep running in the background)? | Open | | A cancel button, a `CancelToken` and an isolate kill. iOS background time is limited |
 | 3 | **Model source and license:** can we redistribute `kuielab_a_vocals.onnx`? Should we host it ourselves (a CDN or Firebase Storage) and check a SHA-256? | Assumed in code (third-party GitHub, size check only) | | WP6: the URL, the checksum, a fallback mirror |
 | 4 | Should we ask before downloading about 30 MB on **mobile data**, or only download on Wi-Fi? | Assumed in code (download without asking) | | A confirm dialog and a connectivity check |

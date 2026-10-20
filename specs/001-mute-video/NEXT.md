@@ -16,6 +16,8 @@ Take [open-questions.md](open-questions.md) to whoever owns the product. Q1 (max
 5. **T3.1 → T3.2:** the isolate spike, then move separation off the UI isolate.
 6. **WP8:** add the tests alongside the work above.
 
+**New: [003 Choose a Part](../003-choose-part/spec.md)** fixes big videos by processing only a chosen part (scenarios C and D). Start with its T1 (native cut on Android). Send its P1–P4 together with Q1–Q8.
+
 Then do T3.3 (a memory run on a device), WP5 (with the test clips), and the 🔒 tasks as answers arrive.
 
 ## 3. Prompt to start a Claude session

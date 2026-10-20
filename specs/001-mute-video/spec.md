@@ -1,11 +1,12 @@
 # 001 Mute Video: Spec
 
-**Version:** v1.0 (baseline: describes the app as built)  
+**Version:** v1.1 (baseline: describes the app as built)  
 **Status:** Draft. Waiting on product answers Q1–Q8 in [open-questions.md](open-questions.md).  
 **App:** `~/StudioProjects/mute-music-app` (Flutter, Android + iOS)  
-**Last updated:** 2026-10-19
+**Last updated:** 2026-10-20
 
 ### Changelog
+- **v1.1 (2026-10-20):** Choosing a part of the video moved into scope. See [003 Choose a Part](../003-choose-part/spec.md) (scenarios C and D, F6, and the Remove music length limit).
 - **v1.0 (2026-10-19):** First spec, written from the code at commit `6fd1532`. It records the current behavior as the baseline and lists the gaps found in the review as requirements (§9).
 
 ---
@@ -29,7 +30,7 @@ They can then save the result back to their gallery. Everything runs on the devi
 **Out of scope (v1)**
 - Accounts, a backend, analytics, ads and purchases.
 - Recording video in the app. Gallery picking only.
-- Trimming, editing, or picking which part of the video to process.
+- Editing (crop, rotate, filters). *Choosing a part to process is now in scope: see [003](../003-choose-part/spec.md).*
 - Keeping music and dropping voices (karaoke mode).
 - Processing several videos at once, or a history of past results.
 - Web and desktop. The folders exist but are not supported targets.
@@ -68,7 +69,7 @@ Layout, from top to bottom:
 | Remove sound | A source exists and the app is not busy |
 | Save | A result exists and the app is not busy |
 
-"Busy" means the status is `picking`, `muting`, `preparingModel`, `removingMusic` or `saving`.
+"Busy" means the status is `picking`, `cutting` (003), `muting`, `preparingModel`, `removingMusic` or `saving`. The **Choose a part** button and its rules are in [003 §7.4](../003-choose-part/spec.md).
 
 ## 5. Flows
 
