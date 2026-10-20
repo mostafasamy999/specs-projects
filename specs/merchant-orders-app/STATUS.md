@@ -77,3 +77,4 @@ _Last updated: 2026-10-20 (CR-006)_
 - The repo's `firestore.rules` must stay identical to what's published; `firebase deploy` overwrites the Console version.
 - Never commit secrets; `firebase_options.dart`, `google-services.json`, `GoogleService-Info.plist` are fine to commit (they are not secrets) but keep the repo private.
 - Don't upgrade Flutter / switch channel without asking the user (CR-004).
+- **Testing:** verify with `flutter analyze`, `flutter test` and the Android emulator. **Don't build/run iOS** unless the change is iOS-specific (`ios/` files, Podfile, Info.plist, iOS-only behaviour) — iOS builds take 7–10 min. If iOS is needed, ask the user first.
