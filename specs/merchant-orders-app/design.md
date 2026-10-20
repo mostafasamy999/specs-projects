@@ -33,6 +33,8 @@ Traceability: `R<n>.<m>` refers to `requirements.md`.
 | Location | `geolocator` (GPS + permissions + open settings), `geocoding` (address prefill); Google Maps opened externally via `url_launcher` |
 | Images | `image_picker`, `flutter_image_compress`; bytes in Firestore, rendered with `Image.memory` + in-memory LRU cache |
 | Cart persistence | `hydrated_bloc` (or `shared_preferences`) |
+| Connectivity | `connectivity_plus` behind `ConnectivityService` — pre-check before transactions / auth (R14.3, CR-010) |
+| Offline cache | Firestore `Settings(persistenceEnabled: true, cacheSizeBytes: 100 MB)` (R14.3, CR-010) |
 | Utils | `url_launcher` (call / Google Maps), `intl` (ar dates & currency), `flutter_localizations` |
 | Font | Cairo (bundled **variable** font `assets/fonts/Cairo-Variable.ttf` from google/fonts, OFL 1.1 registered in `LicenseRegistry`; weights via the `wght` axis — `TextStyle.withCairoWeight()`) |
 

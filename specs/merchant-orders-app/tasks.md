@@ -15,7 +15,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 - [x] **0.5** App theme: Cairo font, RTL, `locale: Locale('ar')`, Material localization delegates, status colors, `app_strings.dart`. _(R14.1, D§3.4)_ — done 2026-10-20 (CR-007)
 - [x] **0.6** Core widgets: AppButton, AppTextField, StatusBadge, LoadingView, ErrorView, EmptyView, ConfirmDialog. _(D§2)_ — done 2026-10-20 (CR-008)
 - [x] **0.7** `Failure` + `mapFirebaseError()` with Arabic messages; validators; formatters (EGP, ar dates, short order code); Arabic search normalizer. _(R14.5, D§8, D§6)_ — done 2026-10-20 (CR-009)
-- [ ] **0.8** Enable Firestore offline persistence; connectivity check before transactions. _(R14.3)_
+- [x] **0.8** Enable Firestore offline persistence; connectivity check before transactions. _(R14.3)_ — done 2026-10-20 (CR-010); call `sl<ConnectivityService>().ensureOnline()` at the start of T3.4 / T4.4 / auth actions
 
 ## Phase 1 — Auth, session, roles
 

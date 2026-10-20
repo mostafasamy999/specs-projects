@@ -6,6 +6,31 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-010 — 2026-10-20 — Offline cache + connectivity check (T0.8) — Phase 0 complete
+
+**Request:** Implement T0.8 using `connectivity_plus` (user chose it over an internet-ping package or a timeout-only approach).
+
+**Decision / done:**
+- **Firestore offline cache:** `firestoreSettings = Settings(persistenceEnabled: true, cacheSizeBytes: 100 MB)`, applied in the `FirebaseFirestore` lazy singleton in `core/di/injection.dart`. That is the first access, as Firestore requires.
+  - Persistence is already on by default on Android/iOS; this makes it explicit.
+  - The cache is raised from the 40 MB default because product images live in Firestore (D§3.5).
+- **`connectivity_plus` 7.3.1** behind `core/network/connectivity_service.dart`:
+  - `ConnectivityService` interface (`isOnline`, `ensureOnline`) + `ConnectivityPlusService`. The check function is injectable for tests.
+  - Registered in `get_it`.
+  - It checks the network link, not real internet. Wi-Fi without internet still fails inside Firestore as `unavailable`, which maps to the same message.
+- **New `NoConnectionException`** → «لا يوجد اتصال بالإنترنت» in `mapFirebaseError`.
+- **Usage (later tasks):** `await sl<ConnectivityService>().ensureOnline()` at the start of place order (T3.4), change status (T4.4) and auth calls.
+- **Tests:** 8 new (online for wifi / mobile / ethernet / vpn+wifi, offline for none / empty, exception mapping, cache settings); 64 total pass.
+- **Device check (Android emulator, temporary probe, not committed):** Firestore settings read back as `persistence=true cache=104857600`. Airplane mode on → `online=false` + Arabic message; off → `online=true`.
+- iOS not built (no iOS-specific change). The `connectivity_plus` pod will appear in `Podfile.lock` on the next iOS build.
+
+**Affected:**
+- Design: D§1.1 (Connectivity + Offline cache rows)
+- Tasks: T0.8 ✅ — **Phase 0 done**
+- STATUS.md
+
+---
+
 ## CR-009 — 2026-10-20 — Errors, validators, formatters, Arabic normalizer (T0.7)
 
 **Request:** Implement T0.7. User chose **`ar_EG` (Arabic-Indic digits)** for displayed numbers and dates.

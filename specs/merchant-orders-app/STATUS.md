@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-20 (CR-009)_
+_Last updated: 2026-10-20 (CR-010)_
 
 ## 1. Where things live
 
@@ -43,7 +43,7 @@ _Last updated: 2026-10-20 (CR-009)_
 | FlutterFire CLI | 1.3.1 (1.4.1 available — not updated; its update prompt blocks non-interactive runs) |
 | Node / npm | v26.0.0 / 11.12.1 |
 | Xcode / CocoaPods | 26.6 / 1.16.2 |
-| Packages | `firebase_core` 5.0.0 · `firebase_auth` 7.0.0 · `cloud_firestore` 7.0.0 · `flutter_bloc` 9.1.1 · `equatable` 3.0.0 · `get_it` 9.3.0 · `go_router` 17.2.3 · `geolocator` 14.0.2 · `geocoding` 5.0.0 · `url_launcher` 6.3.2 · `image_picker` 1.2.2 · `flutter_image_compress` 2.5.1 · `hydrated_bloc` 11.0.0 · `intl` 0.20.2 · `flutter_localizations` (sdk) |
+| Packages | `connectivity_plus` 7.3.1 · `firebase_core` 5.0.0 · `firebase_auth` 7.0.0 · `cloud_firestore` 7.0.0 · `flutter_bloc` 9.1.1 · `equatable` 3.0.0 · `get_it` 9.3.0 · `go_router` 17.2.3 · `geolocator` 14.0.2 · `geocoding` 5.0.0 · `url_launcher` 6.3.2 · `image_picker` 1.2.2 · `flutter_image_compress` 2.5.1 · `hydrated_bloc` 11.0.0 · `intl` 0.20.2 · `flutter_localizations` (sdk) |
 | Android build | Kotlin Gradle plugin **2.3.0** (needed by `firebase-auth` 25.0.0, compiled with Kotlin metadata 2.4) · `kotlin { compilerOptions { jvmTarget = JVM_17 } }` (old `kotlinOptions.jvmTarget` is an error in Kotlin 2.3) · AGP 8.11.1 · Gradle 8.14 |
 | Test devices | Android emulator `Medium_Phone_API_36.0` · iOS simulator iPhone 16 Pro (iOS 18.5) |
 | Disk | ~83 GB free |
@@ -65,13 +65,15 @@ _Last updated: 2026-10-20 (CR-009)_
 | T0.5 Theme (Cairo variable font), RTL, `ar` locale, status colors, `app_strings.dart` | ✅ done 2026-10-20 (CR-007) |
 | T0.6 Core widgets + `OrderStatus` enum | ✅ done 2026-10-20 (CR-008) |
 | T0.7 `Failure` / `mapFirebaseError`, validators, formatters (ar_EG), Arabic normalizer | ✅ done 2026-10-20 (CR-009) |
-| Everything from T0.8 onward | ⬜ **waiting for the user's go-ahead** |
+| T0.8 Firestore offline cache (100 MB) + `ConnectivityService` (`connectivity_plus`) | ✅ done 2026-10-20 (CR-010) — **Phase 0 complete** |
+| Everything from Phase 1 (T1.1) onward | ⬜ **waiting for the user's go-ahead** |
 
 ## 5. Next session — exact order
 
-1. Wait for the user to say to start T0.8.
-2. T0.8: Firestore offline persistence (`Settings(persistenceEnabled: true)`) + a connectivity check before transactions (place order, change status) → `AppStrings.errorNoConnection`. Note: no connectivity package yet — ask before adding one.
-3. Conventions from T0.7: show numbers via `Formatters` (ar_EG, Arabic-Indic digits); pass user-typed numbers through `ArabicNormalizer.digitsToWestern` before saving; store `nameLower = ArabicNormalizer.normalize(name)`; the location repo throws `LocationTimeoutException` (not a bare `TimeoutException`).
+1. Wait for the user to say to start Phase 1 (T1.1 `UserEntity` / `UserModel`).
+2. Conventions from T0.8: before any server-only action call `await sl<ConnectivityService>().ensureOnline()` (throws `NoConnectionException` → «لا يوجد اتصال بالإنترنت» via `mapFirebaseError`). Get Firestore only via `sl<FirebaseFirestore>()` so the offline settings apply.
+3. Next iOS build will add the `connectivity_plus` pod to `Podfile.lock` (not built in T0.8).
+4. Conventions from T0.7: show numbers via `Formatters` (ar_EG, Arabic-Indic digits); pass user-typed numbers through `ArabicNormalizer.digitsToWestern` before saving; store `nameLower = ArabicNormalizer.normalize(name)`; the location repo throws `LocationTimeoutException` (not a bare `TimeoutException`).
 3. Conventions: every Arabic string goes in `core/constants/app_strings.dart`; for a custom font weight use `style.withCairoWeight(FontWeight.wXXX)`, not `copyWith(fontWeight:)` (Cairo is a variable font).
 4. Skeleton notes: routes live in `lib/core/router/app_routes.dart`; the splash placeholder has dev links to login / customer / admin until T1.4 adds the session `redirect`.
 
