@@ -6,6 +6,32 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-007 — 2026-10-20 — Theme, Cairo font, RTL, Arabic strings (T0.5)
+
+**Request:** Implement T0.5. Also: don't build/run iOS unless the change needs it (rule added to STATUS §6).
+
+**Decision / done:**
+- **Font:** with the user's OK, downloaded `Cairo[slnt,wght].ttf` (599,548 B) and `OFL.txt` from `github.com/google/fonts` (`ofl/cairo`) into `assets/fonts/` (`Cairo-Variable.ttf`). google/fonts only ships the variable font.
+  - Declared as family `Cairo`. The OFL license is bundled and registered in `LicenseRegistry` (`main.dart`).
+  - Variable font ⇒ `AppTheme` sets each text style's weight on the `wght` axis. Base `ThemeData` has no weights until `MaterialApp` merges the locale geometry, so `Typography.tall2021` (Arabic = tall script) is merged first. A test caught this.
+  - Use `TextStyle.withCairoWeight()` for custom weights.
+- **Theme** `core/theme/app_theme.dart`: Material 3, `ColorScheme.fromSeed(0xFF00695C)` (teal — placeholder brand color, adjustable).
+  - `AppColors` status colors per D§3.4: pending amber `#F59E0B`, inProgress blue `#2563EB`, done green `#16A34A`, cancelled red `#DC2626`, plus shortage red.
+- **Locale / RTL** `lib/app.dart`: `locale: Locale('ar')`, `supportedLocales: [ar]`, `GlobalMaterialLocalizations.delegates` (Material + Cupertino + Widgets). RTL comes from the locale.
+- **Strings** `core/constants/app_strings.dart`: screen titles, nav labels, status labels, temporary dev links. All inline Arabic in screens/router moved there.
+  - `appName = 'طلبات التاجر'` is provisional — the final Arabic name is T7.5.
+- **Tests:** 5 pass — splash, Arabic + RTL (`Directionality.rtl`, Arabic `backButtonTooltip`), Cairo + `wght` axis on the theme, all routes, path params.
+- **Verified:** `flutter analyze` clean.
+  - Android emulator: AppBar title right-aligned, Cairo rendering, bottom nav ordered right-to-left.
+  - iOS not run (no iOS-specific change).
+
+**Affected:**
+- Design: D§1.1 (font row)
+- Tasks: T0.5 ✅
+- STATUS.md (progress, conventions, iOS testing rule)
+
+---
+
 ## CR-006 — 2026-10-20 — Packages, folder structure, DI, router skeleton (T0.4)
 
 **Request:** Start T0.4.

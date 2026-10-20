@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-20 (CR-006)_
+_Last updated: 2026-10-20 (CR-007)_
 
 ## 1. Where things live
 
@@ -62,13 +62,15 @@ _Last updated: 2026-10-20 (CR-006)_
 | Smoke test | ✅ `flutter analyze` clean; Android: `FirebaseApp initialization successful`; iOS: app renders after `initializeApp`, no exceptions |
 | T0.3 Permissions (Arabic strings) + url_launcher queries | ✅ done 2026-10-20 (CR-005) |
 | T0.4 Packages + folder structure + `get_it` DI + `go_router` skeleton | ✅ done 2026-10-20 (CR-006) |
-| Everything from T0.5 onward | ⬜ **waiting for the user's go-ahead** |
+| T0.5 Theme (Cairo variable font), RTL, `ar` locale, status colors, `app_strings.dart` | ✅ done 2026-10-20 (CR-007) |
+| Everything from T0.6 onward | ⬜ **waiting for the user's go-ahead** |
 
 ## 5. Next session — exact order
 
-1. Wait for the user to say to start T0.5.
-2. T0.5: Cairo font (bundled asset), RTL, `locale: Locale('ar')` + Material/Cupertino/Widgets localization delegates in `lib/app.dart`, status colors, `core/constants/app_strings.dart` — and move the Arabic placeholder titles (screens, nav labels) into it.
-3. Skeleton notes: routes live in `lib/core/router/app_routes.dart`; the splash placeholder has dev links to login / customer / admin until T1.4 adds the session `redirect`.
+1. Wait for the user to say to start T0.6.
+2. T0.6: core widgets (AppButton, AppTextField, StatusBadge using `AppColors.pending/inProgress/done/cancelled` + `AppStrings.status*`, LoadingView, ErrorView, EmptyView, ConfirmDialog).
+3. Conventions: every Arabic string goes in `core/constants/app_strings.dart`; for a custom font weight use `style.withCairoWeight(FontWeight.wXXX)`, not `copyWith(fontWeight:)` (Cairo is a variable font).
+4. Skeleton notes: routes live in `lib/core/router/app_routes.dart`; the splash placeholder has dev links to login / customer / admin until T1.4 adds the session `redirect`.
 
 ## 6. Rules for whoever continues
 

@@ -34,7 +34,7 @@ Traceability: `R<n>.<m>` refers to `requirements.md`.
 | Images | `image_picker`, `flutter_image_compress`; bytes in Firestore, rendered with `Image.memory` + in-memory LRU cache |
 | Cart persistence | `hydrated_bloc` (or `shared_preferences`) |
 | Utils | `url_launcher` (call / Google Maps), `intl` (ar dates & currency), `flutter_localizations` |
-| Font | Cairo (bundled asset) |
+| Font | Cairo (bundled **variable** font `assets/fonts/Cairo-Variable.ttf` from google/fonts, OFL 1.1 registered in `LicenseRegistry`; weights via the `wght` axis — `TextStyle.withCairoWeight()`) |
 
 Optional (fits your usual setup, not required for MVP): `dev` / `prod` flavors pointing at two Firebase projects.
 
