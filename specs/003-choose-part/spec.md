@@ -66,7 +66,7 @@ RTL: the slider and the time labels stay left-to-right (time runs left to right 
 ### F6 Choose a part (new)
 1. The user taps **Choose a part**. The app opens §4 with the current **original** (not an earlier part).
 2. The user moves the handles and taps **Use this part**. If they go back instead, nothing changes.
-3. If the range is the whole video (within 0.5 s at each end), the app does nothing: the original stays the source.
+3. If the range is the whole video (within 0.5 s at each end), nothing is cut. If a part was chosen before, the original becomes the source again and the old part is deleted.
 4. Otherwise the status becomes `cutting` and the native cut runs (§6). The status text is `cutting` "Cutting the part…".
 5. On success:
    - The part becomes the new **source**, and the preview labels it `partLabel` "Part 0:30–1:45".
