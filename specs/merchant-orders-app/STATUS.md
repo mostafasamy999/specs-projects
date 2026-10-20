@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-20 (CR-007)_
+_Last updated: 2026-10-20 (CR-008)_
 
 ## 1. Where things live
 
@@ -63,12 +63,13 @@ _Last updated: 2026-10-20 (CR-007)_
 | T0.3 Permissions (Arabic strings) + url_launcher queries | ✅ done 2026-10-20 (CR-005) |
 | T0.4 Packages + folder structure + `get_it` DI + `go_router` skeleton | ✅ done 2026-10-20 (CR-006) |
 | T0.5 Theme (Cairo variable font), RTL, `ar` locale, status colors, `app_strings.dart` | ✅ done 2026-10-20 (CR-007) |
-| Everything from T0.6 onward | ⬜ **waiting for the user's go-ahead** |
+| T0.6 Core widgets + `OrderStatus` enum | ✅ done 2026-10-20 (CR-008) |
+| Everything from T0.7 onward | ⬜ **waiting for the user's go-ahead** |
 
 ## 5. Next session — exact order
 
-1. Wait for the user to say to start T0.6.
-2. T0.6: core widgets (AppButton, AppTextField, StatusBadge using `AppColors.pending/inProgress/done/cancelled` + `AppStrings.status*`, LoadingView, ErrorView, EmptyView, ConfirmDialog).
+1. Wait for the user to say to start T0.7.
+2. T0.7: `core/errors/failure.dart` (`Failure` + `mapFirebaseError()` with the D§8 Arabic messages — reuse `AppStrings.errorDefault`), `core/utils/validators.dart`, `core/utils/formatters.dart` (EGP, ar dates, short order code), Arabic search normalizer (D§6).
 3. Conventions: every Arabic string goes in `core/constants/app_strings.dart`; for a custom font weight use `style.withCairoWeight(FontWeight.wXXX)`, not `copyWith(fontWeight:)` (Cairo is a variable font).
 4. Skeleton notes: routes live in `lib/core/router/app_routes.dart`; the splash placeholder has dev links to login / customer / admin until T1.4 adds the session `redirect`.
 

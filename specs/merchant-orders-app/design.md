@@ -54,7 +54,7 @@ lib/
 │   ├── errors/failure.dart          # Failure + mapFirebaseError() → Arabic message
 │   ├── utils/validators.dart        # name, egyptian phone, email, password, price
 │   ├── utils/formatters.dart        # EGP currency, ar dates, short order no.
-│   └── widgets/                     # AppButton, AppTextField, StatusBadge, EmptyView, ErrorView, LoadingView, ConfirmDialog
+│   └── widgets/                     # app_button, app_text_field, status_badge, state_views (Loading/Error/EmptyView), confirm_dialog, nav_shell, placeholder_screen
 └── features/
     ├── session/                     # SessionCubit: listens to auth + users/{uid}
     ├── auth/                        # login, register (customer/admin), forgot password, pending approval screen

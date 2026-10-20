@@ -6,6 +6,37 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-008 — 2026-10-20 — Core widgets (T0.6)
+
+**Request:** Implement T0.6.
+
+**Decision / done:** all in `lib/core/widgets/`.
+- **`AppButton`:** variants filled / outlined / text / destructive, optional icon, full width by default. `isLoading` shows a spinner and ignores taps (R6.6).
+- **`AppTextField`:** wraps `TextFormField` with an outlined border and validates on user interaction.
+  - `isPassword` adds an eye toggle with Arabic tooltips and is always LTR.
+  - `ltr` is for email / phone / numbers inside the RTL layout.
+  - Also supports `maxLength`, `maxLines`, `readOnly`, `prefixIcon`, `autofillHints`.
+- **`StatusBadge`:** colored pill.
+  - `StatusBadge.order(OrderStatus)` uses the D§3.4 label + color.
+  - `StatusBadge.shortage(n)` shows the red «عجز n» (R6.5).
+- **`state_views.dart`:**
+  - `LoadingView`: spinner + optional message.
+  - `ErrorView`: Arabic message, default = D§8 «حدث خطأ غير متوقع، حاول مرة أخرى», optional «إعادة المحاولة».
+  - `EmptyView`: message + optional action.
+  - The three live in one file because they share a private layout.
+- **`ConfirmDialog`:** `ConfirmDialog.show(...)` → `Future<bool>`, where dismiss counts as `false`. `isDestructive` gives a red confirm button (logout R5.5, reject admin R3.7).
+- **New `OrderStatus` enum** in `features/orders/domain/entities/order_status.dart`, pulled forward from T3.3: Firestore `value`, `fromValue`, `isFinal`. `StatusBadge` needs it.
+- **New `AppStrings`:** `confirm`, `cancel`, `retry`, `showPassword`, `hidePassword`, `emptyDefault`, `errorDefault`, `shortage(n)`.
+- **Tests:** `test/core/widgets/core_widgets_test.dart` — 15 tests with the real theme + Arabic/RTL (loading blocks taps, destructive color, password toggle + LTR, RTL inheritance, validator, all 4 status labels/colors, shortage, `OrderStatus` mapping, state views, dialog confirm / cancel / dismiss). Total suite: 20 pass.
+- **Verified:** `flutter analyze` clean. No device run — no screen uses the widgets yet. iOS not run.
+
+**Affected:**
+- Design: D§2 (`core/widgets` file list)
+- Tasks: T0.6 ✅ (T3.3's `OrderStatus` part done early)
+- STATUS.md
+
+---
+
 ## CR-007 — 2026-10-20 — Theme, Cairo font, RTL, Arabic strings (T0.5)
 
 **Request:** Implement T0.5. Also: don't build/run iOS unless the change needs it (rule added to STATUS §6).
