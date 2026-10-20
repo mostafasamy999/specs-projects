@@ -375,7 +375,7 @@ Not used — no Cloud Storage (CR-002).
 | `users` | `role ↑`, `status ↑`, `createdAt ↓` | Admin requests |
 | `users` | `role ↑`, `name ↑` | Customers directory |
 
-Search: prefix query `nameLower >= q && nameLower < q + ''` (Arabic: store normalized text — strip tashkeel, unify `أ/إ/آ → ا`, `ة → ه`, `ى → ي`).
+Search: prefix query `nameLower >= q && nameLower < q + ''` (U+F8FF — use `ArabicNormalizer.prefixEnd(q)`; normalize with `ArabicNormalizer.normalize`) (Arabic: store normalized text — strip tashkeel, unify `أ/إ/آ → ا`, `ة → ه`, `ى → ي`).
 
 ## 7. Screens map
 

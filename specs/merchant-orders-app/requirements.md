@@ -206,7 +206,7 @@ Format: user story + acceptance criteria in EARS style (`WHEN … THE APP SHALL 
 
 ### Requirement 14 — Non-functional
 
-1. **Language:** Arabic only, RTL layout, Arabic font (Cairo), Arabic number/date formatting (`intl`, `ar`).
+1. **Language:** Arabic only, RTL layout, Arabic font (Cairo), Arabic number/date formatting (`intl`, **`ar_EG` — Arabic-Indic digits**, CR-009). User-typed digits (Arabic-Indic or Western) are accepted and stored as Western.
 2. **Platforms:** Android (minSdk 24 — Flutter 3.38 minimum, CR-004) and iOS (15+).
 3. **Offline:** Firestore offline cache enabled; placing an order and changing status REQUIRE connectivity (transactions) — show "لا يوجد اتصال بالإنترنت".
 4. **Performance:** lists use pagination/limits (e.g. 20 per page for orders); images cached.

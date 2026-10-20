@@ -6,6 +6,44 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-009 — 2026-10-20 — Errors, validators, formatters, Arabic normalizer (T0.7)
+
+**Request:** Implement T0.7. User chose **`ar_EG` (Arabic-Indic digits)** for displayed numbers and dates.
+
+**Decision / done:**
+- **`core/errors/failure.dart`:** `Failure(message, cause)` (Equatable on message) and `mapFirebaseError(Object)`, which maps every D§8 case:
+  - Auth/Firestore codes: `email-already-in-use`; `invalid-credential` / `wrong-password` / `user-not-found`; `user-disabled`; `network-request-failed` / `unavailable`; `permission-denied`.
+  - Domain + location exceptions: `ProductUnavailableException` (one line per product name), `ConcurrentUpdateException`, geolocator `LocationServiceDisabledException` / `PermissionDeniedException`, `LocationTimeoutException`.
+  - Everything else → default message. A `Failure` passes through unchanged.
+- **`core/errors/app_exceptions.dart`:** `ProductUnavailableException`, `ConcurrentUpdateException`, `LocationTimeoutException`.
+  - **Why a dedicated location timeout:** mapping every `TimeoutException` to the GPS message would mislabel unrelated timeouts. The location repo (T1.6) must throw `LocationTimeoutException`.
+- **`core/utils/validators.dart`:**
+  - name 3–50; Egyptian phone `01[0125]XXXXXXXX`; email; password ≥ 8 + confirm.
+  - `requiredMax(n)` / `optionalMax(n)` for address 200, details 200, product name 80, description 500, note 300, cancel reason 200.
+  - price > 0 with max 2 decimals; initial stock int ≥ 0; stock correction any int; received qty int > 0.
+  - Numeric input accepts Arabic-Indic digits.
+- **`core/utils/formatters.dart`** (ar_EG; `Formatters.init()` in `main.dart`):
+  - `price` → «٢٥٠ ج.م» / «١٢٫٥٠ ج.م»
+  - `number`
+  - `date` → «٢٠ أكتوبر ٢٠٢٦»
+  - `dateTime` → «٢٠ أكتوبر ٢٠٢٦، ٢:٠٥ م»
+  - `shortOrderCode` → first 6 chars upper-case
+- **`core/utils/arabic_normalizer.dart`:**
+  - `normalize`: tashkeel/tatweel stripped, أ/إ/آ→ا, ة→ه, ى→ي, lower-case, Western digits, single spaces.
+  - `digitsToWestern`: ٠-٩ / ۰-۹, ٫ → `.`, ٬ removed.
+  - `prefixEnd` (U+F8FF) for Firestore prefix search.
+- **`AppStrings`:** all D§8 errors + validation messages. Numbers inside messages use Arabic-Indic digits (`عجز ٥`, `الحد الأقصى ٢٠٠ حرفاً`). The phone example `01012345678` stays Western because users type it that way.
+- **Tests:** 36 new (validators, formatters, normalizer, error mapping); 56 total pass.
+- **Verified:** `flutter analyze` clean; Android launch OK (no startup errors). iOS not run.
+
+**Affected:**
+- Requirements: R14.1 (`ar_EG` digits, input digits accepted)
+- Design: D§6 (search helper)
+- Tasks: T0.7 ✅
+- STATUS.md (conventions)
+
+---
+
 ## CR-008 — 2026-10-20 — Core widgets (T0.6)
 
 **Request:** Implement T0.6.
