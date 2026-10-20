@@ -1,6 +1,6 @@
 # Requirements — Merchant Orders App (MVP)
 
-> Spec version: CR-002 · see `CHANGELOG.md`
+> Spec version: CR-004 · see `CHANGELOG.md`
 
 ## 1. Introduction
 
@@ -207,7 +207,7 @@ Format: user story + acceptance criteria in EARS style (`WHEN … THE APP SHALL 
 ### Requirement 14 — Non-functional
 
 1. **Language:** Arabic only, RTL layout, Arabic font (Cairo), Arabic number/date formatting (`intl`, `ar`).
-2. **Platforms:** Android (minSdk 23) and iOS (15+).
+2. **Platforms:** Android (minSdk 24 — Flutter 3.38 minimum, CR-004) and iOS (15+).
 3. **Offline:** Firestore offline cache enabled; placing an order and changing status REQUIRE connectivity (transactions) — show "لا يوجد اتصال بالإنترنت".
 4. **Performance:** lists use pagination/limits (e.g. 20 per page for orders); images cached.
 5. **Errors:** every Firebase error mapped to a clear Arabic message; no raw exceptions shown.

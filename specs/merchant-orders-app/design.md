@@ -371,7 +371,7 @@ Not used — no Cloud Storage (CR-002).
 | `orders` | `productIds (array-contains)`, `status ↑`, `createdAt ↓` | Dashboard → orders of a product |
 | `products` | `isActive ↑`, `createdAt ↓` | Customer catalog |
 | `products` | `isActive ↑`, `nameLower ↑` | Customer search |
-| `products` | `stock ↑` (single-field, auto) | Dashboard sort by shortage |
+| `products` | `stock ↑` (single-field, auto — **not** listed in `firestore.indexes.json`, the CLI rejects single-field composites) | Dashboard sort by shortage |
 | `users` | `role ↑`, `status ↑`, `createdAt ↓` | Admin requests |
 | `users` | `role ↑`, `name ↑` | Customers directory |
 
@@ -427,9 +427,9 @@ Search: prefix query `nameLower >= q && nameLower < q + ''` (Arabic: store no
 | Plan | Spark, no billing |
 | Auth | Email/Password on · Email link off · no other providers |
 | Firestore | `(default)` · Standard · Native · `europe-west1` · production mode |
-| Rules | §5 published via Console |
-| Indexes | not deployed yet (T0.2c) |
-| Apps | none registered yet (T0.2b) |
+| Rules | §5 deployed from repo `firestore.rules` via Firebase CLI (CR-004) |
+| Indexes | 8 composite indexes deployed 2026-10-20 (T0.2c, CR-004) |
+| Apps | Android `com.mostafasamy.merchant_orders` (`1:658495017371:android:851470e927dca09816d13e`) · iOS `com.mostafasamy.merchantOrders` (`1:658495017371:ios:96c4a81f3016720116d13e`) (CR-004) |
 | Flutter project path | `/Users/mostafasamy/StudioProjects/merchant_orders` |
 
 Repo layout for Firebase CLI (project root):
