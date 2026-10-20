@@ -1,0 +1,92 @@
+# Spec-Driven Flutter Implementation Rules
+
+## 1. Source of Truth
+- Treat the approved project specifications as the source of truth.
+- Implement only requirements defined in the specifications.
+- Do not invent business rules, API contracts, or user permissions.
+- If a requirement is ambiguous or contradictory, ask before making a consequential decision.
+- If the specification conflicts with the existing implementation, explain the conflict before changing established behavior.
+
+## 2. Before Implementation
+- Read `AGENTS.md`, project specifications, and relevant existing code.
+- Identify the affected features, dependencies, and reusable components.
+- Check existing models, repositories, use cases, Cubits, API services, and shared widgets before creating new ones.
+- Confirm API endpoints, request parameters, response structures, and error cases from available documentation or code.
+- Create an implementation plan for complex features.
+
+## 3. Architecture
+- Use Clean Architecture organized by feature.
+- Separate presentation, domain, and data layers.
+- Keep business logic out of widgets.
+- Keep API calls in data sources and expose them through repositories.
+- Use use cases for business operations.
+- Follow existing project conventions and avoid unnecessary abstractions.
+
+## 4. Cubit and State
+- Use Cubit with Equatable.
+- Use one state class per Cubit by default.
+- Represent request status using a shared or feature-specific status enum.
+- Keep states immutable and update them through `copyWith`.
+- Preserve unrelated state fields when updating individual fields.
+- Handle loading, success, empty, and failure states where applicable.
+- Prevent stale asynchronous responses from overwriting newer results when requests can overlap.
+- Use `BlocListener` for one-time side effects and `BlocBuilder` for rendering.
+- Do not move business logic into widgets.
+
+## 5. API Integration
+- Follow the documented API contract exactly.
+- Use the existing Dio and Retrofit setup.
+- Reuse shared response envelopes, interceptors, and error handling.
+- Use DTOs for request and response serialization.
+- Map DTOs to domain entities where appropriate.
+- Handle nullable fields, empty responses, pagination, and server errors according to the specifications.
+- Never fabricate API responses or silently replace failed requests with fake success data.
+- If an endpoint or required contract is missing, report the blocker instead of guessing.
+
+## 6. Implementation Process
+For each feature:
+1. Identify the required files and existing reusable code.
+2. Implement data models and API integration.
+3. Implement repository interfaces and implementations.
+4. Implement use cases where required.
+5. Implement Cubit and immutable state.
+6. Implement UI and connect it to the Cubit.
+7. Register dependencies in GetIt.
+8. Add or update tests.
+9. Verify the complete feature against its acceptance criteria.
+
+Adjust the order when dependencies or existing architecture require it.
+
+## 7. Code Quality
+- Follow Dart naming conventions and existing lint rules.
+- Prefer readable, small methods and focused classes.
+- Use `const` where appropriate.
+- Avoid duplicated logic, magic values, and unnecessary dependencies.
+- Do not refactor unrelated code.
+- Generate serialization code using the project's established tooling.
+- Do not manually edit generated files unless the tooling explicitly requires it.
+
+## 8. Verification
+- Run `dart format` on changed Dart files.
+- Run `flutter analyze`.
+- Run relevant unit, Cubit, and widget tests.
+- Fix issues introduced by the implementation.
+- Check each acceptance criterion against the actual result.
+- Never claim a test passed unless it was executed successfully.
+- Clearly report any blocked or unverified checks.
+
+## 9. Completion Report
+When implementation is finished, report:
+- Implemented requirements.
+- Files created or modified.
+- Important design decisions and assumptions.
+- Tests and analysis results.
+- Acceptance criteria not satisfied.
+- Remaining blockers or follow-up work.
+
+## 10. Safety
+- Preserve existing user changes.
+- Never overwrite unrelated work.
+- Do not commit, push, publish, or deploy without explicit authorization.
+- Ask before making destructive or irreversible changes.
+- Do not mark a feature complete while required acceptance criteria remain unverified.
