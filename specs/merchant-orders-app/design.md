@@ -12,14 +12,13 @@ Traceability: `R<n>.<m>` refers to `requirements.md`.
 │ core          : DI (get_it), Router (go_router), Theme/RTL, Errors, Arabic strings │
 └──────────────┬───────────────────────────┬───────────────────────────┬────────────┘
                │                           │                           │
-        Firebase Auth             Cloud Firestore                Cloud Storage
-       (email/password)   users · products · orders        products/{id}.jpg
-                          (rules = the real backend)
-               │
-        Google Maps SDK (picker + display) · Geolocator · Geocoding · url_launcher
+        Firebase Auth              Cloud Firestore               Device services
+       (email/password)   users · products · productImages   GPS (geolocator)
+                          · orders (rules = the real backend) geocoder (address)
+                                                              url_launcher → Google Maps app
 ```
 
-- **No custom backend, no Cloud Functions** (Spark plan). Business invariants (role, status transitions, stock/counter deltas) live in **Firestore Security Rules** + **client transactions**.
+- **No custom backend, no Cloud Functions, no Cloud Storage, no Maps SDK** → Spark plan, **no billing account** (CR-002). Business invariants (role, status transitions, stock/counter deltas) live in **Firestore Security Rules** + **client transactions**.
 - **Real-time first**: lists use Firestore `snapshots()` so status changes appear without push notifications (R10.5).
 
 ### 1.1 Tech stack
@@ -30,9 +29,9 @@ Traceability: `R<n>.<m>` refers to `requirements.md`.
 | State management | `flutter_bloc` (Cubit) + `equatable` |
 | DI | `get_it` |
 | Routing | `go_router` with role-based `redirect` |
-| Firebase | `firebase_core`, `firebase_auth`, `cloud_firestore`, `firebase_storage` (config via `flutterfire configure`) |
-| Maps & location | `google_maps_flutter`, `geolocator`, `geocoding` |
-| Images | `image_picker`, `flutter_image_compress`, `cached_network_image` |
+| Firebase | `firebase_core`, `firebase_auth`, `cloud_firestore` (config via `flutterfire configure`) |
+| Location | `geolocator` (GPS + permissions + open settings), `geocoding` (address prefill); Google Maps opened externally via `url_launcher` |
+| Images | `image_picker`, `flutter_image_compress`; bytes in Firestore, rendered with `Image.memory` + in-memory LRU cache |
 | Cart persistence | `hydrated_bloc` (or `shared_preferences`) |
 | Utils | `url_launcher` (call / Google Maps), `intl` (ar dates & currency), `flutter_localizations` |
 | Font | Cairo (bundled asset) |
@@ -59,7 +58,7 @@ lib/
 └── features/
     ├── session/                     # SessionCubit: listens to auth + users/{uid}
     ├── auth/                        # login, register (customer/admin), forgot password, pending approval screen
-    ├── location/                    # LocationPickerScreen, LocationPreview widget, GeoLocation entity
+    ├── location/                    # LocationCaptureSection (GPS), AddressTile (+ open in Google Maps), GeoLocation entity
     ├── profile/
     ├── products/                    # customer browsing + admin CRUD
     ├── cart/                        # CartCubit (hydrated)
@@ -85,7 +84,7 @@ each feature/
 | `email` | string | copy of Auth email, read-only |
 | `role` | string | `customer` \| `admin` |
 | `status` | string | `active` \| `pending` \| `rejected` |
-| `location` | map? | customers only: `{ lat: number, lng: number, address: string, details: string }` |
+| `location` | map? | customers only: `{ lat, lng, accuracyM: number, address: string, details: string, capturedAt: timestamp }` — device GPS |
 | `approvedBy` | string? | admin uid (admins only) |
 | `approvedAt` | timestamp? | |
 | `createdAt` / `updatedAt` | timestamp | `FieldValue.serverTimestamp()` |
@@ -98,7 +97,7 @@ each feature/
 | `nameLower` | string | for prefix search |
 | `description` | string | |
 | `price` | number | EGP |
-| `imageUrl` | string | Storage download URL |
+| `imageVersion` | int | +1 whenever the image changes (cache key); bytes live in `productImages/{productId}` (§3.5) |
 | `stock` | int | physical units; **can be negative** (negative = shortage). UI computes `shortage = max(0, -stock)` |
 | `activeQty` | int | Σ qty in `pending` + `inProgress` orders (R7) |
 | `totalQty` | int | Σ qty in non-cancelled orders (R7) |
@@ -116,7 +115,7 @@ each feature/
 | `customerId` | string | |
 | `customerName`, `customerPhone` | string | snapshot (R9.6) |
 | `location` | map | snapshot of customer location |
-| `items` | array<map> | `{ productId, name, price, imageUrl, qty, lineTotal }` |
+| `items` | array<map> | `{ productId, name, price, qty, lineTotal }` (image shown live by `productId`) |
 | `productIds` | array<string> | for "orders containing product X" (R7.5) |
 | `itemsCount` | int | Σ qty |
 | `total` | number | Σ lineTotal |
@@ -146,6 +145,18 @@ each feature/
 | `pending`/`inProgress` → `cancelled` | `activeQty -= q`, `totalQty -= q`, `stock += q` |
 
 Status colors / labels: pending = amber "قيد الانتظار", inProgress = blue "جاري التحضير", done = green "تم", cancelled = red "ملغي".
+
+### 3.5 `productImages/{productId}` (CR-002)
+
+| Field | Type | Notes |
+|---|---|---|
+| `data` | bytes (`Blob`) | compressed JPEG, ≤ 200 KB target (rule hard cap 300 KB; Firestore doc limit 1 MiB) |
+| `contentType` | string | `image/jpeg` |
+| `updatedAt` | timestamp | |
+
+> **Why a separate collection?** `products` docs change on every order (stock/counters). If the image lived inside the product doc, every order would re-send the image bytes to every listening admin/customer. Here the image is fetched once per `imageVersion` and cached.
+
+**`ProductImage` widget:** key = `productId:imageVersion` → check in-memory LRU → else `productImages/{id}.get()` (Firestore offline cache serves repeats) → `Image.memory`. Placeholder while loading, icon on error.
 
 ## 4. Key flows
 
@@ -215,20 +226,30 @@ After success → refresh dashboard status counts.
 ### 4.5 Product create/update (R6)
 
 ```
-pick image → compress (1080px, q75) → productId = products.doc().id
-→ upload to products/{id}.jpg (show progress) → getDownloadURL
-→ set products/{id} { ..., activeQty: 0, totalQty: 0 }
-(upload failure ⇒ no doc write, R6.7)
+pick image → compress (600px, q70) → if > 200 KB: re-compress (q50, then 480px)
+→ productId = products.doc().id
+→ WriteBatch:
+     set products/{id}       { ..., imageVersion: 1, activeQty: 0, totalQty: 0 }
+     set productImages/{id}  { data: Blob(bytes), contentType, updatedAt }
+→ commit (atomic — R6.7)
 ```
-Image replacement overwrites the same Storage path; append `?v=<updatedAt>` cache-buster in `CachedNetworkImage` key.
+Image replacement: same batch updates `productImages/{id}` and `products/{id}.imageVersion += 1` → all clients drop the old cache entry automatically.
 
-### 4.6 Location picker (R2)
+### 4.6 Location capture — GPS only (R2)
 
-- `GoogleMap` + centered static pin overlay; `onCameraIdle` → `placemarkFromCoordinates` (locale `ar`) → address text.
-- Permission via `geolocator`; denied → center on Cairo `(30.0444, 31.2357)`.
-- Returns `GeoLocation(lat, lng, address, details)`.
-- Display widget `LocationPreview`: small non-interactive `GoogleMap` (`liteModeEnabled: true` on Android) + address + "فتح في خرائط جوجل" →
-  `https://www.google.com/maps/dir/?api=1&destination=<lat>,<lng>` via `url_launcher` (R11.3).
+```
+tap "تحديد موقعي الحالي"
+→ Geolocator.isLocationServiceEnabled()  — off → dialog + Geolocator.openLocationSettings()
+→ checkPermission / requestPermission     — deniedForever → Geolocator.openAppSettings()
+→ getCurrentPosition(accuracy: high, timeLimit: 15s)
+→ accuracy > 100 m → warning + retry (user may accept)
+→ placemarkFromCoordinates(lat, lng) with locale ar → prefill address (editable; manual if it fails)
+→ GeoLocation(lat, lng, accuracyM, address, details, capturedAt)
+```
+
+- **`AddressTile`** (profile, order details, customer details): address + details + **"فتح في خرائط جوجل"** →
+  `https://www.google.com/maps/search/?api=1&query=<lat>,<lng>` (or `/dir/?api=1&destination=<lat>,<lng>` for navigation) via `url_launcher` with `LaunchMode.externalApplication` (R11.3).
+- No Google Maps SDK, no API key, no billing.
 
 ### 4.7 Dashboard (R7)
 
@@ -297,6 +318,15 @@ service cloud.firestore {
       }
     }
 
+    // ---------- productImages (CR-002) ----------
+    match /productImages/{productId} {
+      allow read: if isActiveAdmin() || isActiveCustomer();
+      allow create, update: if isActiveAdmin()
+        && request.resource.data.data is bytes
+        && request.resource.data.data.size() <= 300 * 1024;
+      allow delete: if false;
+    }
+
     // ---------- orders ----------
     match /orders/{orderId} {
       allow read: if isActiveAdmin()
@@ -329,21 +359,7 @@ service cloud.firestore {
 
 ### 5.1 Storage rules
 
-```
-rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /products/{file} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
-        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin'
-        && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.status == 'active'
-        && request.resource.size < 2 * 1024 * 1024
-        && request.resource.contentType.matches('image/.*');
-    }
-  }
-}
-```
+Not used — no Cloud Storage (CR-002).
 
 ## 6. Firestore composite indexes (`firestore.indexes.json`)
 
@@ -365,7 +381,7 @@ Search: prefix query `nameLower >= q && nameLower < q + ''` (Arabic: store no
 
 | Area | Screen | Req |
 |---|---|---|
-| Shared | Splash, Login, Forgot password, Choose account type, Register (customer), Register (admin), Pending approval, Location picker, Profile | R1–R5 |
+| Shared | Splash, Login, Forgot password, Choose account type, Register (customer), Register (admin), Pending approval, Location capture (GPS section), Profile | R1–R5 |
 | Customer | Products grid, Product details, Cart, Checkout/confirm, My orders (tabs), Order details + timeline | R8–R10 |
 | Admin | Dashboard (status cards + product demand), Orders (filter), Order details (call, map, status actions), Products list, Product form, Admin requests, Customers list, Customer details | R6, R7, R11, R12, R3 |
 
@@ -382,6 +398,9 @@ Search: prefix query `nameLower >= q && nameLower < q + ''` (Arabic: store no
 | `permission-denied` | ليس لديك صلاحية لتنفيذ هذا الإجراء |
 | `ProductUnavailableException` | المنتج "<اسم المنتج>" لم يعد متاحاً وتم حذفه من السلة |
 | `ConcurrentUpdate` | تم تحديث الطلب بواسطة مسؤول آخر |
+| location services off | من فضلك فعّل خدمة الموقع (GPS) |
+| location permission denied | يجب السماح بالوصول للموقع لتحديد عنوان المنزل |
+| GPS timeout | تعذر تحديد الموقع، حاول مرة أخرى في مكان مفتوح |
 | default | حدث خطأ غير متوقع، حاول مرة أخرى |
 
 ## 9. Testing strategy
@@ -389,17 +408,17 @@ Search: prefix query `nameLower >= q && nameLower < q + ''` (Arabic: store no
 - **Unit:** validators, formatters, Arabic normalizer, status transition helper, counter-delta calculator, model `fromMap/toMap`.
 - **Cubit tests:** `bloc_test` + `mocktail` for Session, Auth, Cart, PlaceOrder, OrderStatus.
 - **Rules tests:** Firebase Emulator Suite + `@firebase/rules-unit-testing` — every allow/deny in §5 (self role escalation, customer editing product price, invalid transition, reading others' orders…).
-- **Manual QA checklist:** two devices — customer places order, admin moves it pending → inProgress → done, customer sees timeline live; two customers ordering a stock-0 product at the same time → stock ends at exactly −(q1+q2) and both orders exist; cancel one → stock and counters restored; receive stock on a negative product; admin hides a product while it's in a customer's cart → checkout rejects it; approve admin from Console while pending screen is open.
+- **Manual QA checklist:** two devices — customer places order, admin moves it pending → inProgress → done, customer sees timeline live; two customers ordering a stock-0 product at the same time → stock ends at exactly −(q1+q2) and both orders exist; cancel one → stock and counters restored; receive stock on a negative product; admin hides a product while it's in a customer's cart → checkout rejects it; approve admin from Console while pending screen is open; GPS permission denied / permanently denied / location services off during registration; "فتح في خرائط جوجل" opens the right point; large photo gets re-compressed under 200 KB; replacing an image updates it on another device.
 
 ## 10. Firebase / platform setup
 
-1. Create Firebase project → enable **Email/Password** auth, Firestore (production mode), Storage.
+1. Create Firebase project (stay on **Spark**, no billing) → enable **Email/Password** auth and **Firestore** (production mode, region close to Egypt — cannot be changed later). Do **not** enable Storage.
 2. `flutterfire configure` (Android + iOS).
-3. Google Cloud console: enable **Maps SDK for Android** and **Maps SDK for iOS**; restrict the API key by package name / bundle id.
-4. Android: key in `AndroidManifest.xml` (`com.google.android.geo.API_KEY`), location permissions; iOS: `GMSServices.provideAPIKey` in `AppDelegate`, `NSLocationWhenInUseUsageDescription`, camera/photo usage descriptions (Arabic text).
-5. Deploy `firestore.rules`, `storage.rules`, `firestore.indexes.json` via Firebase CLI.
+3. Android: `ACCESS_FINE_LOCATION` + `ACCESS_COARSE_LOCATION` in `AndroidManifest.xml`; `<queries>` entry for `https` intents (url_launcher on Android 11+).
+4. iOS: `NSLocationWhenInUseUsageDescription`, `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription` (Arabic text) in `Info.plist`; `LSApplicationQueriesSchemes` with `comgooglemaps` if opening the Google Maps app directly.
+5. Deploy `firestore.rules` and `firestore.indexes.json` via Firebase CLI (`firebase deploy --only firestore`).
 6. Bootstrap first admin: register as admin in app → Console → `users/{uid}.status = "active"` (R3.10).
 
 ## 11. Phase 2 candidates
 
-Push notifications on status change (FCM + HMS Push) · Cloud Functions for counters & order numbers · date-range demand reports / export · all-customers map · phone OTP · per-order delivery address · delivery fee · HMS Map Kit for Huawei devices.
+Push notifications on status change (FCM + HMS Push) · Cloud Functions for counters & order numbers · date-range demand reports / export · in-app maps via Google Maps SDK (map picker, all-customers map — needs billing) · move images to Cloud Storage if catalog grows (needs Blaze) · phone OTP · per-order delivery address · delivery fee · HMS Map Kit for Huawei devices.

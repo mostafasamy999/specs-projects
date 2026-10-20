@@ -6,6 +6,24 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-002 — 2026-10-20 — No billing: images in Firestore, GPS-only location
+
+**Request:** Product images are very small; location should be GPS only, not Google Maps.
+
+**Decision:**
+- Cloud Storage now requires the Blaze plan → dropped. Images stored as bytes in Firestore `productImages/{productId}` (separate from `products` so counter updates don't re-send image bytes); compress to ≤ 200 KB, rule cap 300 KB; `imageVersion` on product as cache key; product + image written in one batch.
+- Google Maps SDK dropped (needs billing + API key). Location = device GPS (`geolocator`) + required address (prefilled by device reverse geocoding) + optional details; accuracy warning > 100 m.
+- Merchant still opens locations in the **external** Google Maps app via URL (no key, no cost).
+- Project runs on Spark with no billing account.
+- Order items no longer snapshot an image URL.
+
+**Affected:**
+- Requirements: Intro, P3 row, Glossary (home location), Out of scope, R2 *(rewritten)*, R5.1, R5.2, R6.2, R6.6, R6.7, R9.6, R11.2, R11.3, R12.2, R12.3 (→ Phase 2), R13.6, R14.6, Assumptions 9–10 *(new)*
+- Design: D§1, D§1.1, D§2, D§3.1, D§3.2, D§3.3, D§3.5 *(new)*, D§4.5, D§4.6, D§5 (productImages rules), D§5.1 (removed), D§7, D§8, D§9, D§10, D§11
+- Tasks: T0.2, T0.3, T1.6, T2.2, T2.6, T4.3, T4.7, backlog
+
+---
+
 ## CR-001 — 2026-10-20 — Negative stock (order when stock is 0)
 
 **Request:** Offered products must stay orderable when stock is 0. If stock is 0 and 5 units are ordered, stock becomes −5. Customers can see stock.

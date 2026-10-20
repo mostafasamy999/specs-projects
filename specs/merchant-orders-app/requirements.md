@@ -1,8 +1,10 @@
 # Requirements — Merchant Orders App (MVP)
 
+> Spec version: CR-002 · see `CHANGELOG.md`
+
 ## 1. Introduction
 
-A single Flutter app (Android + iOS) that replaces WhatsApp-based ordering for **one merchant** with **multiple admins** and many customers. Backend is **Firebase only** (Auth, Cloud Firestore, Cloud Storage). UI is **Arabic only (RTL)**.
+A single Flutter app (Android + iOS) that replaces WhatsApp-based ordering for **one merchant** with **multiple admins** and many customers. Backend is **Firebase only** (Auth + Cloud Firestore) on the free **Spark plan with no billing account**. UI is **Arabic only (RTL)**.
 
 ### 1.1 Problems being solved
 
@@ -10,7 +12,7 @@ A single Flutter app (Android + iOS) that replaces WhatsApp-based ordering for *
 |---|---|---|
 | P1 | Merchant can't get the total requested quantity of each product | Req 7 — Product Demand Dashboard |
 | P2 | Customer can't tell if the order is pending, being prepared, done… | Req 9, Req 10 — Order status tracking |
-| P3 | Merchant doesn't know customers' locations | Req 2, Req 4, Req 11 — Home location on Google Maps |
+| P3 | Merchant doesn't know customers' locations | Req 2, Req 11, Req 12 — Home GPS location, opened in the Google Maps app |
 
 ### 1.2 Roles
 
@@ -28,13 +30,15 @@ A single Flutter app (Android + iOS) that replaces WhatsApp-based ordering for *
 - Delivery fees, coupons, discounts
 - Web / desktop builds
 - Cloud Functions (keeps the project on the free Spark plan)
+- Cloud Storage (requires Blaze) — product images are stored in Firestore
+- In-app maps / Google Maps SDK — locations are GPS coordinates opened in the external Google Maps app
 
 ### 1.4 Glossary
 
 - **Order status**: `pending` (قيد الانتظار) → `inProgress` (جاري التحضير) → `done` (تم) ; `pending | inProgress` → `cancelled` (ملغي).
 - **Active quantity** of a product: sum of quantities in orders that are `pending` or `inProgress` — "what I still need to prepare".
 - **Total requested quantity** of a product: sum of quantities in all orders that are **not** `cancelled`.
-- **Home location**: latitude/longitude picked on Google Maps + reverse-geocoded address + free-text address details.
+- **Home location**: GPS latitude/longitude captured from the device + address text (prefilled by reverse geocoding, editable) + optional details. No in-app map.
 - **Offered product**: a product with `isActive = true`. Offered products are **always orderable**, regardless of stock.
 - **Stock**: units the merchant physically has. It is decremented by every order and **can go negative** (e.g. stock 0 + 5 ordered → stock −5).
 - **Shortage**: `max(0, −stock)` — units the merchant must buy/prepare to fulfil current orders.
@@ -57,17 +61,19 @@ Format: user story + acceptance criteria in EARS style (`WHEN … THE APP SHALL 
 6. IF the email is already in use, THEN THE APP SHALL show "البريد الإلكتروني مستخدم بالفعل".
 7. IF writing the Firestore profile fails after the Auth account was created, THEN THE APP SHALL delete the just-created Auth user and show a retry message (no orphan Auth accounts).
 
-### Requirement 2 — Home location picker (Google Maps)
+### Requirement 2 — Home location capture (GPS)
 
-**User story:** As a customer, I want to pin my home on a map, so that the merchant knows where to deliver.
+**User story:** As a customer, I want to save my home location from my phone's GPS, so that the merchant knows where to deliver.
 
-1. THE location picker SHALL display a Google Map with a fixed center pin; the selected point is the map center.
-2. WHEN the picker opens, THE APP SHALL request location permission and, if granted, center the map on the device's current location; IF denied, THEN center on a default city (Cairo) and still allow manual selection.
-3. THE picker SHALL provide a "موقعي الحالي" (my location) button.
-4. WHEN the map stops moving, THE APP SHALL reverse-geocode the center and show the address text.
-5. THE picker SHALL include an optional text field for address details (building, floor, apartment, landmark), max 200 chars.
-6. THE APP SHALL NOT allow completing customer registration without a confirmed location.
-7. IF reverse geocoding fails, THEN THE APP SHALL still save lat/lng and let the user type the address manually.
+1. THE registration and profile screens SHALL show a **"تحديد موقعي الحالي"** button that reads the device GPS position (high accuracy).
+2. WHEN tapped, THE APP SHALL request location permission; IF denied, THEN show why it is needed and retry; IF permanently denied, THEN show a button that opens the app settings.
+3. IF device location services (GPS) are off, THEN THE APP SHALL ask the user to enable them and offer a button that opens location settings.
+4. THE APP SHALL show a hint: "تأكد إنك في المنزل أثناء تحديد الموقع".
+5. WHEN a position is captured, THE APP SHALL show a success state, the accuracy in meters, and a **"معاينة في خرائط جوجل"** link that opens the coordinates in the external Google Maps app/browser.
+6. IF accuracy is worse than 100 m, THEN THE APP SHALL warn the user and offer "إعادة المحاولة" (the user may still accept).
+7. WHEN a position is captured, THE APP SHALL reverse-geocode it (device geocoder, Arabic) to prefill the **address** field; the address SHALL be required and editable (≤ 200 chars). IF geocoding fails, THEN the user types it.
+8. THE APP SHALL provide an optional **details** field (building, floor, apartment, landmark), ≤ 200 chars.
+9. THE APP SHALL NOT allow completing customer registration without captured coordinates AND an address.
 
 ### Requirement 3 — Admin registration & approval
 
@@ -100,8 +106,8 @@ Format: user story + acceptance criteria in EARS style (`WHEN … THE APP SHALL 
 
 **User story:** As a customer, I want to update my details and home location.
 
-1. THE profile screen SHALL show name, phone, email (read-only), and home location (mini static map + address).
-2. THE customer SHALL be able to edit name, phone, and home location (opens Req 2 picker prefilled).
+1. THE profile screen SHALL show name, phone, email (read-only), and home location (address, details, "فتح في خرائط جوجل").
+2. THE customer SHALL be able to edit name, phone, and home location (re-capture GPS and/or edit address, Req 2).
 3. WHEN saved, THE APP SHALL update `users/{uid}` (`updatedAt = now`). Existing orders SHALL keep their original location snapshot; new orders use the new location.
 4. Admins SHALL be able to edit name and phone only.
 5. THE profile screen SHALL have a Logout button with confirmation.
@@ -111,12 +117,12 @@ Format: user story + acceptance criteria in EARS style (`WHEN … THE APP SHALL 
 **User story:** As an admin, I want to create and update products, so that customers see an accurate catalog.
 
 1. THE admin SHALL create a product with: name (required, ≤ 80), description (optional, ≤ 500), price in EGP (required, > 0, max 2 decimals), initial stock (required, integer ≥ 0, may be 0), image (required, from camera or gallery), offered/active flag (default true).
-2. THE APP SHALL compress the image (max 1080px, JPEG ~75%) before uploading to Cloud Storage at `products/{productId}.jpg`.
+2. THE APP SHALL compress the image (max 600px on the longest side, JPEG ~70%, target ≤ 200 KB; re-compress at lower quality if larger) and store the bytes in Firestore `productImages/{productId}` (no Cloud Storage).
 3. THE admin SHALL update any product field, including replacing the image and adjusting stock.
 4. THE APP SHALL NOT hard-delete products (orders reference them). Instead the admin SHALL toggle **Active / Hidden**; hidden products don't appear to customers.
 5. THE admin product list SHALL show image, name, price, stock, active flag, and a red **"عجز <n>"** (shortage) badge when stock < 0, with search by name.
-6. WHILE an upload is in progress, THE APP SHALL show progress and disable the Save button.
-7. IF the upload fails, THEN THE APP SHALL NOT save the product document and SHALL show a retry message.
+6. WHILE saving, THE APP SHALL show a loading state and disable the Save button.
+7. THE product data and its image SHALL be written atomically (one batch); IF saving fails, THEN nothing is saved and THE APP SHALL show a retry message.
 8. THE admin SHALL have an **"إضافة كمية مستلمة"** (receive stock) action: enter a positive quantity → `stock += quantity` atomically (e.g. stock −5, receive 20 → stock 15).
 9. THE admin MAY also set the stock to any integer directly from the product form (manual correction).
 
@@ -150,7 +156,7 @@ Format: user story + acceptance criteria in EARS style (`WHEN … THE APP SHALL 
 3. THE order confirmation screen SHALL show items, total, delivery location (profile home location, read-only with "تغيير" → profile), and an optional note (≤ 300 chars).
 4. WHEN the customer taps **تأكيد الطلب**, THE APP SHALL, in **one Firestore transaction**: re-read each product; verify it still exists and is offered (`isActive = true`); decrement stock (**allowed to go below 0**); increment `activeQty` and `totalQty`; create the order with `status = pending`.
 5. IF any product was hidden or removed, THEN THE APP SHALL abort the whole transaction, show which item(s) are no longer available, and remove them from the cart. Stock level never blocks an order.
-6. THE order SHALL snapshot product name, price, and image URL, plus customer name, phone, and location — later product/profile edits SHALL NOT change past orders.
+6. THE order SHALL snapshot product name and price (images are shown live by `productId`), plus customer name, phone, and location — later product/profile edits SHALL NOT change past orders.
 7. WHEN the order is created, THE APP SHALL clear the cart and open the order details screen.
 8. THE customer SHALL NOT be able to cancel or edit an order after it is placed.
 
@@ -169,8 +175,8 @@ Format: user story + acceptance criteria in EARS style (`WHEN … THE APP SHALL 
 **User story:** As an admin, I want to manage incoming orders and know where each customer is.
 
 1. THE admin orders screen SHALL list all orders newest first, filterable by status, updating in real time, with a count badge on "pending".
-2. THE admin order details SHALL show customer name, **tap-to-call phone**, items, total, note, status timeline, and delivery location on a map.
-3. THE location section SHALL have **"فتح في خرائط جوجل"** which launches Google Maps navigation to the order's coordinates.
+2. THE admin order details SHALL show customer name, **tap-to-call phone**, items, total, note, status timeline, and delivery address + details.
+3. THE location section SHALL have **"فتح في خرائط جوجل"** which opens the order's GPS coordinates in the external Google Maps app (URL — no in-app map, no API key).
 4. THE admin SHALL change the status only along allowed transitions:
    - `pending` → `inProgress` or `cancelled`
    - `inProgress` → `done` or `cancelled`
@@ -186,8 +192,8 @@ Format: user story + acceptance criteria in EARS style (`WHEN … THE APP SHALL 
 **User story:** As the merchant, I want to see my customers and where they live.
 
 1. THE admin SHALL see a customers list (name, phone, address) with search by name/phone.
-2. WHEN an admin taps a customer, THE APP SHALL show their details, home location on a map, "open in Google Maps", tap-to-call, and their orders.
-3. *(Nice-to-have, can slip to Phase 2)* A map view showing all customers as markers.
+2. WHEN an admin taps a customer, THE APP SHALL show their details, address, "فتح في خرائط جوجل", tap-to-call, and their orders.
+3. *(Phase 2 — needs Google Maps SDK + billing)* A map view showing all customers as markers.
 
 ### Requirement 13 — Security
 
@@ -196,7 +202,7 @@ Format: user story + acceptance criteria in EARS style (`WHEN … THE APP SHALL 
 3. Customers SHALL read only their own user doc and their own orders; active admins SHALL read all.
 4. Customers SHALL NOT create/edit products; on order placement they MAY change only `stock`, `activeQty`, `totalQty` with matching deltas, on offered products only (see design §5). Stock may become negative.
 5. Only active admins SHALL change order status or approve admins.
-6. Cloud Storage: only active admins can write `products/*`; any signed-in user can read.
+6. `productImages`: only active admins can write (max ~300 KB per image); active users can read.
 
 ### Requirement 14 — Non-functional
 
@@ -205,7 +211,7 @@ Format: user story + acceptance criteria in EARS style (`WHEN … THE APP SHALL 
 3. **Offline:** Firestore offline cache enabled; placing an order and changing status REQUIRE connectivity (transactions) — show "لا يوجد اتصال بالإنترنت".
 4. **Performance:** lists use pagination/limits (e.g. 20 per page for orders); images cached.
 5. **Errors:** every Firebase error mapped to a clear Arabic message; no raw exceptions shown.
-6. **Cost:** stays within Firebase Spark (free) plan for a small merchant.
+6. **Cost:** runs on the Firebase Spark (free) plan with **no billing account** — no Cloud Storage, no Maps SDK, no Cloud Functions.
 
 ---
 
@@ -219,3 +225,5 @@ Format: user story + acceptance criteria in EARS style (`WHEN … THE APP SHALL 
 6. **Negative stock (confirmed):** offered products are always orderable; stock can go negative and the shortage drives the merchant's purchasing. Customers see positive stock numbers only.
 7. **Max 99 per product per order** to prevent accidental huge quantities, since stock no longer limits the selector.
 8. **Known MVP limitation:** without Cloud Functions, product counters are updated by the client inside transactions and protected by rules; a malicious client could still skew counters within the allowed delta rules. Acceptable for MVP; Phase 2 moves counters to Cloud Functions.
+9. **Images in Firestore (CR-002):** product images are small, so they are stored as bytes in a separate `productImages` collection (kept out of `products` so counter updates on every order don't re-send image bytes). Move to Cloud Storage if the catalog grows large.
+10. **GPS-only location (CR-002):** the customer must be at home when capturing (or update later from profile); the address text is required so the merchant can still find the place if GPS is off by a few meters.
