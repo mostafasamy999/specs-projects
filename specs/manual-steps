@@ -1,0 +1,9 @@
+خطوات الـ setup بعد التعديل
+
+اللي فات في رسالتي السابقة عن Blaze والـ Storage والـ Maps API keys اتلغى. اللي فاضل:
+
+اعمل Firebase project على Spark، وفعّل Email/Password و Firestore بس. اختار الـ region كويس لأنها مش هتتغيّر بعد كده.
+ثبّت الأدوات (firebase-tools و flutterfire_cli)، واعمل flutter create، وبعدين flutterfire configure.
+ضيف الـ permissions بتاعة الـ location والـ camera والـ photos، بنص عربي في Info.plist.
+اعمل firebase init firestore، وبعدين firebase deploy --only firestore.
+اعمل smoke test، وبعده bootstrap لأول admin.
