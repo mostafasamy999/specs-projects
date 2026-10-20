@@ -15,7 +15,7 @@ Each feature or app lives in `specs/NNN-name/` and moves through these files in 
 | `plan.md` | Technical plan: work packages, files, constraints. |
 | `tasks.md` | Ordered and verifiable implementation tasks derived from `plan.md`. |
 | `NEXT.md` | Where to pick up next, plus a ready-to-paste prompt for a coding session. |
-
+ 
 Rules:
 - Don't guess unresolved rules. Write them up as open questions.
 - `spec.md` is the source of truth. If the code and the spec disagree, fix one of them on purpose.
