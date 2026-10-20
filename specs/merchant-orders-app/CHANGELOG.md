@@ -6,6 +6,38 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-006 — 2026-10-20 — Packages, folder structure, DI, router skeleton (T0.4)
+
+**Request:** Start T0.4.
+
+**Decision / done:**
+- **Packages (D§1.1):** `flutter_bloc` 9.1.1, `equatable` 3.0.0, `get_it` 9.3.0, `go_router` 17.2.3, `geolocator` 14.0.2, `geocoding` 5.0.0, `url_launcher` 6.3.2, `image_picker` 1.2.2, `flutter_image_compress` 2.5.1, `hydrated_bloc` 11.0.0, `intl` 0.20.2, `flutter_localizations` (sdk).
+  - Pub reports 38 newer versions that don't fit the Flutter 3.38 constraints — expected while staying on 3.38.
+  - `hydrated_bloc` storage init is deferred to T3.1 (cart). Test-only packages (`bloc_test`, `mocktail`) come with Phase 7.
+- **Structure (D§2):**
+  - `lib/app.dart` (`MaterialApp.router`), `lib/core/di/injection.dart`, `lib/core/router/{app_routes,app_router}.dart`, `lib/core/widgets/{placeholder_screen,nav_shell}.dart`.
+  - `lib/features/<feature>/presentation/screens/` for session, auth, products, cart, orders, dashboard, admin_requests, customers, profile (23 placeholder screens).
+  - `data/` and `domain/` folders are created with the first model/repository (git doesn't track empty dirs). `location/` arrives with T1.6.
+- **DI:** `get_it` `sl` with lazy singletons for `FirebaseAuth`, `FirebaseFirestore`, `GoRouter`. Lazy, so widget tests don't touch Firebase. `main.dart` calls `configureDependencies()` after `Firebase.initializeApp`.
+- **Router:** `initialLocation: /splash`.
+  - Shared routes: login (+ forgot-password), register (+ customer / admin), pending-approval.
+  - Two `StatefulShellRoute.indexedStack` shells with `NavigationBar` (D§4.1):
+    - customer: Products · Cart · My Orders · Profile
+    - admin: Dashboard · Orders · Products · More[Requests, Customers, Profile]
+  - Detail routes with path params (`:productId`, `:orderId`, `:customerId`, `:productId/edit`, `new`).
+  - **No `redirect` yet** — that is T1.4. The splash placeholder has temporary dev links.
+  - The admin "More" screen lives in `features/dashboard` (D§2 had no home for it).
+- Arabic placeholder titles are inline for now; T0.5 moves them to `app_strings.dart`. Still LTR until T0.5.
+- **Tests:** `test/widget_test.dart` replaced the counter test — app starts on splash, all 24 routes build with the right AppBar title, path params reach the screen.
+- **Verified:** `flutter analyze` clean · `flutter test` 3/3 pass · Android emulator: splash → admin shell, bottom nav renders · iOS simulator: launches with the new pods, no errors.
+
+**Affected:**
+- Design: D§2 (dashboard also holds the admin "More" screen)
+- Tasks: T0.4 ✅
+- STATUS.md (packages, progress, next steps)
+
+---
+
 ## CR-005 — 2026-10-20 — Platform permissions & url_launcher config (T0.3)
 
 **Request:** Start Phase 0.3.

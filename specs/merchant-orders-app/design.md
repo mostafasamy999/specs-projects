@@ -63,7 +63,7 @@ lib/
     ├── products/                    # customer browsing + admin CRUD
     ├── cart/                        # CartCubit (hydrated)
     ├── orders/                      # place order, my orders, admin orders, status update
-    ├── dashboard/                   # product demand + status counts (admin)
+    ├── dashboard/                   # product demand + status counts (admin) + admin "More" tab screen
     ├── admin_requests/              # pending admins approve/reject
     └── customers/                   # customers directory (admin)
 

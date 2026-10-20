@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-20 (CR-005)_
+_Last updated: 2026-10-20 (CR-006)_
 
 ## 1. Where things live
 
@@ -43,7 +43,7 @@ _Last updated: 2026-10-20 (CR-005)_
 | FlutterFire CLI | 1.3.1 (1.4.1 available — not updated; its update prompt blocks non-interactive runs) |
 | Node / npm | v26.0.0 / 11.12.1 |
 | Xcode / CocoaPods | 26.6 / 1.16.2 |
-| Packages | `firebase_core` 5.0.0 · `firebase_auth` 7.0.0 · `cloud_firestore` 7.0.0 |
+| Packages | `firebase_core` 5.0.0 · `firebase_auth` 7.0.0 · `cloud_firestore` 7.0.0 · `flutter_bloc` 9.1.1 · `equatable` 3.0.0 · `get_it` 9.3.0 · `go_router` 17.2.3 · `geolocator` 14.0.2 · `geocoding` 5.0.0 · `url_launcher` 6.3.2 · `image_picker` 1.2.2 · `flutter_image_compress` 2.5.1 · `hydrated_bloc` 11.0.0 · `intl` 0.20.2 · `flutter_localizations` (sdk) |
 | Android build | Kotlin Gradle plugin **2.3.0** (needed by `firebase-auth` 25.0.0, compiled with Kotlin metadata 2.4) · `kotlin { compilerOptions { jvmTarget = JVM_17 } }` (old `kotlinOptions.jvmTarget` is an error in Kotlin 2.3) · AGP 8.11.1 · Gradle 8.14 |
 | Test devices | Android emulator `Medium_Phone_API_36.0` · iOS simulator iPhone 16 Pro (iOS 18.5) |
 | Disk | ~83 GB free |
@@ -61,12 +61,14 @@ _Last updated: 2026-10-20 (CR-005)_
 | T0.2c `firebase.json` / `.firebaserc` / `firestore.rules` / `firestore.indexes.json` in repo + deploy | ✅ done 2026-10-20 (CR-004) |
 | Smoke test | ✅ `flutter analyze` clean; Android: `FirebaseApp initialization successful`; iOS: app renders after `initializeApp`, no exceptions |
 | T0.3 Permissions (Arabic strings) + url_launcher queries | ✅ done 2026-10-20 (CR-005) |
-| Everything from T0.4 onward | ⬜ **waiting for the user's go-ahead** |
+| T0.4 Packages + folder structure + `get_it` DI + `go_router` skeleton | ✅ done 2026-10-20 (CR-006) |
+| Everything from T0.5 onward | ⬜ **waiting for the user's go-ahead** |
 
 ## 5. Next session — exact order
 
-1. Wait for the user to say to start T0.4.
-2. T0.4: add the remaining D§1.1 packages (flutter_bloc, equatable, get_it, go_router, geolocator, geocoding, url_launcher, image_picker, flutter_image_compress, hydrated_bloc, intl, flutter_localizations), folder structure, DI, router skeleton.
+1. Wait for the user to say to start T0.5.
+2. T0.5: Cairo font (bundled asset), RTL, `locale: Locale('ar')` + Material/Cupertino/Widgets localization delegates in `lib/app.dart`, status colors, `core/constants/app_strings.dart` — and move the Arabic placeholder titles (screens, nav labels) into it.
+3. Skeleton notes: routes live in `lib/core/router/app_routes.dart`; the splash placeholder has dev links to login / customer / admin until T1.4 adds the session `redirect`.
 
 ## 6. Rules for whoever continues
 
