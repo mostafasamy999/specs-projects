@@ -6,6 +6,25 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-041 — 2026-10-21 — Customers directory + customer details (T4.7) — Phase 4 code complete
+
+**Request:** Implement T4.7.
+
+**Decision / done:**
+- **`CustomersScreen`** (R12.1): live list (`UsersRepository.watchCustomers`, A→Z, index (role, name)) — name, phone, address (or «لا يوجد عنوان محفوظ»). Search box «ابحث بالاسم أو رقم الموبايل»: normalized name contains, or phone contains the typed digits (Arabic-Indic accepted). Search is on-device like the catalog (CR-023); up to `maxLoaded = 1000` customers are loaded — enough for one merchant, revisit beyond that.
+- **`CustomerDetailsScreen`** (R12.2): live profile (`watchUser`) — `CustomerContactCard` with «اتصال», `AddressTile` with navigation (`directions: true`), and «طلبات العميل»: that customer's orders with the usual status chips and live paging (`OrderListCubit` + `watchCustomerOrders` — admins may read any order). Missing profile → «العميل غير موجود».
+- Admin order details: tapping the customer card opens the customer's page.
+- `ProductSearchField` gained a `hint` (reused here). Removed the `devSampleCustomer` placeholder string. The route test for path parameters now checks the id reaches `watchUser` (no placeholders with parameters remain).
+- R12.3 (map of all customers) stays Phase 2 (needs the Maps SDK + billing).
+- **Tests:** 5 new (search matching incl. Arabic digits; list + search; details with call / navigation / orders; order → customer; not found); 348 total pass. `flutter analyze` clean.
+- **Phase 4 status:** all code done. Open: rules deploy (user — CR-019 + CR-025 + CR-034 + CR-039) and device checks with real accounts (T1.10).
+
+**Affected:**
+- Tasks: T4.7 ✅
+- STATUS.md
+
+---
+
 ## CR-040 — 2026-10-21 — Admin requests (T4.6)
 
 **Request:** Implement T4.6.
