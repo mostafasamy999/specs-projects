@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-026)_
+_Last updated: 2026-10-21 (CR-027)_
 
 ## 1. Where things live
 
@@ -83,7 +83,8 @@ _Last updated: 2026-10-21 (CR-026)_
 | T2.5 Customer grid + product details + `QuantitySelector` / `StockText` (add-to-cart in T3.1) | ✅ done 2026-10-21 (CR-024) — device check after T1.10 |
 | T2.6 Products + productImages rules tightened (`firestore.rules` + D§5) | 🟡 written + compiled 2026-10-21 (CR-025) — ⏳ **user must deploy** |
 | T2.7 Receive stock dialog (+ manual correction from T2.3) | ✅ done 2026-10-21 (CR-026) — **Phase 2 code complete** |
-| Everything from T3.1 onward | ⬜ not started |
+| T3.1 `CartCubit` (hydrated, per uid) + add-to-cart wired | ✅ done 2026-10-21 (CR-027) |
+| Everything from T3.2 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 

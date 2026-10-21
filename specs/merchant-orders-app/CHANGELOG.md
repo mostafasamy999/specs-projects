@@ -6,6 +6,26 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-027 — 2026-10-21 — Cart (T3.1)
+
+**Request:** Start Phase 3; implement T3.1.
+
+**Decision / done:**
+- **`CartItem`** (`features/cart/domain/entities/`): productId, name, price, imageVersion, quantity; `lineTotal` rounded to 2 decimals (`roundMoney`) so totals don't drift (12.1 × 3 = 36.3); JSON round-trip.
+- **`CartCubit` / `CartState`** (`HydratedCubit`, R9.1, R9.2): `add` (merges the same product into one line — needed by the rules' one-update-per-product check, D§4.3 — capped at 99, returns the new quantity, refreshes name / price to what the customer just saw), `setQuantity` (1…99), `remove`, `removeAll` (for R9.5), `empty` (after an order; `clear` is HydratedMixin's storage wipe), `refresh(products)` (fresh prices at checkout). `itemsCount`, `total`, `quantityOf`. Corrupt saved data → empty cart.
+  - **One cart per customer:** hydrated `id` = uid, so another customer on the same phone gets their own.
+  - **Prices:** the cart shows the price last seen; the order is priced from the product re-read inside the transaction (T3.4), and checkout refreshes the cart first.
+- **Wiring:** `main.dart` initializes `HydratedStorage` in the app-support directory (new dependency **`path_provider` 2.1.5** — required to get that folder). The customer shell provides `CartCubit(uid)` (keyed by uid). «أضف للسلة» on product details now adds and shows «تمت الإضافة للسلة — الكمية في السلة: n».
+- `test/flutter_test_config.dart`: every test gets an in-memory `MemoryStorage` for hydrated cubits.
+- **Tests:** 10 new (merge + totals, 1…99 caps, remove / removeAll / empty, refresh on re-add, refresh from reads, restart restore, per-uid carts, corrupt data, JSON, rounding) + details confirmation; 272 total pass. `flutter analyze` clean.
+- **Not checked on a device:** needs an active customer (T1.10).
+
+**Affected:**
+- Tasks: T3.1 ✅
+- STATUS.md
+
+---
+
 ## CR-026 — 2026-10-21 — Receive stock dialog (T2.7) — Phase 2 code complete
 
 **Request:** Implement T2.7.
