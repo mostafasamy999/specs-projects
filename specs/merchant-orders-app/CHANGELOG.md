@@ -6,6 +6,26 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-035 — 2026-10-21 — Admin shell: pending badge, More menu, logout (T4.1)
+
+**Request:** Start Phase 4; implement T4.1.
+
+**Decision / done:**
+- The admin bottom nav (Dashboard · Orders · Products · More) existed since T0.4. T4.1 adds:
+  - **Live pending badge on the Orders tab** (R11.1): `OrderRepository.watchCountByStatus(pending)` → `CountCubit` (provided in the admin shell) → `PendingOrdersBadgeIcon`. A snapshot listener counts the docs because `count()` aggregations can't be listened to; pending orders are few.
+  - **`AdminMoreScreen`**: «طلبات المسؤولين», «العملاء», «الملف الشخصي» (each with a one-line hint) and «تسجيل الخروج».
+  - **Logout with confirmation** (R5.5): `confirmAndSignOut` / `LogoutTile` → `SessionCubit.signOut()`; the session redirect opens login.
+- **Profile stand-in (until T6.1):** `ProfileScreen` now shows the signed-in user's name / phone / email and the logout tile, so active customers and admins can sign out (needed for the T1.10 checks). Editing stays in T6.1.
+- `core/cubit/count_cubit.dart`: `CountCubit` for live badges (errors keep the last value).
+- Test helper `useFakeOrders()` stubs the count; admin screen tests now use it (the shell reads orders).
+- **Tests:** 4 new (live badge appears / disappears, More items + navigation, logout cancel / confirm, profile shows user + logout); 315 total pass. `flutter analyze` clean.
+
+**Affected:**
+- Tasks: T4.1 ✅
+- STATUS.md
+
+---
+
 ## CR-034 — 2026-10-21 — Orders rules tightened + cart cap (T3.8) — Phase 3 code complete, deploy pending
 
 **Request:** Implement T3.8 (orders rules create/read + product `validOrderDelta`; orders indexes).

@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-034)_
+_Last updated: 2026-10-21 (CR-035)_
 
 ## 1. Where things live
 
@@ -91,7 +91,8 @@ _Last updated: 2026-10-21 (CR-034)_
 | T3.6 My orders + `OrderListCubit` / `OrderListView` / `OrderTile` (live paging) | ✅ done 2026-10-21 (CR-032) |
 | T3.7 Order details + `StatusTimeline` (shared `OrderDetailsView`) | ✅ done 2026-10-21 (CR-033) |
 | T3.8 Orders rules tightened + cart cap 50 | 🟡 written + compiled 2026-10-21 (CR-034) — ⏳ **user must deploy** — **Phase 3 code complete** |
-| Everything from T4.1 onward | ⬜ not started |
+| T4.1 Admin shell: pending badge, More menu, logout (+ profile stand-in) | ✅ done 2026-10-21 (CR-035) |
+| Everything from T4.2 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 
