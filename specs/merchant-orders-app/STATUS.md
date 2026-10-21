@@ -27,7 +27,7 @@ _Last updated: 2026-10-21 (CR-019)_
 | Plan | **Spark (no-cost), no billing account** — never upgrade |
 | Auth | Email/Password **enabled**; Email link (passwordless) **off**; no other providers |
 | Firestore | Database `(default)` · Standard edition · Native mode · **`europe-west1` (Belgium)** · production mode |
-| Security Rules | **Live: CR-004 version** (deployed 2026-10-20). **Repo: CR-019 version** (users section tightened 2026-10-21, not deployed yet). Logic identical to the earlier Console version (that one had no comments). |
+| Security Rules | **Live: CR-004 version** (deployed 2026-10-20). **Repo: CR-019 version** (users section tightened 2026-10-21, not deployed yet). |
 | Indexes | **Deployed** 2026-10-20 — 8 composite indexes from `design.md` §6 (`products.stock` is single-field/automatic, not in the file) |
 | Cloud Storage / Analytics / Gemini | Not enabled (by design) |
 | Registered apps | Android `1:658495017371:android:851470e927dca09816d13e` (`com.mostafasamy.merchant_orders`) · iOS `1:658495017371:ios:96c4a81f3016720116d13e` (`com.mostafasamy.merchantOrders`) |
