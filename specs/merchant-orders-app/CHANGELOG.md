@@ -6,6 +6,31 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-013 — 2026-10-21 — Session cubit (T1.3)
+
+**Request:** Implement T1.3.
+
+**Decision / done:**
+- **`features/session/presentation/cubit/`:** `SessionState` (`SessionStatus` unknown / unauthenticated / customer / adminActive / adminPending + live `user` + one-shot `message`) and `SessionCubit` (app-wide lazy singleton in `get_it`).
+  - Auth uid → listener on `users/{uid}` → state per D§4.1. Live changes from the Console re-route while the app is open (R3.8, R4.6).
+  - Forced sign-out + message: admin rejected → «تم رفض طلبك» (R3.4); customer not active → «تم إيقاف هذا الحساب» (R4.6); doc missing or malformed → «هذا الحساب غير موجود» (R4.4). Other listener errors → plain sign-out (R4.5). If `signOut` itself throws, the cubit still emits unauthenticated.
+  - `signOut()` (logout, no message), `refresh()` (pending screen, re-subscribes — R3.8), `clearMessage()` (login screen after showing the message).
+- **`AuthRepository` additions:** `authUidChanges()` (distinct uids), `watchProfile(uid)` and `isRegistering`.
+  - **Cache miss ≠ missing:** `watchProfile` drops "doesn't exist" snapshots that come from the cache, so a cold offline start can't sign the user out by mistake.
+  - **Registration race:** Firebase signs the new user in before the profile is written. `isRegistering` is true from account creation until the profile write finishes or is rolled back; the cubit ignores a missing profile then and keeps the current state, so the register screen stays up.
+  - Known edge: Firestore shows the local profile write immediately, so a registration that later times out offline (T1.2 rollback) briefly routes to the home screen before returning to login. Needs the connection to drop right after the online check; accepted.
+- New strings: `errorAccountNotFound`, `errorAdminRejected`.
+- **Dev dependency:** `bloc_test` 10.0.0 (D§9).
+- **Tests:** 23 new (18 cubit: every routing row, every forced sign-out, live approve / delete, registration with and without rollback, logout, failing signOut, clearMessage, refresh; 5 repo: cache-miss filter, malformed doc, distinct uids, `isRegistering` on success and failure); 111 total pass. `flutter analyze` clean.
+- Not wired into the router or app yet (T1.4), so nothing to check on a device.
+
+**Affected:**
+- Design: D§4.1 (implementation notes)
+- Tasks: T1.3 ✅
+- STATUS.md
+
+---
+
 ## CR-012 — 2026-10-21 — Auth repository (T1.2)
 
 **Request:** Implement T1.2.

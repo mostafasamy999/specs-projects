@@ -175,6 +175,11 @@ Status colors / labels: pending = amber "قيد الانتظار", inProgress = 
 | `adminPending` | `/pending-approval` |
 | `rejected` / doc missing | sign out + message → `/login` (R3.4, R4.4) |
 
+Implementation notes (CR-013):
+- `AuthRepository.authUidChanges()` + `watchProfile(uid)` feed the cubit. `watchProfile` emits null only when the **server** confirms the doc is missing — a cache miss on a cold offline start is not proof.
+- **Registration race:** Firebase signs the new user in before `users/{uid}` is written. While `AuthRepository.isRegistering` is true the cubit ignores a missing profile and keeps the current state (the register screen stays up with its progress / error).
+- Forced sign-outs carry a one-shot `SessionState.message`: admin `rejected` → «تم رفض طلبك»; customer not `active` → «تم إيقاف هذا الحساب»; doc missing or malformed → «هذا الحساب غير موجود». Other listener errors (e.g. Auth user deleted → reads denied) sign out without a message (R4.5).
+
 `go_router.redirect` reads `SessionCubit.state` and `refreshListenable` is a stream adapter on the cubit, so a status change in the Firebase Console (approve / delete / reject) re-routes immediately (R4.6, R3.8).
 
 ### 4.2 Registration (R1, R3)
