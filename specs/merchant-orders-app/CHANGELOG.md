@@ -6,6 +6,31 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-012 — 2026-10-21 — Auth repository (T1.2)
+
+**Request:** Implement T1.2.
+
+**Decision / done:**
+- **`features/auth/domain/repositories/auth_repository.dart`:** `AuthRepository` interface — `signIn`, `signOut`, `sendPasswordReset`, `registerCustomer` (requires `GeoLocation`), `registerAdmin`.
+  - Methods throw raw errors; callers map them with `mapFirebaseError`. They return nothing: the session (T1.3) routes from the auth + profile streams.
+- **`features/auth/data/repositories/auth_repository_impl.dart`** (registered in `get_it`):
+  - `ensureOnline()` before sign in, password reset and registration; `signOut` works offline.
+  - Email trimmed (password never). Name trimmed; phone trimmed + Arabic-Indic digits → Western. Profile `email` = Auth's copy (lower-cased by Firebase).
+  - Registration per D§4.2: create Auth user → write `users/{uid}` via `UserModel.toCreateMap` (customer → active + location, admin → pending).
+  - **Rollback (R1.7):** if the profile write fails, `user.delete()` and throw new `RegistrationFailedException` → «تعذر إكمال إنشاء الحساب، حاول مرة أخرى» (new `AppStrings.errorRegistrationFailed`, new D§8 row).
+  - **Profile-write timeout 20 s:** with offline persistence `set()` never fails offline — it waits for the server. The timeout turns that into a rollback instead of an endless spinner. A queued write that lands later is rejected by the rules because the Auth user is gone.
+  - If the delete also fails: sign out. **Known limitation:** that leaves an Auth user without a profile — the email shows "already in use" on re-register and sign-in ends at R4.4 («هذا الحساب غير موجود») until it's deleted from the Console. Rare (needs the connection to drop between the two calls); accepted for MVP.
+- **Dev dependency:** `mocktail` 1.0.5 (D§9).
+- **Tests:** 11 new (customer/admin profile maps, digit conversion, email trimming, rollback on error / timeout / failed delete, email-in-use passthrough, offline guards, signOut offline, error message); 88 total pass. `flutter analyze` clean.
+- **Not run against real Firebase** — it would create real accounts in the live project. First live check comes with the registration screens (T1.7/T1.8), full routing in T1.10.
+
+**Affected:**
+- Design: D§8 (`RegistrationFailedException` row)
+- Tasks: T1.2 ✅
+- STATUS.md
+
+---
+
 ## CR-011 — 2026-10-21 — User + location models (T1.1)
 
 **Request:** Implement T1.1.

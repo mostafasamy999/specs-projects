@@ -399,6 +399,7 @@ Search: prefix query `nameLower >= q && nameLower < q + ''` (U+F8FF — use `
 | `network-request-failed` / `unavailable` | لا يوجد اتصال بالإنترنت |
 | `permission-denied` | ليس لديك صلاحية لتنفيذ هذا الإجراء |
 | `ProductUnavailableException` | المنتج "<اسم المنتج>" لم يعد متاحاً وتم حذفه من السلة |
+| `RegistrationFailedException` (profile write failed, Auth user rolled back — R1.7, CR-012) | تعذر إكمال إنشاء الحساب، حاول مرة أخرى |
 | `ConcurrentUpdate` | تم تحديث الطلب بواسطة مسؤول آخر |
 | location services off | من فضلك فعّل خدمة الموقع (GPS) |
 | location permission denied | يجب السماح بالوصول للموقع لتحديد عنوان المنزل |
