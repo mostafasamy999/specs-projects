@@ -54,7 +54,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 ## Phase 4 — Admin operations
 
 - [x] **4.1** Admin shell (bottom nav: Dashboard · Orders · Products · More). _(D§7)_ — done 2026-10-21 (CR-035)
-- [ ] **4.2** Admin orders list (status filter, pending badge, real-time, pagination). _(R11.1)_
+- [x] **4.2** Admin orders list (status filter, pending badge, real-time, pagination). _(R11.1)_ — done 2026-10-21 (CR-036)
 - [ ] **4.3** Admin order details: tap-to-call, `AddressTile` + open in Google Maps, timeline. _(R11.2, R11.3)_
 - [ ] **4.4** `OrderRepository.changeStatus` transaction (allowed transitions, counter deltas, concurrency check) + cancel reason dialog. _(R11.4–11.7, D§4.4)_
 - [ ] **4.5** Orders update rule (`validTransition`); deploy. _(D§5)_

@@ -6,6 +6,22 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-036 — 2026-10-21 — Admin orders list (T4.2)
+
+**Request:** Implement T4.2.
+
+**Decision / done:**
+- **`OrderRepository.watchAll(status:, limit:)`**: every order, `createdAt` ↓, optional `status ==` — indexes `createdAt` (automatic) and (status, createdAt↓) (deployed). Admins only by the rules.
+- **`AdminOrdersScreen`** (R11.1): reuses `OrderListCubit` / `OrderListView` (live paging 20, status chips, empty / error states) and `OrderTile` with the customer's name as subtitle. Tap → admin order details.
+- **Pending count on the «قيد الانتظار» chip** (same live `CountCubit` as the Orders tab badge, T4.1) via the new `OrderListView.badgeFor` hook.
+- **Tests:** 3 new (all orders + customer name, no customer query; chip count + status filter query; tap → details); 318 total pass. `flutter analyze` clean.
+
+**Affected:**
+- Tasks: T4.2 ✅
+- STATUS.md
+
+---
+
 ## CR-035 — 2026-10-21 — Admin shell: pending badge, More menu, logout (T4.1)
 
 **Request:** Start Phase 4; implement T4.1.
