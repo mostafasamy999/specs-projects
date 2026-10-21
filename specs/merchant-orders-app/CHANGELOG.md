@@ -6,6 +6,27 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-019 — 2026-10-21 — Users security rules tightened (T1.9) — deploy pending
+
+**Request:** Implement T1.9 (users section of `firestore.rules`; deploy).
+
+**Decision / done:** the users rules from CR-000 (deployed in CR-004) were reviewed against what the app writes and tightened. Same intent, no new permissions:
+- **create:** keys limited to `name, phone, email, role, status, location, createdAt, updatedAt` (exactly `UserModel.toCreateMap`); `name` / `phone` strings; **`email == request.auth.token.email`** (no fake email copy); `createdAt` / `updatedAt == request.time` (server timestamps); admin profiles may not carry `location`. Before, any extra field (e.g. a planted `approvedBy`) and any email were accepted.
+- **self-edit:** only `name, phone, location, updatedAt` may change (exactly `UserModel.toSelfUpdateMap`); `location` only for customers and must be a map; `updatedAt == request.time`. Before, any key except six named ones could be added or changed.
+- **approve / reject:** unchanged, plus `approvedBy == request.auth.uid` when approving (audit trail can't be forged).
+- read / delete unchanged.
+- **D§5 updated** — the users block is identical to the repo `firestore.rules` (checked).
+- `firebase deploy --only firestore:rules --dry-run` → compiled successfully against the project.
+- **Not deployed:** the deploy to the live project was blocked by Claude Code's permission check (production deploy). **The user must run** `firebase deploy --only firestore:rules` in the Flutter project root. Until then the live project still runs the CR-004 rules (looser, but the app works with both).
+- **Not tested on the emulator:** rules tests (D§9: Firebase Emulator + `@firebase/rules-unit-testing`) need the Firestore emulator jar and the npm package, which aren't installed; downloading them needs the user's OK.
+
+**Affected:**
+- Design: D§5 (users rules)
+- Tasks: T1.9 (rules written; ⏳ deploy by user)
+- STATUS.md
+
+---
+
 ## CR-018 — 2026-10-21 — Admin registration + pending approval screen (T1.8)
 
 **Request:** Implement T1.8.

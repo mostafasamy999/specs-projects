@@ -281,23 +281,38 @@ service cloud.firestore {
     function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
 
     // ---------- users ----------
+    // Field lists match UserModel.toCreateMap / toSelfUpdateMap (CR-019).
     match /users/{uid} {
       allow read: if signedIn() && (request.auth.uid == uid || isActiveAdmin());
 
       allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(
+             ['name', 'phone', 'email', 'role', 'status', 'location', 'createdAt', 'updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.phone is string
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
         && ((request.resource.data.role == 'customer' && request.resource.data.status == 'active'
              && request.resource.data.location is map)
-         || (request.resource.data.role == 'admin' && request.resource.data.status == 'pending'));
+         || (request.resource.data.role == 'admin' && request.resource.data.status == 'pending'
+             && !('location' in request.resource.data)));
 
       allow update: if signedIn() && (
-           // self-edit: never role/status/approval/email
+           // self-edit: only name / phone / location (customers) — never role,
+           // status, approval fields, email or createdAt
            (request.auth.uid == uid
-             && !changed().hasAny(['role', 'status', 'approvedBy', 'approvedAt', 'email', 'createdAt']))
-           // admin approves / rejects another admin
+             && changed().hasOnly(['name', 'phone', 'location', 'updatedAt'])
+             && request.resource.data.updatedAt == request.time
+             && (!('location' in changed()) || resource.data.role == 'customer')
+             && (!('location' in changed()) || request.resource.data.location is map))
+           // admin approves / rejects another admin; approvedBy is the approver
         || (isActiveAdmin() && request.auth.uid != uid
              && resource.data.role == 'admin'
              && changed().hasOnly(['status', 'approvedBy', 'approvedAt', 'updatedAt'])
-             && request.resource.data.status in ['active', 'rejected'])
+             && request.resource.data.status in ['active', 'rejected']
+             && (request.resource.data.status == 'rejected'
+                 || request.resource.data.approvedBy == request.auth.uid))
       );
 
       allow delete: if false;   // deletion only from Firebase Console (R4.7)

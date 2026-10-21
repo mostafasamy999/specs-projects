@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-018)_
+_Last updated: 2026-10-21 (CR-019)_
 
 ## 1. Where things live
 
@@ -27,7 +27,7 @@ _Last updated: 2026-10-21 (CR-018)_
 | Plan | **Spark (no-cost), no billing account** — never upgrade |
 | Auth | Email/Password **enabled**; Email link (passwordless) **off**; no other providers |
 | Firestore | Database `(default)` · Standard edition · Native mode · **`europe-west1` (Belgium)** · production mode |
-| Security Rules | Deployed from repo `firestore.rules` (= `design.md` §5 verbatim) via `firebase deploy --only firestore` on 2026-10-20. Logic identical to the earlier Console version (that one had no comments). |
+| Security Rules | **Live: CR-004 version** (deployed 2026-10-20). **Repo: CR-019 version** (users section tightened 2026-10-21, not deployed yet). Logic identical to the earlier Console version (that one had no comments). |
 | Indexes | **Deployed** 2026-10-20 — 8 composite indexes from `design.md` §6 (`products.stock` is single-field/automatic, not in the file) |
 | Cloud Storage / Analytics / Gemini | Not enabled (by design) |
 | Registered apps | Android `1:658495017371:android:851470e927dca09816d13e` (`com.mostafasamy.merchant_orders`) · iOS `1:658495017371:ios:96c4a81f3016720116d13e` (`com.mostafasamy.merchantOrders`) |
@@ -74,11 +74,12 @@ _Last updated: 2026-10-21 (CR-018)_
 | T1.6 `LocationRepository` + `LocationCaptureSection` + `AddressTile` + `MapsLinks` | ✅ done 2026-10-21 (CR-016) |
 | T1.7 Customer registration + `RegistrationFields` (+ GPS-provider fallback, Android address fix) | ✅ done 2026-10-21 (CR-017) |
 | T1.8 Admin registration + Pending approval screen (server Refresh via `fetchProfile`) | ✅ done 2026-10-21 (CR-018) |
-| Everything from T1.9 onward | ⬜ not started |
+| T1.9 Users rules tightened (`firestore.rules` + D§5) | 🟡 written + compiled (dry run) 2026-10-21 (CR-019) — ⏳ **user must deploy** |
+| Everything from T1.10 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 
-1. Next: T1.9 (users section of `firestore.rules` — already deployed verbatim from D§5 in CR-004; T1.9 = verify the deployed rules match the repo and the app's write maps, deploy only if they differ).
+1. **User action:** in `/Users/mostafasamy/StudioProjects/merchant_orders` run `firebase deploy --only firestore:rules` (CR-019; the deploy from Claude Code was blocked by its permission check). Then T1.10 (bootstrap first admin from the Console, verify routing for every state).
 2. Conventions from T1.3:
    - `sl<SessionCubit>()` is an app-wide lazy singleton — nothing creates it yet. T1.4 must read it (e.g. in `createRouter` and a `BlocProvider.value` in `app.dart`) so it starts at launch.
    - Route by `state.status` (`SessionStatus.unknown` → splash, `unauthenticated` → login, `customer`, `adminActive`, `adminPending`). There is no `rejected` status: those are signed out and arrive as `unauthenticated` with `state.message`.
