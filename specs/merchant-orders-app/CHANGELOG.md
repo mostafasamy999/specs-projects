@@ -6,6 +6,25 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-037 — 2026-10-21 — Admin order details (T4.3)
+
+**Request:** Implement T4.3.
+
+**Decision / done:**
+- **`AdminOrderDetailsScreen`** (R11.2, R11.3): live (`watch(id)`), reuses `OrderDetailsView` with:
+  - **`CustomerContactCard`**: customer name + phone (LTR) + «اتصال» → `tel:` via `PhoneLinks.call` (manifest DIAL query from T0.3); failure → «تعذر بدء الاتصال». Optional `onTap` for the customer page (T4.7).
+  - **`directions: true`** → the address's «فتح في خرائط جوجل» opens turn-by-turn navigation to the GPS point (`/maps/dir/?api=1&destination=lat,lng`).
+  - items, total, note, timeline as for the customer.
+- Status actions come with T4.4.
+- `core/utils/phone_links.dart`.
+- **Tests:** 2 new (all sections + directions flag; tel URI); 320 total pass. `flutter analyze` clean.
+
+**Affected:**
+- Tasks: T4.3 ✅
+- STATUS.md
+
+---
+
 ## CR-036 — 2026-10-21 — Admin orders list (T4.2)
 
 **Request:** Implement T4.2.

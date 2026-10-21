@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-036)_
+_Last updated: 2026-10-21 (CR-037)_
 
 ## 1. Where things live
 
@@ -93,7 +93,8 @@ _Last updated: 2026-10-21 (CR-036)_
 | T3.8 Orders rules tightened + cart cap 50 | 🟡 written + compiled 2026-10-21 (CR-034) — ⏳ **user must deploy** — **Phase 3 code complete** |
 | T4.1 Admin shell: pending badge, More menu, logout (+ profile stand-in) | ✅ done 2026-10-21 (CR-035) |
 | T4.2 Admin orders list (`watchAll`, chip pending count) | ✅ done 2026-10-21 (CR-036) |
-| Everything from T4.3 onward | ⬜ not started |
+| T4.3 Admin order details (call, navigation) | ✅ done 2026-10-21 (CR-037) |
+| Everything from T4.4 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 
