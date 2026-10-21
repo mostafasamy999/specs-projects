@@ -6,6 +6,29 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-016 — 2026-10-21 — GPS location capture + AddressTile (T1.6)
+
+**Request:** Implement T1.6.
+
+**Decision / done:**
+- **`LocationRepository`** (`features/location/`, in `get_it`): `currentFix()`, `addressFor(lat, lng)`, `openLocationSettings()`, `openAppSettings()`.
+  - Flow per D§4.6: service off → `LocationServiceDisabledException`; permission `denied` → request once → still denied → `PermissionDeniedException`; `deniedForever` → new `LocationPermissionForeverException` («تم رفض إذن الموقع. اسمح به من إعدادات التطبيق»); high-accuracy fix with 15 s limit → `LocationTimeoutException`.
+  - `addressFor` uses the device geocoder in Arabic (`locale: ar`), 8 s limit, never throws (null → user types it, R2.7). `formatPlacemark` joins street / district / city / governorate, drops blanks, repeats and plus codes ("8GQ7+XX"), caps at 200 chars.
+  - Plugins sit behind a `LocationPlatform` adapter (`PluginLocationPlatform`) so the logic is unit-tested.
+  - geocoding 5.0.0's `Geocoding(locale:)` constructor drops the locale, so the locale is passed on each call.
+- **`LocationCaptureCubit`:** idle / locating / captured / failure, with `LocationFailureKind` (serviceOff, permissionDenied, permissionForever, other) choosing the UI action. A failed retry keeps the earlier fix. `GpsFix` value type added.
+- **`LocationCaptureSection`** (form section, R2.1–R2.9): hint «تأكد إنك في المنزل أثناء تحديد الموقع»; capture button (→ «إعادة تحديد الموقع» after a fix); success card with accuracy («الدقة: ± ٨ م») and «معاينة في خرائط جوجل»; > 100 m → warning, value still accepted (R2.6); failure card with «فتح إعدادات الموقع» / «فتح إعدادات التطبيق» where relevant, otherwise the capture button is the retry; address (required ≤ 200, prefilled by the geocoder unless the user already typed one) + details (optional ≤ 200). A `FormField` makes `Form.validate()` fail without a fix (R2.9). `onChanged` returns the complete `GeoLocation` or null. `initial` supports the profile edit (T5.x).
+- **`AddressTile`:** address + details + «فتح في خرائط جوجل»; `directions: true` opens navigation (admin, R11.3).
+- **`core/utils/maps_links.dart`:** `MapsLinks.search` / `directions` (D§4.6 URLs) + `open` (external app, false on failure → «تعذر فتح خرائط جوجل»).
+- **Tests:** 31 new (repository flow + timeouts + formatting; cubit success / 4 failure kinds / kept fix; section validation, prefill, typed address kept, cleared address, no geocoder result, low accuracy, settings buttons, denied once, initial value; AddressTile; URLs); 169 total pass. `flutter analyze` clean.
+- Device check happens in T1.7, the first screen that uses the section.
+
+**Affected:**
+- Tasks: T1.6 ✅
+- STATUS.md
+
+---
+
 ## CR-015 — 2026-10-21 — Splash, Login, Forgot password, Choose account type (T1.5)
 
 **Request:** Implement T1.5.

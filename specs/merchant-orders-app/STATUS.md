@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-015)_
+_Last updated: 2026-10-21 (CR-016)_
 
 ## 1. Where things live
 
@@ -71,11 +71,12 @@ _Last updated: 2026-10-21 (CR-015)_
 | T1.3 `SessionCubit` + `SessionState` (+ `authUidChanges` / `watchProfile` / `isRegistering` on `AuthRepository`) | ✅ done 2026-10-21 (CR-013) |
 | T1.4 Router `redirect` + `refreshListenable` (`sessionRedirect`, `StreamListenable`) | ✅ done 2026-10-21 (CR-014) |
 | T1.5 Splash, Login, Forgot password, Choose account type + `SubmitCubit` | ✅ done 2026-10-21 (CR-015) |
-| Everything from T1.6 onward | ⬜ not started |
+| T1.6 `LocationRepository` + `LocationCaptureSection` + `AddressTile` + `MapsLinks` | ✅ done 2026-10-21 (CR-016) |
+| Everything from T1.7 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 
-1. Next: T1.6 (`LocationCaptureSection` + `AddressTile`). Forms use `SubmitCubit` (`core/cubit/submit_cubit.dart`) + `showAppSnackBar` + `AuthFormLayout`; widget tests use `useFakeSession` and swap `AuthRepository` in `sl`.
+1. Next: T1.7 (customer registration). Use `LocationCaptureSection(onChanged: …)` inside the `Form` (it validates fix + address itself) and `SubmitCubit` + `sl<AuthRepository>().registerCustomer(...)`. Check the section on the emulator there (real GPS + geocoder).
 2. Conventions from T1.3:
    - `sl<SessionCubit>()` is an app-wide lazy singleton — nothing creates it yet. T1.4 must read it (e.g. in `createRouter` and a `BlocProvider.value` in `app.dart`) so it starts at launch.
    - Route by `state.status` (`SessionStatus.unknown` → splash, `unauthenticated` → login, `customer`, `adminActive`, `adminPending`). There is no `rejected` status: those are signed out and arrive as `unauthenticated` with `state.message`.
