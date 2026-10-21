@@ -103,6 +103,23 @@ _Last updated: 2026-10-21 (CR-019)_
 8. Conventions: every Arabic string goes in `core/constants/app_strings.dart`; for a custom font weight use `style.withCairoWeight(FontWeight.wXXX)`, not `copyWith(fontWeight:)` (Cairo is a variable font).
 9. Skeleton notes: routes live in `lib/core/router/app_routes.dart`; the splash placeholder has dev links to login / customer / admin until T1.4 adds the session `redirect`.
 
+## 5a. T1.10 checklist (user + Android emulator)
+
+Run the app: `flutter run -d emulator-5554` in the Flutter project root. Use real email addresses you control.
+
+1. **Deploy rules first** (CR-019): `firebase deploy --only firestore:rules`.
+2. **Admin bootstrap (R3.10):** register an admin in the app → pending screen with your name/email. Tap «تحديث» → «لا يزال طلبك قيد المراجعة».
+3. In the Console → Firestore → `users/{uid}` → set `status` = `active` **while the pending screen is open** → app opens the dashboard by itself (R3.8).
+4. Logout (More → Profile has no logout yet — kill and relaunch instead) → relaunch → splash → dashboard (persisted session, R4.3).
+5. **Customer:** logout, register a customer with GPS → products screen (R1.5). Check `users/{uid}` has `location` with `lat/lng/accuracyM/address/details/capturedAt` and server `createdAt`.
+6. **Customer disabled:** Console: set the customer's `status` = `rejected` while signed in → signed out, login shows «تم إيقاف هذا الحساب» (R4.6). Set it back to `active`.
+7. **Admin rejected:** register a second admin, Console `status` = `rejected` → signed out with «تم رفض طلبك» (R3.4); logging in again → same message.
+8. **Profile deleted:** Console: delete a customer's `users/{uid}` doc while signed in → «هذا الحساب غير موجود» (R4.4). (The Auth user stays; delete it in Authentication.)
+9. **Errors:** wrong password → «البريد الإلكتروني أو كلمة المرور غير صحيحة»; register an email again → «البريد الإلكتروني مستخدم بالفعل»; airplane mode + login → «لا يوجد اتصال بالإنترنت».
+10. Password reset email arrives (check spam).
+
+Note: the in-app logout button for active users comes with the profile screen (Phase 5); until then only the pending screen has one.
+
 ## 6. Rules for whoever continues
 
 - Do **not** add billing, Cloud Storage, Cloud Functions, Maps SDK, Analytics.
