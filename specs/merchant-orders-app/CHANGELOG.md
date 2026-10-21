@@ -6,6 +6,27 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-018 — 2026-10-21 — Admin registration + pending approval screen (T1.8)
+
+**Request:** Implement T1.8.
+
+**Decision / done:**
+- **`RegisterAdminScreen`** (R3.1, R3.2): info note («بعد التسجيل سيراجع مسؤول آخر طلبك…») + shared `RegistrationFields` (no location) → `AuthRepository.registerAdmin`. The new profile is `pending`, so the session routes to the pending screen.
+- **`PendingApprovalScreen`** (R3.3, R3.8): hourglass, «طلبك قيد المراجعة», explanation, the user's name + email, «تحديث» and «تسجيل الخروج». No back button. Approval (in the app or the Console) re-routes to the dashboard by itself through the session listener.
+- **Refresh now asks the server (design change):** `SessionCubit.refresh()` is a `Future` that reads `users/{uid}` with `Source.server` (new `AuthRepository.fetchProfile`, online check first), applies it like a listener event (approved → admin area, rejected → signed out with «تم رفض طلبك», missing → «هذا الحساب غير موجود»), then re-subscribes the listener. The screen shows «لا يزال طلبك قيد المراجعة» when nothing changed and the connection message when offline.
+- **Rejected handling (R3.4)** stays in the session (CR-013): a rejected admin is signed out with the message, shown on the login screen.
+- **Bug fixed (found by the new tests):** `_forceSignOut` cleared the profile subscription only after awaiting its cancel, so a `refresh()` that ended in a forced sign-out re-subscribed a stale listener. The field is now cleared before the await.
+- Test helper `useFakeSession` stubs `refresh` / `signOut`.
+- **Tests:** 14 new (admin form: no location, submit, 5 required errors, pending redirect; pending screen: user shown + no back button, refresh still pending, refresh offline, live approval → dashboard, logout; session refresh: approved, still pending, rejected, offline, signed out; repo `fetchProfile` server source / missing / offline); 192 total pass. `flutter analyze` clean.
+- **Device (Android emulator):** admin form renders RTL with the note. Pending screen needs a real pending account → checked in T1.10.
+
+**Affected:**
+- Design: D§4.1 (Refresh reads from the server) — see implementation notes
+- Tasks: T1.8 ✅
+- STATUS.md
+
+---
+
 ## CR-017 — 2026-10-21 — Customer registration screen (T1.7) + location fixes found on device
 
 **Request:** Implement T1.7.

@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-017)_
+_Last updated: 2026-10-21 (CR-018)_
 
 ## 1. Where things live
 
@@ -73,11 +73,12 @@ _Last updated: 2026-10-21 (CR-017)_
 | T1.5 Splash, Login, Forgot password, Choose account type + `SubmitCubit` | ✅ done 2026-10-21 (CR-015) |
 | T1.6 `LocationRepository` + `LocationCaptureSection` + `AddressTile` + `MapsLinks` | ✅ done 2026-10-21 (CR-016) |
 | T1.7 Customer registration + `RegistrationFields` (+ GPS-provider fallback, Android address fix) | ✅ done 2026-10-21 (CR-017) |
-| Everything from T1.8 onward | ⬜ not started |
+| T1.8 Admin registration + Pending approval screen (server Refresh via `fetchProfile`) | ✅ done 2026-10-21 (CR-018) |
+| Everything from T1.9 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 
-1. Next: T1.8 (admin registration + pending approval screen). Reuse `RegistrationFields` / `RegistrationControllers`; pending screen uses `SessionCubit.refresh()` / `signOut()`.
+1. Next: T1.9 (users section of `firestore.rules` — already deployed verbatim from D§5 in CR-004; T1.9 = verify the deployed rules match the repo and the app's write maps, deploy only if they differ).
 2. Conventions from T1.3:
    - `sl<SessionCubit>()` is an app-wide lazy singleton — nothing creates it yet. T1.4 must read it (e.g. in `createRouter` and a `BlocProvider.value` in `app.dart`) so it starts at launch.
    - Route by `state.status` (`SessionStatus.unknown` → splash, `unauthenticated` → login, `customer`, `adminActive`, `adminPending`). There is no `rejected` status: those are signed out and arrive as `unauthenticated` with `state.message`.
