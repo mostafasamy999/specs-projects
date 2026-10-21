@@ -6,6 +6,25 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-032 — 2026-10-21 — My orders (T3.6)
+
+**Request:** Implement T3.6.
+
+**Decision / done:**
+- **`OrderRepository.watchCustomerOrders(uid, status:, limit:)`**: `customerId == uid` (+ `status ==`), `createdAt` ↓, `limit` — uses the existing indexes (customerId, createdAt↓) and (customerId, status, createdAt↓). **`watch(orderId)`** for details (T3.7).
+- **`OrderListCubit`** (shared with the admin list, T4.2): takes an `OrderQuery`; `setFilter(status)` restarts at one page; `loadMore()` widens the **live** query's limit by 20 (R14.4), so every loaded order keeps updating in real time; `hasMore` when a full page came back; error → failure (keeps loaded orders), `retry()`.
+- **`OrderListView`**: status chips الكل / قيد الانتظار / جاري التحضير / تم / ملغي (R10.2 "tabs/filters" — chips fit five Arabic labels on a phone) + list; loads the next page near the end of the scroll; empty → «لا توجد طلبات بعد» / «لا توجد طلبات بهذه الحالة».
+- **`OrderTile`**: «طلب #ABC123», date + time, «n قطعة», total, colored status badge (R10.1); optional subtitle (admin shows the customer).
+- **`MyOrdersScreen`**: the customer's list; tap → order details.
+- Test helpers: `useFakeOrders()` stubs empty lists; `test/helpers/order_fixtures.dart` (`testOrder`, `testLocation`). Removed the `devSampleOrder` string (admin orders placeholder kept until T4.2).
+- **Tests:** 8 new (cubit first page / loadMore + hasMore / filter reset / error + retry; screen rows, filter chip query, empty, tap → details); 305 total pass. `flutter analyze` clean.
+
+**Affected:**
+- Tasks: T3.6 ✅
+- STATUS.md
+
+---
+
 ## CR-031 — 2026-10-21 — Unavailable products at checkout (T3.5)
 
 **Request:** Implement T3.5.
