@@ -6,6 +6,22 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-026 — 2026-10-21 — Receive stock dialog (T2.7) — Phase 2 code complete
+
+**Request:** Implement T2.7.
+
+**Decision / done:**
+- **`ReceiveStockDialog`** (R6.8): opened from a new «إضافة كمية مستلمة» icon button on every admin product row. Shows the product name, «المخزون: n» and the red «عجز n» badge when negative; quantity field (integer > 0, Arabic digits accepted); live preview «المخزون بعد الاستلام: x» (e.g. −5 + 20 → 15); «إضافة» saves via `ProductRepository.receiveStock` (`FieldValue.increment` — orders placed at the same moment are kept). Success closes the dialog → «تمت إضافة n إلى المخزون»; failure keeps it open with the message; cancel saves nothing.
+- **Manual stock correction (R6.9)** was already done in the edit form (T2.3, CR-022: «المخزون الحالي», any integer, written only when changed).
+- **Tests:** 5 new (shortage + preview with Arabic digits, save + confirmation, 0 / text rejected, failure stays open, cancel); 262 total pass. `flutter analyze` clean.
+- **Phase 2 status:** all code done. Still open: the rules deploy (user, CR-019 + CR-025) and device checks of the admin/customer product screens, which need the accounts from T1.10.
+
+**Affected:**
+- Tasks: T2.7 ✅
+- STATUS.md
+
+---
+
 ## CR-025 — 2026-10-21 — Products + productImages rules tightened (T2.6) — deploy pending
 
 **Request:** Implement T2.6 (products + productImages rules; deploy; product indexes).

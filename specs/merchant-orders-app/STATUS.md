@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-025)_
+_Last updated: 2026-10-21 (CR-026)_
 
 ## 1. Where things live
 
@@ -82,33 +82,35 @@ _Last updated: 2026-10-21 (CR-025)_
 | T2.4 Admin products list + `ProductListCubit` (on-device search) | ✅ done 2026-10-21 (CR-023) — device check after T1.10 |
 | T2.5 Customer grid + product details + `QuantitySelector` / `StockText` (add-to-cart in T3.1) | ✅ done 2026-10-21 (CR-024) — device check after T1.10 |
 | T2.6 Products + productImages rules tightened (`firestore.rules` + D§5) | 🟡 written + compiled 2026-10-21 (CR-025) — ⏳ **user must deploy** |
-| Everything from T2.7 onward | ⬜ not started |
+| T2.7 Receive stock dialog (+ manual correction from T2.3) | ✅ done 2026-10-21 (CR-026) — **Phase 2 code complete** |
+| Everything from T3.1 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 
 1. **User action:** in `/Users/mostafasamy/StudioProjects/merchant_orders` run `firebase deploy --only firestore:rules` (covers CR-019 + CR-025; deploys from Claude Code are blocked by its permission check). Then T1.10 (checklist §5a). Phase 2 screens (T2.3–T2.5) still need a device check once an admin and a customer exist.
-2. Conventions from T1.3:
+2. Then Phase 3 (T3.1 `CartCubit`): wire `ProductDetailsScreen(onAddToCart:)` — the button is disabled until then. Reuse `QuantitySelector` (1…99) and `StockText`. Conventions from Phase 2: product lists use `ProductListCubit` + on-device search; images via `ProductImage` / `ProductImageCache` (key `id:imageVersion`); admin product writes never send `activeQty` / `totalQty`; `stock` only when the admin corrected it; tests use `useFakeProducts()`.
+3. Conventions from T1.3:
    - `sl<SessionCubit>()` is an app-wide lazy singleton — nothing creates it yet. T1.4 must read it (e.g. in `createRouter` and a `BlocProvider.value` in `app.dart`) so it starts at launch.
    - Route by `state.status` (`SessionStatus.unknown` → splash, `unauthenticated` → login, `customer`, `adminActive`, `adminPending`). There is no `rejected` status: those are signed out and arrive as `unauthenticated` with `state.message`.
    - The login screen shows `state.message` once (SnackBar) and calls `clearMessage()`.
    - Logout buttons call `SessionCubit.signOut()` (not the repository directly). The pending screen's Refresh calls `refresh()`.
    - During registration the state stays `unauthenticated`, so the redirect must allow `/register/**` routes while unauthenticated — otherwise the register screen is thrown away mid-registration.
-3. Conventions from T1.2:
+4. Conventions from T1.2:
    - Use `sl<AuthRepository>()`. Its methods throw raw errors; cubits call `mapFirebaseError(e).message` for the UI. Nothing is returned — routing after sign-in/registration comes from the session (T1.3).
    - The repository already calls `ensureOnline()` (not for `signOut`) and converts phone digits to Western; screens don't repeat that.
    - A failed profile write deletes the new Auth user and throws `RegistrationFailedException` («تعذر إكمال إنشاء الحساب، حاول مرة أخرى»). If the delete also fails it signs out; that orphan Auth user has no profile, so the session must treat "signed in, no `users/{uid}`" as R4.4 (sign out + «هذا الحساب غير موجود»).
    - Repo tests mock Firebase with `mocktail` (dev dep). Mocking `DocumentReference` needs `// ignore: subtype_of_sealed_class`.
    - Not run against real Firebase yet (would create real accounts) — first live check is T1.7/T1.8, full routing check T1.10.
-4. Conventions from T1.1:
+5. Conventions from T1.1:
    - Read `users/{uid}` with `UserModel.fromSnapshot` / `fromMap`. A malformed doc (unknown role/status, missing field) throws — the session (T1.3) must treat that like a missing profile.
    - Write with `UserModel.toCreateMap` (registration; caller sets customer→active + location, admin→pending) and `UserModel.toSelfUpdateMap` (profile edits). Both match the D§5 users rules.
    - Collection names come from `FirestorePaths` (`core/constants/firestore_paths.dart`), not string literals.
    - `GeoLocationModel` map shape is reused for the order location snapshot (T3.3). `capturedAt` is device time; `createdAt`/`updatedAt` are server timestamps and read back as `null` while a local write is pending.
-5. Conventions from T0.8: before any server-only action call `await sl<ConnectivityService>().ensureOnline()` (throws `NoConnectionException` → «لا يوجد اتصال بالإنترنت» via `mapFirebaseError`). Get Firestore only via `sl<FirebaseFirestore>()` so the offline settings apply.
-6. Next iOS build will add the `connectivity_plus` pod to `Podfile.lock` (not built in T0.8).
-7. Conventions from T0.7: show numbers via `Formatters` (ar_EG, Arabic-Indic digits); pass user-typed numbers through `ArabicNormalizer.digitsToWestern` before saving; store `nameLower = ArabicNormalizer.normalize(name)`; the location repo throws `LocationTimeoutException` (not a bare `TimeoutException`).
-8. Conventions: every Arabic string goes in `core/constants/app_strings.dart`; for a custom font weight use `style.withCairoWeight(FontWeight.wXXX)`, not `copyWith(fontWeight:)` (Cairo is a variable font).
-9. Skeleton notes: routes live in `lib/core/router/app_routes.dart`; the splash placeholder has dev links to login / customer / admin until T1.4 adds the session `redirect`.
+6. Conventions from T0.8: before any server-only action call `await sl<ConnectivityService>().ensureOnline()` (throws `NoConnectionException` → «لا يوجد اتصال بالإنترنت» via `mapFirebaseError`). Get Firestore only via `sl<FirebaseFirestore>()` so the offline settings apply.
+7. Next iOS build will add the `connectivity_plus` pod to `Podfile.lock` (not built in T0.8).
+8. Conventions from T0.7: show numbers via `Formatters` (ar_EG, Arabic-Indic digits); pass user-typed numbers through `ArabicNormalizer.digitsToWestern` before saving; store `nameLower = ArabicNormalizer.normalize(name)`; the location repo throws `LocationTimeoutException` (not a bare `TimeoutException`).
+9. Conventions: every Arabic string goes in `core/constants/app_strings.dart`; for a custom font weight use `style.withCairoWeight(FontWeight.wXXX)`, not `copyWith(fontWeight:)` (Cairo is a variable font).
+10. Skeleton notes: routes live in `lib/core/router/app_routes.dart`; the splash placeholder has dev links to login / customer / admin until T1.4 adds the session `redirect`.
 
 ## 5a. T1.10 checklist (user + Android emulator)
 
