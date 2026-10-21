@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-20 (CR-010)_
+_Last updated: 2026-10-21 (CR-011)_
 
 ## 1. Where things live
 
@@ -66,16 +66,22 @@ _Last updated: 2026-10-20 (CR-010)_
 | T0.6 Core widgets + `OrderStatus` enum | ✅ done 2026-10-20 (CR-008) |
 | T0.7 `Failure` / `mapFirebaseError`, validators, formatters (ar_EG), Arabic normalizer | ✅ done 2026-10-20 (CR-009) |
 | T0.8 Firestore offline cache (100 MB) + `ConnectivityService` (`connectivity_plus`) | ✅ done 2026-10-20 (CR-010) — **Phase 0 complete** |
-| Everything from Phase 1 (T1.1) onward | ⬜ **waiting for the user's go-ahead** |
+| T1.1 `UserEntity` / `UserModel` + `GeoLocation` / `GeoLocationModel` + `FirestorePaths` | ✅ done 2026-10-21 (CR-011) |
+| Everything from T1.2 onward | ⬜ **waiting for the user's go-ahead** |
 
 ## 5. Next session — exact order
 
-1. Wait for the user to say to start Phase 1 (T1.1 `UserEntity` / `UserModel`).
-2. Conventions from T0.8: before any server-only action call `await sl<ConnectivityService>().ensureOnline()` (throws `NoConnectionException` → «لا يوجد اتصال بالإنترنت» via `mapFirebaseError`). Get Firestore only via `sl<FirebaseFirestore>()` so the offline settings apply.
-3. Next iOS build will add the `connectivity_plus` pod to `Podfile.lock` (not built in T0.8).
-4. Conventions from T0.7: show numbers via `Formatters` (ar_EG, Arabic-Indic digits); pass user-typed numbers through `ArabicNormalizer.digitsToWestern` before saving; store `nameLower = ArabicNormalizer.normalize(name)`; the location repo throws `LocationTimeoutException` (not a bare `TimeoutException`).
-3. Conventions: every Arabic string goes in `core/constants/app_strings.dart`; for a custom font weight use `style.withCairoWeight(FontWeight.wXXX)`, not `copyWith(fontWeight:)` (Cairo is a variable font).
-4. Skeleton notes: routes live in `lib/core/router/app_routes.dart`; the splash placeholder has dev links to login / customer / admin until T1.4 adds the session `redirect`.
+1. Wait for the user to say to start T1.2 (`AuthRepository`).
+2. Conventions from T1.1:
+   - Read `users/{uid}` with `UserModel.fromSnapshot` / `fromMap`. A malformed doc (unknown role/status, missing field) throws — the session (T1.3) must treat that like a missing profile.
+   - Write with `UserModel.toCreateMap` (registration; caller sets customer→active + location, admin→pending) and `UserModel.toSelfUpdateMap` (profile edits). Both match the D§5 users rules.
+   - Collection names come from `FirestorePaths` (`core/constants/firestore_paths.dart`), not string literals.
+   - `GeoLocationModel` map shape is reused for the order location snapshot (T3.3). `capturedAt` is device time; `createdAt`/`updatedAt` are server timestamps and read back as `null` while a local write is pending.
+3. Conventions from T0.8: before any server-only action call `await sl<ConnectivityService>().ensureOnline()` (throws `NoConnectionException` → «لا يوجد اتصال بالإنترنت» via `mapFirebaseError`). Get Firestore only via `sl<FirebaseFirestore>()` so the offline settings apply.
+4. Next iOS build will add the `connectivity_plus` pod to `Podfile.lock` (not built in T0.8).
+5. Conventions from T0.7: show numbers via `Formatters` (ar_EG, Arabic-Indic digits); pass user-typed numbers through `ArabicNormalizer.digitsToWestern` before saving; store `nameLower = ArabicNormalizer.normalize(name)`; the location repo throws `LocationTimeoutException` (not a bare `TimeoutException`).
+6. Conventions: every Arabic string goes in `core/constants/app_strings.dart`; for a custom font weight use `style.withCairoWeight(FontWeight.wXXX)`, not `copyWith(fontWeight:)` (Cairo is a variable font).
+7. Skeleton notes: routes live in `lib/core/router/app_routes.dart`; the splash placeholder has dev links to login / customer / admin until T1.4 adds the session `redirect`.
 
 ## 6. Rules for whoever continues
 

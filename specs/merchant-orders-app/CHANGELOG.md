@@ -6,6 +6,28 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-011 — 2026-10-21 — User + location models (T1.1)
+
+**Request:** Implement T1.1.
+
+**Decision / done:**
+- **`features/auth/domain/entities/user_entity.dart`:** `UserEntity` (Equatable) with every D§3.1 field, plus `UserRole` (`customer` / `admin`) and `UserStatus` (`active` / `pending` / `rejected`) enums. Helpers: `isCustomer`, `isAdmin`, `isActive`, `isPending`, `isRejected`, `copyWith`.
+  - Unknown role/status → `FormatException` (not a silent default), so a bad doc can't be routed as a valid user.
+  - `createdAt` / `updatedAt` / `approvedAt` are nullable: server timestamps read back as `null` from the local cache until the write is confirmed.
+- **`features/auth/data/models/user_model.dart`:** `UserModel.fromSnapshot` / `fromMap`, and two write maps that follow the D§5 users rules:
+  - `toCreateMap`: profile + role + status + `location` (only when set) + server `createdAt` / `updatedAt`. No approval fields.
+  - `toSelfUpdateMap`: only `name`, `phone`, optional `location`, `updatedAt`.
+- **`features/location/`:** `GeoLocation` entity (`lat`, `lng`, `accuracyM`, `address`, `details`, `capturedAt`; `isLowAccuracy` > 100 m per R2.6) and `GeoLocationModel` map conversion. Whole numbers stored as `int` are read as `double`; missing `details` → `''`. Same map shape will be used for the order location snapshot (D§3.3).
+- **`core/constants/firestore_paths.dart`** (listed in D§2, now created): `FirestorePaths.users`, `user(uid)`.
+- No repository or DI changes (that's T1.2).
+- **Tests:** 13 new (round-trip, int coordinates, accuracy threshold, all roles/statuses, pending timestamps, unknown values, write-map keys); 77 total pass. `flutter analyze` clean. No device run (models only).
+
+**Affected:**
+- Tasks: T1.1 ✅
+- STATUS.md (progress, T1.1 conventions, §5 numbering fixed)
+
+---
+
 ## CR-010 — 2026-10-20 — Offline cache + connectivity check (T0.8) — Phase 0 complete
 
 **Request:** Implement T0.8 using `connectivity_plus` (user chose it over an internet-ping package or a timeout-only approach).

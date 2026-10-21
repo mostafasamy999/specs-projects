@@ -19,7 +19,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 
 ## Phase 1 — Auth, session, roles
 
-- [ ] **1.1** `UserEntity` / `UserModel` (role, status, location). _(D§3.1)_
+- [x] **1.1** `UserEntity` / `UserModel` (role, status, location). _(D§3.1)_ — done 2026-10-21 (CR-011); also `GeoLocation` + `GeoLocationModel` and `core/constants/firestore_paths.dart`
 - [ ] **1.2** `AuthRepository`: signIn, signOut, sendPasswordReset, registerCustomer, registerAdmin (with Auth rollback on profile failure). _(R1.4, R1.7, R3.2, R4.1)_
 - [ ] **1.3** `SessionCubit`: authStateChanges + `users/{uid}` listener → SessionState; sign out on missing doc / non-active status. _(R4.2–4.6, D§4.1)_
 - [ ] **1.4** Router `redirect` + `refreshListenable` per SessionState table. _(D§4.1)_
