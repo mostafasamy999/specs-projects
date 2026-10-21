@@ -6,6 +6,27 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-042 — 2026-10-21 — Admin dashboard (T5.1–T5.3) — Phase 5 code complete
+
+**Request:** Finish the open tasks; start with Phase 5.
+
+**Decision / done:**
+- **Product demand (T5.1, R7.1–R7.3):** `ProductDemandCubit` over the live `watchAll` (every product incl. hidden, as R7.1 says "every product"). Each row: image, name, «مطلوب الآن» (`activeQty`), «إجمالي المطلوب» (`totalQty`), «المخزون», red «عجز n» when stock < 0, «مخفي» for hidden products. Sort chips «المطلوب الآن» (default) · «إجمالي المطلوب» · «العجز» (`stock`↑).
+  - **Changed from D§4.7:** sorting is **on-device** instead of three Firestore `orderBy` queries. Switching the sort costs no reads, works offline, and needs no index, the same reasoning as the search (CR-023). D§4.7 and D§6 are updated to match; the `stock` single-field index is no longer used.
+- **Status cards (T5.2, R7.4):** `OrderRepository.countByStatus()` makes 4 `count()` aggregations in parallel after `ensureOnline()`. `OrderCountsCubit` loads them on open, on pull-to-refresh, and on `OrderRepository.statusChanges` (a new broadcast stream fired after every successful `changeStatus` on this device). Only the newest request may update the state, so a slow answer can't overwrite a newer one. A failure keeps the last counts and shows «تعذر تحميل الأعداد — <error>» with a retry button.
+- **Product → active orders (T5.3, R7.5):** new route `/admin/dashboard/products/:productId/orders` → `ProductOrdersScreen`. The header shows the live product (image, name, active quantity). The list uses `watchActiveWithProduct` (`productIds` array-contains + `status` whereIn pending/inProgress, `createdAt`↓, existing index), live and 20 per page, with chips «كل النشطة» / pending / inProgress. Each row shows «<customer> · الكمية: n» for this product; tapping opens the admin order details.
+- `OrderListView` gained `filters`, `allLabel` and `emptyMessage` (defaults unchanged); its static `filters` list was renamed `allFilters`.
+- Orders placed on other devices don't refresh the counts (aggregations aren't live). This is accepted by R7.4; the demand list itself is live.
+- **Tests:** 17 new (sort orders and ties; counts cubit load / refresh on status change / stale answer / failure; dashboard cards, rows, sort, live update, pull-to-refresh, offline retry, empty; product → orders with quantities and active-only chips; empty product orders; repo `statusChanges` only on success; offline `countByStatus`). All 365 tests pass and `flutter analyze` is clean.
+- **Not verified on a device:** an active admin account is needed first (T1.10).
+
+**Affected:**
+- Design: D§4.7, D§6 (`stock` index row)
+- Tasks: T5.1 ✅, T5.2 ✅, T5.3 ✅
+- STATUS.md
+
+---
+
 ## CR-041 — 2026-10-21 — Customers directory + customer details (T4.7) — Phase 4 code complete
 
 **Request:** Implement T4.7.

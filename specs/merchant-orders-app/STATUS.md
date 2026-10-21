@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-041)_
+_Last updated: 2026-10-21 (CR-042)_
 
 ## 1. Where things live
 
@@ -98,12 +98,15 @@ _Last updated: 2026-10-21 (CR-041)_
 | T4.5 Orders update rule tightened | 🟡 written + compiled 2026-10-21 (CR-039) — ⏳ **user must deploy** |
 | T4.6 Admin requests + `UsersRepository` (+ More count) | ✅ done 2026-10-21 (CR-040) |
 | T4.7 Customers directory + customer details | ✅ done 2026-10-21 (CR-041) — **Phase 4 code complete** |
-| Everything from T5.1 onward | ⬜ not started |
+| T5.1 Product demand list (`ProductDemandCubit`, on-device sort) | ✅ done 2026-10-21 (CR-042) |
+| T5.2 Status count cards (`OrderCountsCubit`, `count()`, refresh on pull + `statusChanges`) | ✅ done 2026-10-21 (CR-042) |
+| T5.3 Product → active orders (`ProductOrdersScreen`, `watchActiveWithProduct`) | ✅ done 2026-10-21 (CR-042) — **Phase 5 code complete**; device check after T1.10 |
+| Everything from T6.1 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 
 1. **User action:** in `/Users/mostafasamy/StudioProjects/merchant_orders` run `firebase deploy --only firestore:rules` (covers CR-019 + CR-025 + CR-034 + CR-039; deploys from Claude Code are blocked by its permission check). Then T1.10 (checklist §5a). Phase 2–3 screens still need a device check once an admin and a customer exist (D§9 QA list: two devices, concurrent orders on a stock-0 product, hide while in cart).
-2. Then Phase 5 (T5.1 product demand dashboard). Reuse: `ProductListCubit` (`watchAll`) for the demand list, `CountCubit` for badges, `UsersRepository` for user lists, `OrderListView` for "orders containing product X" (index `productIds` array-contains + status + createdAt). T5.2 status counts should refresh after `changeStatus` (D§4.4). Tests: `useFakeProducts/Orders/Users()` + `order_fixtures.dart`.
+2. Then Phase 6 (T6.1 profile screen). `ProfileScreen` is still a placeholder (admin More → «الملف الشخصي» and the customer tab both open it). Reuse: `UserModel.toSelfUpdateMap` (matches the users rules), `RegistrationFields` / `LocationCaptureSection` for the customer location edit, `LogoutTile` → `SessionCubit.signOut()`. The session listener already re-emits the edited profile. Conventions from T5: dashboard lives in `features/dashboard/`; `OrderListView` takes `filters` / `allLabel` / `emptyMessage`; widget tests that need long lists set `tester.view.physicalSize`.
 3. Conventions from T1.3:
    - `sl<SessionCubit>()` is an app-wide lazy singleton — nothing creates it yet. T1.4 must read it (e.g. in `createRouter` and a `BlocProvider.value` in `app.dart`) so it starts at launch.
    - Route by `state.status` (`SessionStatus.unknown` → splash, `unauthenticated` → login, `customer`, `adminActive`, `adminPending`). There is no `rejected` status: those are signed out and arrive as `unauthenticated` with `state.message`.

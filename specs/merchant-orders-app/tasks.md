@@ -63,9 +63,9 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 
 ## Phase 5 — Dashboard (P1)
 
-- [ ] **5.1** Product demand list (real-time, sort by activeQty / totalQty / shortage, stock + shortage column). _(R7.1–7.3, D§4.7)_
-- [ ] **5.2** Status count cards via `count()` aggregation, refreshed on open / pull / after status change. _(R7.4)_
-- [ ] **5.3** Tap product → active orders containing it (`productIds array-contains`). _(R7.5, D§6)_
+- [x] **5.1** Product demand list (real-time, sort by activeQty / totalQty / shortage, stock + shortage column). _(R7.1–7.3, D§4.7)_ — done 2026-10-21 (CR-042); sorted on-device
+- [x] **5.2** Status count cards via `count()` aggregation, refreshed on open / pull / after status change. _(R7.4)_ — done 2026-10-21 (CR-042)
+- [x] **5.3** Tap product → active orders containing it (`productIds array-contains`). _(R7.5, D§6)_ — done 2026-10-21 (CR-042) — **Phase 5 code complete**; device check after T1.10
 
 ## Phase 6 — Profile
 

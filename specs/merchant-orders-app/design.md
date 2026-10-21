@@ -263,10 +263,10 @@ tap "تحديد موقعي الحالي"
 
 ### 4.7 Dashboard (R7)
 
-- **Product demand list:** `products.orderBy('activeQty', descending: true).snapshots()` — real-time, toggle sort to `totalQty`, or to shortage via `orderBy('stock')` ascending (most negative first).
+- **Product demand list:** the live `products` query (`watchAll`, every product incl. hidden), **sorted on-device** (CR-042) by `activeQty`↓ (default), `totalQty`↓, or shortage = `stock`↑ (most negative first); ties → the other counter ↓, then A→Z. Switching the sort costs no reads and needs no extra index (one merchant's catalog is small, like the on-device search — CR-023).
 - **Receive stock (R6.8):** `products/{id}.update({'stock': FieldValue.increment(received), 'updatedAt': serverTimestamp()})`.
-- **Status cards:** 4 × `orders.where('status', isEqualTo: s).count().get()` (aggregation = cheap, not real-time → refreshed on open / pull / after status change).
-- **Tap product:** `orders.where('productIds', arrayContains: id).where('status', whereIn: ['pending','inProgress']).orderBy('createdAt', descending: true)`.
+- **Status cards:** 4 × `orders.where('status', isEqualTo: s).count().get()` (aggregation = cheap, not real-time → refreshed on open / pull / after status change). Server only: `ensureOnline()` first; on failure the last counts stay with «تعذر تحميل الأعداد» + retry. "After status change" = `OrderRepository.statusChanges`, fired after every successful `changeStatus` on this device (CR-042).
+- **Tap product:** `orders.where('productIds', arrayContains: id).where('status', whereIn: ['pending','inProgress']).orderBy('createdAt', descending: true)` — live, 20 per page; chips «كل النشطة» / pending / inProgress (single status = `isEqualTo`, same index); each row shows the customer and this product's quantity.
 
 ## 5. Firestore Security Rules (R13)
 
@@ -467,7 +467,7 @@ Not used — no Cloud Storage (CR-002).
 | `orders` | `productIds (array-contains)`, `status ↑`, `createdAt ↓` | Dashboard → orders of a product |
 | `products` | `isActive ↑`, `createdAt ↓` | (unused for now — catalog is ordered by name) |
 | `products` | `isActive ↑`, `nameLower ↑` | Customer catalog A→Z (search filters on-device — CR-023) |
-| `products` | `stock ↑` (single-field, auto — **not** listed in `firestore.indexes.json`, the CLI rejects single-field composites) | Dashboard sort by shortage |
+| `products` | `stock ↑` (single-field, auto — **not** listed in `firestore.indexes.json`, the CLI rejects single-field composites) | (unused since CR-042 — the dashboard sorts on-device) |
 | `users` | `role ↑`, `status ↑`, `createdAt ↓` | Admin requests |
 | `users` | `role ↑`, `name ↑` | Customers directory |
 
