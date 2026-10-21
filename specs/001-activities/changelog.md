@@ -14,6 +14,13 @@ For a new entry, copy this template:
 
 ---
 
+## 2026-10-21 — v1.2 — Visit is the default type on Add Activity
+
+- **Change:** a new activity now starts as a Visit (it used to start as a Task). The Add Activity toggle shows Visit at the start and Task at the end.
+- **Reason:** requested by the user, to make Visit the default on the Add Activity screen.
+- **Affected area:** business-requirements §5.3 and §12.3 (T10.1–T10.3). App code: `new_activity_selection.dart` (default type) and `new_activity_type_switch_widget.dart` (toggle order).
+- **Decisions:** only the toggle's order changed. The `NewActivityType` enum order is unchanged, so the list's type filter and `fromId` are unaffected. Editing still shows the saved type, locked. No API change.
+
 ## 2026-10-21 — v1.1 (no requirement change) — Consolidate the spec files
 
 - **Change:** merged six files into four:

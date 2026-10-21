@@ -1,6 +1,6 @@
 # 001 New Activities: API Contracts
 
-**Version:** 1.1 (matches [business-requirements.md](business-requirements.md))  
+**Version:** 1.2 (matches [business-requirements.md](business-requirements.md))  
 **Last updated:** 2026-10-21  
 **Evidence:** the previous spec docs, plus the app code at `~/StudioProjects/talentlink`, `testflight` @ `a01b46459`:
 - `lib/src/data/sources/remote/api_keys.dart` (paths)

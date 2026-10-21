@@ -2,9 +2,9 @@
 
 **Product:** TalentLink360 HR  
 **Module:** New Activities — Visits & Tasks  
-**Version:** 1.1 — Approved  
+**Version:** 1.2 — Approved  
 **Status:** Product questions resolved on 2026-10-18. Three backend questions are pending: Q12 workload status field, Q13 permission flags and Q14 `endDateTime` bounds (see [open-questions.md](open-questions.md)). No app code has changed for the v1.1 gaps yet.  
-**Last updated:** 2026-10-21 (consolidated from six files; no requirement changed, see [changelog.md](changelog.md))  
+**Last updated:** 2026-10-21 (v1.2: Visit is the default type on Add Activity; see [changelog.md](changelog.md))  
 **App repo:** `~/StudioProjects/talentlink`. Code paths below are relative to `lib/src/`.
 
 Related: [api-contracts.md](api-contracts.md) (endpoints and data contracts) · [changelog.md](changelog.md) (history)
@@ -160,6 +160,12 @@ The Add action opens the existing or approved creation flow for a Visit or a Tas
 The creation flow must distinguish Visit-specific fields from Task-specific fields.
 
 **Approved baseline (Confirmed, Q6):** the existing `new_activity_create` form and its validation, submitted through `InsertVisitOrTask`.
+
+**Type toggle (v1.2):**
+- A new activity starts as a **Visit**.
+- The Visit | Task toggle shows **Visit at the start and Task at the end** (start/end follow the reading direction, so Visit is on the right in Arabic).
+- Switching the type still starts a clean form, because Visits and Tasks have different fields.
+- When editing, the toggle shows the activity's saved type and stays locked.
 
 ### 5.4 Activity details and actions
 
@@ -546,9 +552,15 @@ Work top to bottom, one commit per task (or per small group). Tick a box only wh
   - list empty and error states
   - Visit-only filters hidden when the type is Task
 
+**Change v1.2: Visit first on Add Activity**
+- [x] **T10.1** Make Visit the default type of a new activity: `NewActivitySelection.type` defaults to `NewActivityType.visit` (`domain/entities/new_activity_create/new_activity_selection.dart`).
+- [x] **T10.2** Show Visit first and Task last in the toggle, using a fixed order in `NewActivityTypeSwitchWidget` (`presentation/screens/new_activity_create/widgets/new_activity_type_switch_widget.dart`). The `NewActivityType` enum order is unchanged, so the list's type filter keeps its order.
+  **Verify:** `flutter analyze` on the changed files is clean (done 2026-10-21).
+- [ ] **T10.3** Manual check: open Add Activity. Visit is selected and on the start side, and the Visit-only fields (category, execution type, location, contact) are shown. Switch to Task and back. Open Edit on an existing Task, and the toggle shows Task, locked.
+
 **Close-out**
 - [ ] **T9.1** Refresh §4 of this file (new snapshot date and commit) and mark the gaps in §12.1 closed.
-- [ ] **T9.2** Bump this file to v1.2 if anything changed during implementation, and add a [changelog.md](changelog.md) entry.
+- [ ] **T9.2** Bump this file to the next version (v1.3) if anything changed during implementation, and add a [changelog.md](changelog.md) entry.
 
 ### 12.4 Where we stopped and what's next
 
