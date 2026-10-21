@@ -70,13 +70,13 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 ## Phase 6 — Profile
 
 - [x] **6.1** Profile screen (customer: name, phone, location edit; admin: name, phone), logout. _(R5)_ — done 2026-10-21 (CR-043); device check after T1.10
-- [ ] **6.2** Verify self-edit can't change role/status (rules). _(R13.2)_ — app side done 2026-10-21 (CR-043): `updateProfile` writes only `name, phone, location?, updatedAt` (unit-tested); the rule (`changed().hasOnly(...)`, CR-019) is already written. ⏳ Deny cases run on the emulator in T7.3; live after the user deploys the rules
+- [x] **6.2** Verify self-edit can't change role/status (rules). _(R13.2)_ — done 2026-10-21: app side CR-043; rule deny cases on the emulator CR-044 (live after the user deploys)
 
 ## Phase 7 — Quality & release
 
-- [ ] **7.1** Unit tests: validators, formatters, normalizer, transitions, models. _(D§9)_
-- [ ] **7.2** Cubit tests (`bloc_test`, `mocktail`): Session, Cart, PlaceOrder, ChangeStatus. _(D§9)_
-- [ ] **7.3** Security rules tests on Firebase Emulator (all allow/deny cases). _(D§9, R13)_
+- [x] **7.1** Unit tests: validators, formatters, normalizer, transitions, models. _(D§9)_ — audited 2026-10-21 (CR-044): all covered by earlier tasks
+- [x] **7.2** Cubit tests (`bloc_test`, `mocktail`): Session, Cart, PlaceOrder, ChangeStatus. _(D§9)_ — done 2026-10-21 (CR-044): `CheckoutCubit` (PlaceOrder) tests added; ChangeStatus is repo + widget tested (no cubit of its own)
+- [x] **7.3** Security rules tests on Firebase Emulator (all allow/deny cases). _(D§9, R13)_ — done 2026-10-21 (CR-044): 57 cases in `rules_test/`, `cd rules_test && npm test`
 - [ ] **7.4** Manual QA checklist on two devices (live status, concurrent orders on stock-0 product → exact negative stock, cancel restores, receive stock, Console approve/delete). _(D§9)_
 - [ ] **7.5** App icon, Arabic app name, splash; release builds (Android AAB, iOS archive). _(R14.2)_
 

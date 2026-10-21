@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-043)_
+_Last updated: 2026-10-21 (CR-044)_
 
 ## 1. Where things live
 
@@ -42,6 +42,7 @@ _Last updated: 2026-10-21 (CR-043)_
 | Firebase CLI | `firebase-tools` 15.34.0 (npm global, `/opt/homebrew`); logged in as `mostafasamy.dev@gmail.com` |
 | FlutterFire CLI | 1.3.1 (1.4.1 available — not updated; its update prompt blocks non-interactive runs) |
 | Node / npm | v26.0.0 / 11.12.1 |
+| Java | default `java` = 17 (Homebrew); JDK 21 / 24 / 25 also installed — the Firestore emulator needs ≥ 21 |
 | Xcode / CocoaPods | 26.6 / 1.16.2 |
 | Packages | `connectivity_plus` 7.3.1 · `firebase_core` 5.0.0 · `firebase_auth` 7.0.0 · `cloud_firestore` 7.0.0 · `flutter_bloc` 9.1.1 · `equatable` 3.0.0 · `get_it` 9.3.0 · `go_router` 17.2.3 · `geolocator` 14.0.2 · `geocoding` 5.0.0 · `url_launcher` 6.3.2 · `image_picker` 1.2.2 · `flutter_image_compress` 2.5.1 · `hydrated_bloc` 11.0.0 · `intl` 0.20.2 · `flutter_localizations` (sdk) |
 | Android build | Kotlin Gradle plugin **2.3.0** (needed by `firebase-auth` 25.0.0, compiled with Kotlin metadata 2.4) · `kotlin { compilerOptions { jvmTarget = JVM_17 } }` (old `kotlinOptions.jvmTarget` is an error in Kotlin 2.3) · AGP 8.11.1 · Gradle 8.14 |
@@ -102,13 +103,17 @@ _Last updated: 2026-10-21 (CR-043)_
 | T5.2 Status count cards (`OrderCountsCubit`, `count()`, refresh on pull + `statusChanges`) | ✅ done 2026-10-21 (CR-042) |
 | T5.3 Product → active orders (`ProductOrdersScreen`, `watchActiveWithProduct`) | ✅ done 2026-10-21 (CR-042) — **Phase 5 code complete**; device check after T1.10 |
 | T6.1 Profile screen (edit name / phone / customer location, logout) + `AuthRepository.updateProfile` | ✅ done 2026-10-21 (CR-043) — device check after T1.10 |
-| T6.2 Self-edit can't change role / status | 🟡 app side done (CR-043); rule written (CR-019) — ⏳ emulator deny tests in T7.3 + user deploy |
-| Everything from T7.1 onward | ⬜ not started |
+| T6.2 Self-edit can't change role / status | ✅ app side (CR-043) + emulator deny tests (CR-044) — **Phase 6 code complete**; live after the user deploys the rules |
+| T7.1 Unit tests (D§9 audit) | ✅ 2026-10-21 (CR-044) — already covered |
+| T7.2 Cubit tests (+ `CheckoutCubit`) | ✅ 2026-10-21 (CR-044) |
+| T7.3 Rules tests on the Firestore emulator (57 cases, `rules_test/`) | ✅ 2026-10-21 (CR-044) |
+| T7.4 Manual QA on two devices | ⏳ **user** (after deploy + T1.10) |
+| T7.5 Icon, Arabic name, splash, release builds | ⬜ not started — needs the user's icon |
 
 ## 5. Next session — exact order
 
 1. **User action:** in `/Users/mostafasamy/StudioProjects/merchant_orders` run `firebase deploy --only firestore:rules` (covers CR-019 + CR-025 + CR-034 + CR-039; deploys from Claude Code are blocked by its permission check). Then T1.10 (checklist §5a). Phase 2–3 screens still need a device check once an admin and a customer exist (D§9 QA list: two devices, concurrent orders on a stock-0 product, hide while in cart).
-2. Then Phase 7. T7.1 / T7.2 (unit + cubit tests) are mostly covered already (376 tests) — audit against D§9 and fill gaps (validators, formatters, normalizer, transitions, models; Session / Cart / PlaceOrder / ChangeStatus cubits). T7.3 needs the Firebase Emulator (Java required — check `java -version`) + `@firebase/rules-unit-testing` in a small `test/rules/` Node project; it also closes T6.2. T7.4 is manual (user, two devices). T7.5 icon / name / splash / release builds — ask the user for the icon. Conventions from T6: the profile form compares against the live session user (save is disabled when nothing changed); `updateProfile` turns a 20 s write timeout into `NoConnectionException` (the write stays queued).
+2. Then T7.5 (app icon, Arabic app name, splash, Android AAB + iOS archive) — ask the user for the icon artwork and signing details first. T7.4 is the user's manual QA (D§9 list). **Rules tests:** `cd rules_test && npm test` (Firestore emulator, project `demo-merchant-orders` — never the real one; the script picks a JDK 21+ via `/usr/libexec/java_home -v 21+` because firebase-tools 15 refuses Java 17, the default `java` here). Re-run them after any `firestore.rules` change, before asking the user to deploy.
 3. Conventions from T1.3:
    - `sl<SessionCubit>()` is an app-wide lazy singleton — nothing creates it yet. T1.4 must read it (e.g. in `createRouter` and a `BlocProvider.value` in `app.dart`) so it starts at launch.
    - Route by `state.status` (`SessionStatus.unknown` → splash, `unauthenticated` → login, `customer`, `adminActive`, `adminPending`). There is no `rejected` status: those are signed out and arrive as `unauthenticated` with `state.message`.

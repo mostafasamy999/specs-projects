@@ -6,6 +6,29 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-044 — 2026-10-21 — Tests: D§9 audit, PlaceOrder cubit, security rules on the emulator (T7.1–T7.3, closes T6.2)
+
+**Request:** Commit Phase 6, then Phase 7 tests (T7.1–T7.3).
+
+**Decision / done:**
+- **T7.1 audit:** validators, formatters, Arabic normalizer, the status transition helper, the counter-delta calculator and the models (`UserModel`, `GeoLocationModel`, `ProductModel`, `OrderModel`) already had tests from earlier tasks. Nothing was missing.
+- **T7.2:** Session, Cart, Submit, LocationCapture, ProductList, OrderList, the dashboard cubits and ChangeStatus (repository + widget) were already covered. New: **`checkout_cubit_test.dart`** for the PlaceOrder cubit, 6 cases: placed → cart emptied with the right items and note; a double tap places one order; empty cart is a no-op; unavailable products removed and named, rest kept; other failures keep the cart; `refreshPrices` ignores a failed read.
+  - **Small fix found by these tests:** the "placing" state reset `errorId` to 0, so a second failure got the same id even though the field's doc says it changes on every failure. It is now kept across "placing". There was no visible bug, because the "placing" state in between already made the message show again.
+- **T7.3:** new **`rules_test/`** Node project (`@firebase/rules-unit-testing` 6.0.0, `firebase` 13.0.0, Node's built-in test runner) that loads `../firestore.rules` into the Firestore emulator under project **`demo-merchant-orders`** (a `demo-` id can't reach a real project). **57 cases, all pass:**
+  - users: registration as customer / pending admin; deny active-admin self-registration, admin with location, customer without location, wrong email, planted fields, someone else's profile; read own / other / as admin / as pending admin / anonymous; self-edit allowed fields; **deny self-edit of role, status, email, approvedBy (closes T6.2)**; deny admin location; approve / reject as approver; deny another approver, customer status changes, pending admin approving; deny delete.
+  - products: read rules incl. the catalog query needing `isActive == true`; batch create with image; deny without image, non-zero counters, negative stock, wrong creator, image v2, price 0, customer create; admin edit / hide / receive stock / image v+1 only; deny createdBy; **deny customer price edit**; customer order delta incl. negative stock; deny wrong delta, > 99, increase, extra field, hidden product; deny delete.
+  - productImages: read; ≤ 300 KB ok; deny > 300 KB, PNG, customer, orphan.
+  - orders: valid create; deny forged name / phone, another customer id, non-pending, empty, mismatched ids, long note, total 0, extra history, 51 items, admin / rejected customer; **deny reading others' orders** (and unfiltered list queries); pending → inProgress → done; cancel with reason; **deny invalid transitions**; deny missing / long / stray reason, missing timeline entry, another admin's name, editing totals, customer or pending admin changes, delete.
+  - Run: `cd rules_test && npm test`. firebase-tools 15 refuses Java 17 (this Mac's default), so the script sets `JAVA_HOME=$(/usr/libexec/java_home -v 21+)` for that command only. `node_modules/` is git-ignored.
+- **Results:** 382 Flutter tests + 57 rules tests pass; `flutter analyze` is clean.
+- The rules are still **not deployed** (user, same command as before). The tests show the repo's rules behave as designed; they take effect only after `firebase deploy --only firestore:rules`.
+
+**Affected:**
+- Tasks: T6.2 ✅, T7.1 ✅, T7.2 ✅, T7.3 ✅
+- STATUS.md (progress, toolchain Java note, next steps)
+
+---
+
 ## CR-043 — 2026-10-21 — Profile screen (T6.1) + self-edit check, app side (T6.2)
 
 **Request:** Commit Phase 5, then start Phase 6.
