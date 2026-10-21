@@ -6,6 +6,28 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-015 — 2026-10-21 — Splash, Login, Forgot password, Choose account type (T1.5)
+
+**Request:** Implement T1.5.
+
+**Decision / done:**
+- **`core/cubit/submit_cubit.dart`:** `SubmitCubit` / `SubmitState` (idle → loading → success | failure with the Arabic `mapFirebaseError` message). Ignores a second run while loading (double tap); no emit after close (screen left mid-request). Reused by every form from here on (login, reset, register, later profile/product forms).
+- **`core/widgets/app_snack_bar.dart`:** `showAppSnackBar(context, message, isError:)`.
+- **`features/auth/presentation/widgets/auth_form_layout.dart`:** scrollable, max-width 480 body for auth screens.
+- **Splash:** app icon + name + `LoadingView(«جاري التحميل»)`; no links — the redirect moves on.
+- **Login (R4.1):** email (Validators.email) + password (required only — length rules apply at registration), autofill, forgot-password + create-account links. Success: nothing to do here, the session routes. Shows `SessionState.message` once (forced sign-out: R3.4 / R4.4 / R4.6) — also when the message was set before the screen was built — then `clearMessage()`.
+- **Forgot password:** sends the Firebase reset email, then a "sent" view with a neutral message («إذا كان البريد مسجلاً لدينا…»), because Firebase's email-enumeration protection doesn't say whether the email exists.
+- **Choose account type (R1.1):** two cards (customer / admin) with a one-line hint each.
+- New strings in `AppStrings` (auth forms block).
+- **Tests:** 13 new (SubmitCubit 4; login validation / submit / error / session message live + preset / links; forgot password send + invalid; account type navigation); 138 total pass. Splash tests use `pump()` — its spinner never settles. `flutter analyze` clean.
+- **Device (Android emulator, live Firebase):** login screen renders RTL; wrong credentials → «البريد الإلكتروني أو كلمة المرور غير صحيحة» from the real Auth error; account type cards show forward arrows (Material chevrons mirror in RTL).
+
+**Affected:**
+- Tasks: T1.5 ✅
+- STATUS.md
+
+---
+
 ## CR-014 — 2026-10-21 — Router redirect by session (T1.4)
 
 **Request:** Implement T1.4 (user asked to run T1.4 → T1.10 in a row, committing after each).

@@ -23,7 +23,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 - [x] **1.2** `AuthRepository`: signIn, signOut, sendPasswordReset, registerCustomer, registerAdmin (with Auth rollback on profile failure). _(R1.4, R1.7, R3.2, R4.1)_ — done 2026-10-21 (CR-012)
 - [x] **1.3** `SessionCubit`: authStateChanges + `users/{uid}` listener → SessionState; sign out on missing doc / non-active status. _(R4.2–4.6, D§4.1)_ — done 2026-10-21 (CR-013)
 - [x] **1.4** Router `redirect` + `refreshListenable` per SessionState table. _(D§4.1)_ — done 2026-10-21 (CR-014)
-- [ ] **1.5** Screens: Splash, Login, Forgot password, Choose account type. _(R1.1, R4.1)_
+- [x] **1.5** Screens: Splash, Login, Forgot password, Choose account type. _(R1.1, R4.1)_ — done 2026-10-21 (CR-015)
 - [ ] **1.6** `LocationCaptureSection` (GPS capture, service-off / permission / deniedForever handling, accuracy warning, address prefill via reverse geocoding, details) + `AddressTile` with "فتح في خرائط جوجل". _(R2, D§4.6)_
 - [ ] **1.7** Customer registration screen (validation + required location). _(R1.2–1.6, R2.6)_
 - [ ] **1.8** Admin registration screen + Pending approval screen (Refresh / Logout) + rejected handling. _(R3.1–3.4, R3.8)_
