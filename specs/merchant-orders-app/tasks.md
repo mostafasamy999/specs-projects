@@ -57,7 +57,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 - [x] **4.2** Admin orders list (status filter, pending badge, real-time, pagination). _(R11.1)_ — done 2026-10-21 (CR-036)
 - [x] **4.3** Admin order details: tap-to-call, `AddressTile` + open in Google Maps, timeline. _(R11.2, R11.3)_ — done 2026-10-21 (CR-037)
 - [x] **4.4** `OrderRepository.changeStatus` transaction (allowed transitions, counter deltas, concurrency check) + cancel reason dialog. _(R11.4–11.7, D§4.4)_ — done 2026-10-21 (CR-038)
-- [ ] **4.5** Orders update rule (`validTransition`); deploy. _(D§5)_
+- [ ] **4.5** Orders update rule (`validTransition`); deploy. _(D§5)_ — rule written 2026-10-21 (CR-039); ⏳ **deploy pending (user, same command)**
 - [ ] **4.6** Admin requests screen (pending list, approve, reject with confirm). _(R3.5–3.7)_
 - [ ] **4.7** Customers directory + customer details (address + open in Google Maps, call, orders). _(R12.1, R12.2)_
 

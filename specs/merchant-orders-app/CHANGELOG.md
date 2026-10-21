@@ -6,6 +6,24 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-039 — 2026-10-21 — Orders update rule tightened (T4.5) — deploy pending
+
+**Request:** Implement T4.5 (orders update rule `validTransition`; deploy).
+
+**Decision / done:** the update rule now matches `OrderRepository.changeStatus` (CR-038) exactly:
+- unchanged: active admin only; only `status, statusHistory, cancelReason, updatedAt, updatedBy` may change; `validTransition` (pending → inProgress | cancelled; inProgress → done | cancelled).
+- new: `updatedBy == request.auth.uid`; `updatedAt == request.time`; **`validNewHistoryEntry()`** — `statusHistory` grows by exactly one entry whose `status` is the new status and `by` is this admin (the timeline can't be rewritten or skipped); `cancelReason` string 1–200 when cancelling, untouched otherwise.
+- Product counter updates by admins were already allowed (CR-025).
+- **D§5 synced** (identical, checked); `--dry-run` compiled successfully.
+- **Not deployed** (production deploys blocked for Claude Code). **The same user command** deploys CR-019 + CR-025 + CR-034 + CR-039: `firebase deploy --only firestore:rules`.
+
+**Affected:**
+- Design: D§5 (orders update)
+- Tasks: T4.5 (rules written; ⏳ deploy by user)
+- STATUS.md
+
+---
+
 ## CR-038 — 2026-10-21 — Order status change transaction + actions (T4.4)
 
 **Request:** Implement T4.4.

@@ -418,12 +418,29 @@ service cloud.firestore {
         && request.resource.data.statusHistory[0].by == request.auth.uid
         && request.resource.data.createdAt == request.time;
 
+      // Matches OrderRepository.changeStatus (CR-039): one allowed step,
+      // exactly one new timeline entry by this admin, audit fields set.
       allow update: if isActiveAdmin()
         && changed().hasOnly(['status', 'statusHistory', 'cancelReason', 'updatedAt', 'updatedBy'])
         && validTransition(resource.data.status, request.resource.data.status)
-        && (request.resource.data.status != 'cancelled' || request.resource.data.cancelReason is string);
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.updatedAt == request.time
+        && validNewHistoryEntry()
+        && (request.resource.data.status == 'cancelled'
+              ? (request.resource.data.cancelReason is string
+                 && request.resource.data.cancelReason.size() > 0
+                 && request.resource.data.cancelReason.size() <= 200)
+              : !('cancelReason' in changed()));
 
       allow delete: if false;
+
+      function validNewHistoryEntry() {
+        let before = resource.data.statusHistory;
+        let after = request.resource.data.statusHistory;
+        return after.size() == before.size() + 1
+          && after[before.size()].status == request.resource.data.status
+          && after[before.size()].by == request.auth.uid;
+      }
 
       function validTransition(from, to) {
         return (from == 'pending'    && to in ['inProgress', 'cancelled'])

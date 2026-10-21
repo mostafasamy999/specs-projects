@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-038)_
+_Last updated: 2026-10-21 (CR-039)_
 
 ## 1. Where things live
 
@@ -27,7 +27,7 @@ _Last updated: 2026-10-21 (CR-038)_
 | Plan | **Spark (no-cost), no billing account** — never upgrade |
 | Auth | Email/Password **enabled**; Email link (passwordless) **off**; no other providers |
 | Firestore | Database `(default)` · Standard edition · Native mode · **`europe-west1` (Belgium)** · production mode |
-| Security Rules | **Live: CR-004 version** (deployed 2026-10-20). **Repo: CR-034 version** (users CR-019, products/productImages CR-025, orders create CR-034 — tightened 2026-10-21, not deployed yet). |
+| Security Rules | **Live: CR-004 version** (deployed 2026-10-20). **Repo: CR-034 version** (users CR-019, products/productImages CR-025, orders create CR-034, orders update CR-039 — tightened 2026-10-21, not deployed yet). |
 | Indexes | **Deployed** 2026-10-20 — 8 composite indexes from `design.md` §6 (`products.stock` is single-field/automatic, not in the file) |
 | Cloud Storage / Analytics / Gemini | Not enabled (by design) |
 | Registered apps | Android `1:658495017371:android:851470e927dca09816d13e` (`com.mostafasamy.merchant_orders`) · iOS `1:658495017371:ios:96c4a81f3016720116d13e` (`com.mostafasamy.merchantOrders`) |
@@ -95,11 +95,12 @@ _Last updated: 2026-10-21 (CR-038)_
 | T4.2 Admin orders list (`watchAll`, chip pending count) | ✅ done 2026-10-21 (CR-036) |
 | T4.3 Admin order details (call, navigation) | ✅ done 2026-10-21 (CR-037) |
 | T4.4 `changeStatus` transaction + status actions + cancel dialog | ✅ done 2026-10-21 (CR-038) |
-| Everything from T4.5 onward | ⬜ not started |
+| T4.5 Orders update rule tightened | 🟡 written + compiled 2026-10-21 (CR-039) — ⏳ **user must deploy** |
+| Everything from T4.6 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 
-1. **User action:** in `/Users/mostafasamy/StudioProjects/merchant_orders` run `firebase deploy --only firestore:rules` (covers CR-019 + CR-025 + CR-034; deploys from Claude Code are blocked by its permission check). Then T1.10 (checklist §5a). Phase 2–3 screens still need a device check once an admin and a customer exist (D§9 QA list: two devices, concurrent orders on a stock-0 product, hide while in cart).
+1. **User action:** in `/Users/mostafasamy/StudioProjects/merchant_orders` run `firebase deploy --only firestore:rules` (covers CR-019 + CR-025 + CR-034 + CR-039; deploys from Claude Code are blocked by its permission check). Then T1.10 (checklist §5a). Phase 2–3 screens still need a device check once an admin and a customer exist (D§9 QA list: two devices, concurrent orders on a stock-0 product, hide while in cart).
 2. Then Phase 4 (T4.1 admin shell). Reuse from Phase 3: `OrderListCubit` / `OrderListView` / `OrderTile` (admin query: `status ==` + `createdAt`↓, index exists), `OrderDetailsView(customerSection:, directions: true, actions:)`, `OrderModel.changeToMap` for `statusHistory` (client time, `arrayUnion`). Tests: `useFakeOrders()` + `test/helpers/order_fixtures.dart`.
 3. Conventions from T1.3:
    - `sl<SessionCubit>()` is an app-wide lazy singleton — nothing creates it yet. T1.4 must read it (e.g. in `createRouter` and a `BlocProvider.value` in `app.dart`) so it starts at launch.
