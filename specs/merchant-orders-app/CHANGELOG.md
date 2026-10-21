@@ -6,6 +6,26 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-014 — 2026-10-21 — Router redirect by session (T1.4)
+
+**Request:** Implement T1.4 (user asked to run T1.4 → T1.10 in a row, committing after each).
+
+**Decision / done:**
+- **`core/router/session_redirect.dart`:** pure `sessionRedirect(status, location)` per D§4.1, plus `StreamListenable` (stream → `refreshListenable`).
+  - unknown → `/splash`; unauthenticated → may stay under `/login/**` or `/register/**`, else `/login` (keeps the register screen up during registration — CR-013); customer → stays under `/customer/**`, else products; active admin → stays under `/admin/**`, else dashboard; pending admin → only `/pending-approval`.
+  - Prefix match is by path segment (`/registered` is not under `/register`).
+- **`createRouter`** reads `sl<SessionCubit>()`; every cubit emission re-runs the redirect, so sign-in, sign-out and Console edits re-route at once (R4.6, R3.8).
+- **`app.dart`:** `BlocProvider.value(sl<SessionCubit>())` above `MaterialApp.router` → screens use `context.read<SessionCubit>()`. Creating the router starts the cubit at launch.
+- `AppRoutes.customerRoot` / `adminRoot` added. Splash placeholder lost its dev links (redirect makes them pointless); `devCustomerArea` / `devAdminArea` strings removed.
+- **Tests:** widget tests now swap the session for a `MockCubit` (`test/helpers/fake_session.dart`, `useFakeSession`) because the real cubit needs Firebase. Route tests grouped by session state + one live re-route sequence (unauth → pending → admin → unauth → customer); 9 pure redirect tests. 125 total pass. `flutter analyze` clean.
+- **Device (Android emulator):** cold start with no session → splash → login; "إنشاء حساب" opens the choose-account-type screen (not bounced back).
+
+**Affected:**
+- Tasks: T1.4 ✅
+- STATUS.md
+
+---
+
 ## CR-013 — 2026-10-21 — Session cubit (T1.3)
 
 **Request:** Implement T1.3.

@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-013)_
+_Last updated: 2026-10-21 (CR-014)_
 
 ## 1. Where things live
 
@@ -69,11 +69,12 @@ _Last updated: 2026-10-21 (CR-013)_
 | T1.1 `UserEntity` / `UserModel` + `GeoLocation` / `GeoLocationModel` + `FirestorePaths` | ✅ done 2026-10-21 (CR-011) |
 | T1.2 `AuthRepository` + `AuthRepositoryImpl` (rollback, online check, 20 s profile-write timeout) | ✅ done 2026-10-21 (CR-012) |
 | T1.3 `SessionCubit` + `SessionState` (+ `authUidChanges` / `watchProfile` / `isRegistering` on `AuthRepository`) | ✅ done 2026-10-21 (CR-013) |
-| Everything from T1.4 onward | ⬜ **waiting for the user's go-ahead** |
+| T1.4 Router `redirect` + `refreshListenable` (`sessionRedirect`, `StreamListenable`) | ✅ done 2026-10-21 (CR-014) |
+| Everything from T1.5 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 
-1. Wait for the user to say to start T1.4 (router `redirect` + `refreshListenable`).
+1. Next: T1.5 (Splash, Login, Forgot password, Choose account type screens). Router + session are wired (T1.4); widget tests use `useFakeSession` from `test/helpers/fake_session.dart`.
 2. Conventions from T1.3:
    - `sl<SessionCubit>()` is an app-wide lazy singleton — nothing creates it yet. T1.4 must read it (e.g. in `createRouter` and a `BlocProvider.value` in `app.dart`) so it starts at launch.
    - Route by `state.status` (`SessionStatus.unknown` → splash, `unauthenticated` → login, `customer`, `adminActive`, `adminPending`). There is no `rejected` status: those are signed out and arrive as `unauthenticated` with `state.message`.
