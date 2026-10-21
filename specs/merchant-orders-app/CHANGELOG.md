@@ -6,6 +6,26 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-024 — 2026-10-21 — Customer product grid + details (T2.5)
+
+**Request:** Implement T2.5.
+
+**Decision / done:**
+- **`ProductsScreen`** (customer home, R8.1–R8.3): live grid of offered products (`watchActive`, A→Z) via the shared `ProductListCubit` + on-device search (CR-023). Card: image, name (2 lines), price, stock text. The image takes the remaining height so large text can't overflow the cell (an overflow was caught by the tests with the first layout). Empty → «لا توجد منتجات متاحة حالياً»; no match → «لا توجد نتائج مطابقة»; error → retry.
+- **`StockText`** (R8.3): stock > 0 → «متوفر: n» (green); stock ≤ 0 → «متاح بالطلب» on cards, «متاح بالطلب — قد يستغرق التجهيز وقتاً أطول» on details (orange). Negative numbers and «عجز» are never shown to customers.
+- **`ProductDetailsScreen`** (R8.4, R8.5): live (`watch(id)`): large image, name, price, long stock text, description, `QuantitySelector` + «أضف للسلة». If the admin hides the product while it's open, customers lose read access (D§5) → «هذا المنتج لم يعد متاحاً» (also for a missing or inactive product); other errors → retry.
+  - «أضف للسلة» is **disabled until T3.1** (cart): the screen takes an `onAddToCart(product, quantity)` callback that T3.1 wires to `CartCubit`.
+- **`QuantitySelector`** (`core/widgets`, reused by the cart): − n + limited to 1…99 (`maxPerProduct`), never by stock (CR-001); custom bounds supported.
+- Removed the `devSampleProduct` placeholder string.
+- **Tests:** 11 new (grid: stock texts incl. negative hidden + no `watchAll`, search no-match, empty, tap → details; details: content, quantity 1…99 at stock 0 + add callback, add disabled without cart, hidden while open, missing, other error; selector bounds); registration tests now use the fake product repo (customer home reads products); 257 total pass. `flutter analyze` clean.
+- **Not checked on a device:** needs an active customer (T1.10).
+
+**Affected:**
+- Tasks: T2.5 ✅ (add-to-cart wired in T3.1; device check after T1.10)
+- STATUS.md
+
+---
+
 ## CR-023 — 2026-10-21 — Admin products list (T2.4)
 
 **Request:** Implement T2.4.

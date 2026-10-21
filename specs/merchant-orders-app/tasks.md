@@ -36,7 +36,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 - [x] **2.2** Image pick (camera/gallery) + compression ≤ 200 KB + atomic batch write to `products` + `productImages`; `ProductImage` widget with cache keyed by `id:imageVersion`. _(R6.2, R6.6, R6.7, D§3.5, D§4.5)_ — done 2026-10-21 (CR-021)
 - [x] **2.3** Admin product form (create/edit, validation, image replace). _(R6.1, R6.3)_ — done 2026-10-21 (CR-022)
 - [x] **2.4** Admin products list (search, red "عجز <n>" badge when stock < 0, active toggle). _(R6.4, R6.5)_ — done 2026-10-21 (CR-023)
-- [ ] **2.5** Customer products grid (real-time, search) + product details with stock text ("متوفر: n" / "متاح بالطلب") and quantity selector 1…99. _(R8)_
+- [x] **2.5** Customer products grid (real-time, search) + product details with stock text ("متوفر: n" / "متاح بالطلب") and quantity selector 1…99. _(R8)_ — done 2026-10-21 (CR-024)
 - [ ] **2.6** Products + productImages rules; deploy; indexes for products. _(D§5, D§6)_
 - [ ] **2.7** "Receive stock" dialog (positive qty → `increment`) + manual stock correction in form. _(R6.8, R6.9)_
 
