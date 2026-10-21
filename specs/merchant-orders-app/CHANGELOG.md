@@ -6,6 +6,24 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-033 — 2026-10-21 — Order details with status timeline (T3.7)
+
+**Request:** Implement T3.7.
+
+**Decision / done:**
+- **`OrderDetailsScreen`** (customer, R10.3–R10.5): live via `OrderRepository.watch(id)`; missing → «الطلب غير موجود»; error → retry. Read-only — no cancel / edit (R9.8).
+- **`OrderDetailsView`** (shared with the admin details, T4.3): «طلب #ABC123» + status badge, «تم الطلب: …»; cancelled → card «سبب الإلغاء» with the reason (R10.4); items (live image by `productId`, snapshot name, «price × qty», line total); total + pieces; note; «عنوان التوصيل» as `AddressTile` (admin can pass `directions: true`); «مراحل الطلب» timeline; optional `customerSection` / `actions` slots for the admin.
+- **`StatusTimeline`**: every status in `statusHistory` with its date / time (colored check), then the normal steps not reached yet greyed out; a cancelled order ends at «ملغي».
+- Item images use version 0 (the order doesn't store `imageVersion`): the current image is fetched once per session.
+- Tests that relied on placeholder text now use a remaining placeholder (customer details) / the details AppBar.
+- **Tests:** 5 new (content + no cancel button, timeline reached / upcoming, cancelled reason + no upcoming steps, live status change, missing + error); 310 total pass. `flutter analyze` clean.
+
+**Affected:**
+- Tasks: T3.7 ✅
+- STATUS.md
+
+---
+
 ## CR-032 — 2026-10-21 — My orders (T3.6)
 
 **Request:** Implement T3.6.

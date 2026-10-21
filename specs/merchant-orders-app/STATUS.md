@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-032)_
+_Last updated: 2026-10-21 (CR-033)_
 
 ## 1. Where things live
 
@@ -89,7 +89,8 @@ _Last updated: 2026-10-21 (CR-032)_
 | T3.2 Cart + Checkout screens + `CheckoutCubit` + cart badge | ✅ done 2026-10-21 (CR-030) |
 | T3.5 Unavailable products removed from the cart + dialog | ✅ done 2026-10-21 (CR-031) |
 | T3.6 My orders + `OrderListCubit` / `OrderListView` / `OrderTile` (live paging) | ✅ done 2026-10-21 (CR-032) |
-| Everything from T3.7 onward | ⬜ not started |
+| T3.7 Order details + `StatusTimeline` (shared `OrderDetailsView`) | ✅ done 2026-10-21 (CR-033) |
+| Everything from T3.8 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 
