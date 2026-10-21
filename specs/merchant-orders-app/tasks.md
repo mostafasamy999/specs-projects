@@ -32,7 +32,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 
 ## Phase 2 — Products
 
-- [ ] **2.1** `ProductEntity` / `ProductModel`, `ProductRepository` (watch active, watch all, get, create, update, setActive). _(D§3.2)_
+- [x] **2.1** `ProductEntity` / `ProductModel`, `ProductRepository` (watch active, watch all, get, create, update, setActive). _(D§3.2)_ — done 2026-10-21 (CR-020)
 - [ ] **2.2** Image pick (camera/gallery) + compression ≤ 200 KB + atomic batch write to `products` + `productImages`; `ProductImage` widget with cache keyed by `id:imageVersion`. _(R6.2, R6.6, R6.7, D§3.5, D§4.5)_
 - [ ] **2.3** Admin product form (create/edit, validation, image replace). _(R6.1, R6.3)_
 - [ ] **2.4** Admin products list (search, red "عجز <n>" badge when stock < 0, active toggle). _(R6.4, R6.5)_

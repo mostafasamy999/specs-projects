@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-019)_
+_Last updated: 2026-10-21 (CR-020)_
 
 ## 1. Where things live
 
@@ -75,7 +75,8 @@ _Last updated: 2026-10-21 (CR-019)_
 | T1.7 Customer registration + `RegistrationFields` (+ GPS-provider fallback, Android address fix) | ✅ done 2026-10-21 (CR-017) |
 | T1.8 Admin registration + Pending approval screen (server Refresh via `fetchProfile`) | ✅ done 2026-10-21 (CR-018) |
 | T1.9 Users rules tightened (`firestore.rules` + D§5) | 🟡 written + compiled (dry run) 2026-10-21 (CR-019) — ⏳ **user must deploy** |
-| Everything from T1.10 onward | ⬜ not started |
+| T2.1 `Product` / `ProductModel` / `ProductRepository` (batch create/update, receiveStock) | ✅ done 2026-10-21 (CR-020) |
+| Everything from T2.2 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 

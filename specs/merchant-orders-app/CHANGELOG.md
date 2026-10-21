@@ -6,6 +6,24 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-020 — 2026-10-21 — Product model + repository (T2.1)
+
+**Request:** Start Phase 2; implement T2.1.
+
+**Decision / done:**
+- **`features/products/domain/entities/product.dart`:** `Product` (every D§3.2 field; `shortage = max(0, -stock)`, `inStock`, `imageKey = id:imageVersion`) and `ProductDraft` (the fields an admin edits: name, description, price, stock, isActive).
+- **`ProductModel`:** `fromSnapshot` / `fromMap` (whole prices read as double), `draftFields` (trimmed name, `nameLower = ArabicNormalizer.normalize(name)`, trimmed description, price rounded to 2 decimals), `toCreateMap` (counters 0, `imageVersion` 1, `createdBy`, server timestamps), `toUpdateMap` (never touches `activeQty` / `totalQty`; `imageVersion` += 1 only when the image changes), `imageMap` / `imageBytes` (`Blob` + `image/jpeg`).
+- **`ProductRepository` + `ProductRepositoryImpl`** (in `get_it`): `watchActive` (`isActive == true` ordered by `nameLower` — index exists), `watchAll`, `watch(id)`, `get(id)`, `create` / `update` (product + image in **one `WriteBatch`**, D§4.5, R6.7), `setActive` (R6.4), `receiveStock` (`FieldValue.increment`, rejects ≤ 0, R6.8 — logic for T2.7), `getImage`. Writes check the connection first.
+  - The product + image batch is in T2.1 (not T2.2) because a product can't be created without its image; T2.2 adds picking, compression and the image widget.
+- `FirestorePaths`: `products`, `productImages`.
+- **Tests:** 15 new (model fields, shortage, normalization + rounding, create/update maps, Blob round-trip; batch create, update with / without image, failed commit, offline, setActive, receiveStock + guard, getImage); 207 total pass. `flutter analyze` clean.
+
+**Affected:**
+- Tasks: T2.1 ✅
+- STATUS.md
+
+---
+
 ## CR-019 — 2026-10-21 — Users security rules tightened (T1.9) — deploy pending
 
 **Request:** Implement T1.9 (users section of `firestore.rules`; deploy).
