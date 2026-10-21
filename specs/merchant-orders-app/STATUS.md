@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-042)_
+_Last updated: 2026-10-21 (CR-043)_
 
 ## 1. Where things live
 
@@ -101,12 +101,14 @@ _Last updated: 2026-10-21 (CR-042)_
 | T5.1 Product demand list (`ProductDemandCubit`, on-device sort) | ✅ done 2026-10-21 (CR-042) |
 | T5.2 Status count cards (`OrderCountsCubit`, `count()`, refresh on pull + `statusChanges`) | ✅ done 2026-10-21 (CR-042) |
 | T5.3 Product → active orders (`ProductOrdersScreen`, `watchActiveWithProduct`) | ✅ done 2026-10-21 (CR-042) — **Phase 5 code complete**; device check after T1.10 |
-| Everything from T6.1 onward | ⬜ not started |
+| T6.1 Profile screen (edit name / phone / customer location, logout) + `AuthRepository.updateProfile` | ✅ done 2026-10-21 (CR-043) — device check after T1.10 |
+| T6.2 Self-edit can't change role / status | 🟡 app side done (CR-043); rule written (CR-019) — ⏳ emulator deny tests in T7.3 + user deploy |
+| Everything from T7.1 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 
 1. **User action:** in `/Users/mostafasamy/StudioProjects/merchant_orders` run `firebase deploy --only firestore:rules` (covers CR-019 + CR-025 + CR-034 + CR-039; deploys from Claude Code are blocked by its permission check). Then T1.10 (checklist §5a). Phase 2–3 screens still need a device check once an admin and a customer exist (D§9 QA list: two devices, concurrent orders on a stock-0 product, hide while in cart).
-2. Then Phase 6 (T6.1 profile screen). `ProfileScreen` is still a placeholder (admin More → «الملف الشخصي» and the customer tab both open it). Reuse: `UserModel.toSelfUpdateMap` (matches the users rules), `RegistrationFields` / `LocationCaptureSection` for the customer location edit, `LogoutTile` → `SessionCubit.signOut()`. The session listener already re-emits the edited profile. Conventions from T5: dashboard lives in `features/dashboard/`; `OrderListView` takes `filters` / `allLabel` / `emptyMessage`; widget tests that need long lists set `tester.view.physicalSize`.
+2. Then Phase 7. T7.1 / T7.2 (unit + cubit tests) are mostly covered already (376 tests) — audit against D§9 and fill gaps (validators, formatters, normalizer, transitions, models; Session / Cart / PlaceOrder / ChangeStatus cubits). T7.3 needs the Firebase Emulator (Java required — check `java -version`) + `@firebase/rules-unit-testing` in a small `test/rules/` Node project; it also closes T6.2. T7.4 is manual (user, two devices). T7.5 icon / name / splash / release builds — ask the user for the icon. Conventions from T6: the profile form compares against the live session user (save is disabled when nothing changed); `updateProfile` turns a 20 s write timeout into `NoConnectionException` (the write stays queued).
 3. Conventions from T1.3:
    - `sl<SessionCubit>()` is an app-wide lazy singleton — nothing creates it yet. T1.4 must read it (e.g. in `createRouter` and a `BlocProvider.value` in `app.dart`) so it starts at launch.
    - Route by `state.status` (`SessionStatus.unknown` → splash, `unauthenticated` → login, `customer`, `adminActive`, `adminPending`). There is no `rejected` status: those are signed out and arrive as `unauthenticated` with `state.message`.

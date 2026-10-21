@@ -69,8 +69,8 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 
 ## Phase 6 — Profile
 
-- [ ] **6.1** Profile screen (customer: name, phone, location edit; admin: name, phone), logout. _(R5)_
-- [ ] **6.2** Verify self-edit can't change role/status (rules). _(R13.2)_
+- [x] **6.1** Profile screen (customer: name, phone, location edit; admin: name, phone), logout. _(R5)_ — done 2026-10-21 (CR-043); device check after T1.10
+- [ ] **6.2** Verify self-edit can't change role/status (rules). _(R13.2)_ — app side done 2026-10-21 (CR-043): `updateProfile` writes only `name, phone, location?, updatedAt` (unit-tested); the rule (`changed().hasOnly(...)`, CR-019) is already written. ⏳ Deny cases run on the emulator in T7.3; live after the user deploys the rules
 
 ## Phase 7 — Quality & release
 

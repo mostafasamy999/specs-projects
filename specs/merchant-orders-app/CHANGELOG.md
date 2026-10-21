@@ -6,6 +6,28 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-043 — 2026-10-21 — Profile screen (T6.1) + self-edit check, app side (T6.2)
+
+**Request:** Commit Phase 5, then start Phase 6.
+
+**Decision / done:**
+- **`AuthRepository.updateProfile(uid, name, phone, location?)`** (R5.2–R5.4): `ensureOnline()`, then `update(UserModel.toSelfUpdateMap(...))`. The name is trimmed and the phone is converted to Western digits. `location` is sent only when it changed, and only for customers. The write uses the same 20 s limit as registration; on timeout it throws `NoConnectionException` («لا يوجد اتصال بالإنترنت») because the write stays queued in the offline cache and lands later. It is not a failed save.
+- **`ProfileScreen`** (replaces the T4.1 stand-in), one editable form:
+  - name and phone (same validators as registration); email shown read-only («لا يمكن تغيير البريد الإلكتروني»).
+  - customers: `LocationCaptureSection` prefilled with the saved location (GPS re-capture and/or address / details edit, «معاينة في خرائط جوجل»). When the location changed it shows «الطلبات الجديدة فقط ستستخدم الموقع الجديد» (R5.3: orders keep their own snapshot).
+  - admins: no location section (R5.4).
+  - «حفظ التغييرات» is enabled only when something differs from the **live** session profile (Arabic-Indic digits of the same phone are no change). After a save the session listener brings back the new values and the button turns off again. Success → «تم حفظ التغييرات»; errors → SnackBar with the values kept for retry.
+  - «تسجيل الخروج» with confirmation (R5.5), as before.
+- **T6.2 (app side):** a unit test asserts the write contains exactly `name, phone, location, updatedAt`, which is what the CR-019 self-edit rule allows. The deny cases (changing role / status / email) are rules tests on the emulator → **T7.3**, and they apply live only once the user deploys the rules.
+- **Tests:** 11 new (customer view with read-only email + location, name save without location, address edit sends the new location, invalid phone blocked, offline error keeps values, saved session → nothing to save; admin without location + digit normalization; repo: allowed keys only, no location key, offline, timeout → `NoConnectionException`). All 376 tests pass and `flutter analyze` is clean.
+- **Not verified on a device:** real accounts are needed first (T1.10).
+
+**Affected:**
+- Tasks: T6.1 ✅, T6.2 (app side; rules tests in T7.3)
+- STATUS.md
+
+---
+
 ## CR-042 — 2026-10-21 — Admin dashboard (T5.1–T5.3) — Phase 5 code complete
 
 **Request:** Finish the open tasks; start with Phase 5.
