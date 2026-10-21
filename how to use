@@ -1,30 +1,59 @@
 Every change to the module follows the same loop: **update the spec first, then the code, then sync the docs.**
 
+The specs are on the `talentlink` branch of `~/work/specs-projects`, checked out at `~/work/specs-talentlink`. Each module folder (for example `specs/001-activities/`) has four files:
+- `business-requirements.md`: behavior, rules, current state, plan and tasks
+- `api-contracts.md`: endpoints and data contracts
+- `open-questions.md`: everything that is still unclear (the only place questions are tracked)
+- `changelog.md`: the history of spec changes
+
+**0. Start of the day**
+- Open §12.4 of `business-requirements.md` to see where you stopped and what's next.
+- Check `open-questions.md` for backend answers that came in (step 5).
+
 **1. Write the change into the spec (before coding)**
-- Open `specs/001-new-activities/spec.md` and edit the affected section, for example §5 for a new quick filter or §8 for workload.
-- Bump the version (v1.1 → v1.2) and add a short line saying what changed and why.
-- If anything is unclear (API field, rule, threshold), add it to `open-questions.md` as Q15, Q16 and so on. Don't guess.
+- Open `specs/001-activities/business-requirements.md` and edit the affected section, for example §6.1 for a new quick filter or §6.5 for workload.
+- If the change touches an endpoint, field or format, update `api-contracts.md` too.
+- Bump the version in `business-requirements.md` (v1.1 → v1.2), and add a `changelog.md` entry saying what changed and why.
+- If anything is unclear (API field, rule, threshold), add it to `open-questions.md` as the next number (Q25, Q26 and so on). Don't guess.
 
 **2. Plan the work**
-- Small change (one file, obvious fix): add 1–3 tasks to the bottom of `tasks.md` under a new heading like `## Change v1.2: <name>`, each with a **Verify** step.
-- Bigger change (new screen, new API, new flow): add a new work package to `plan.md` (WP6 and so on), then its tasks.
+- Small change (one file, obvious fix): add 1–3 tasks to the bottom of §12.3 in `business-requirements.md` under a new heading like `Change v1.2: <name>`, each with a **Verify** step.
+- Bigger change (new screen, new API, new flow): add a new work package to §12.2 (WP6 and so on), then its tasks in §12.3.
 
 **3. Implement in the app**
 Start a Claude session in `~/StudioProjects/talentlink` and paste:
 
 ```
-Read ~/work/talentlink-specs/specs/001-new-activities/{spec.md,plan.md,tasks.md}.
-Implement the "Change v1.2: <name>" tasks. Follow the plan's constraints.
+Read ~/work/specs-talentlink/specs/001-activities/{business-requirements.md,api-contracts.md,open-questions.md}.
+Implement the "Change v1.2: <name>" tasks from §12.3. Follow the constraints in §9.
 Tick each task only after its Verify step passes.
 ```
 
-**4. Sync the docs (same day)**
-- Tick the tasks in `tasks.md`.
-- If the code ended up different from the spec, fix the spec on purpose so the two never disagree.
-- Refresh `current-state.md` if files or endpoints changed.
-- Update `NEXT.md` with where you stopped.
-- Commit the specs repo, for example `spec(001): v1.2 add X filter`.
+To pick up the v1.1 gap work instead, paste:
 
-**When it's not this module:** a brand-new feature gets its own folder, such as `specs/002-<name>/`, with the same set of files.
+```
+Read ~/work/specs-talentlink/specs/001-activities/{business-requirements.md,api-contracts.md,open-questions.md}.
+Implement T1.1, T1.2 and T3.1 from §12.3, then T5.1–T5.6.
+Follow the constraints in §9 (don't touch the old Visit/Task module; run the full build_runner, no --build-filter).
+Tick each task in §12.3 only after its Verify step passes.
+```
+
+If the backend has answered, first add: `Backend answers: Q12 = …, Q13 = …, Q14 = … — record them in open-questions.md and unblock WP2/WP4.`
+
+**4. Sync the docs (same day)**
+- Tick the tasks in §12.3.
+- If the code ended up different from the spec, fix the spec on purpose so the two never disagree.
+- Refresh §4 (current implementation) if files changed, and `api-contracts.md` if endpoints or fields changed.
+- Update §12.4 with where you stopped and what's next.
+- Add a `changelog.md` entry if the spec changed.
+- Commit the specs repo from `~/work/specs-talentlink`, for example `spec(001): v1.2 add X filter` or `spec(001): progress — WP1, WP3 done`.
+
+**5. When a backend or product answer arrives**
+1. Write the answer in `open-questions.md` and set the status to Resolved.
+2. Fold it into `business-requirements.md` (the rule) or `api-contracts.md` (the field or format), and replace the TBD.
+3. Remove the 🔒 from the tasks it unblocks in §12.3.
+4. Bump the version and add a `changelog.md` entry.
+
+**When it's not this module:** a brand-new feature gets its own folder, such as `specs/002-<name>/`, with the same four files. Add it to the Index in `README.md`.
 
 **Shortcut for tiny fixes** (typos, styling, obvious bugs): skip the spec, fix the code directly, and only update the spec if the behavior changed.
