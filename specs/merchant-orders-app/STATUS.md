@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-029)_
+_Last updated: 2026-10-21 (CR-030)_
 
 ## 1. Where things live
 
@@ -86,7 +86,8 @@ _Last updated: 2026-10-21 (CR-029)_
 | T3.1 `CartCubit` (hydrated, per uid) + add-to-cart wired | ✅ done 2026-10-21 (CR-027) |
 | T3.3 `OrderEntity` / `OrderModel` | ✅ done 2026-10-21 (CR-028) |
 | T3.4 `OrderRepository.placeOrder` (pre-check + transaction) | ✅ done 2026-10-21 (CR-029) |
-| Everything from T3.2 onward | ⬜ not started |
+| T3.2 Cart + Checkout screens + `CheckoutCubit` + cart badge | ✅ done 2026-10-21 (CR-030) |
+| Everything from T3.5 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 

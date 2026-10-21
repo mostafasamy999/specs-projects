@@ -6,6 +6,29 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-030 — 2026-10-21 — Cart + checkout screens (T3.2)
+
+**Request:** Implement T3.2 (after T3.3 / T3.4, see CR-028).
+
+**Decision / done:**
+- **`CartScreen`** (R9.1): one line per product — image, name, unit price, `QuantitySelector` (1…99), line total, delete; bottom `CartTotalBar` (total, «n قطعة») + «متابعة الطلب» → checkout. Empty → «سلتك فارغة» + «تصفح المنتجات».
+- **Cart tab badge** (`CartBadgeIcon`): number of pieces in the cart.
+- **`CheckoutScreen`** + **`CheckoutCubit`** (R9.3–R9.7): items (name × qty, line total), note «الأسعار الحالية تُحتسب عند التأكيد», home location from the profile as `AddressTile` (read-only) with «تغيير» → profile, optional note (≤ 300, the field stops at 300), «تأكيد الطلب».
+  - On open, `refreshPrices()` reads each product and updates the cart's names / prices (failures ignored — the transaction prices the order anyway).
+  - Confirm → `OrderRepository.placeOrder` → cart emptied (also on disk) → «تم إرسال طلبك بنجاح» → order details (R9.7). Failure → message, cart kept. No saved location → message and confirm disabled.
+  - Screen title renamed «مراجعة الطلب» (was the same text as the confirm button «تأكيد الطلب»).
+- Layout: the total row stacks label + count so long prices don't overflow (caught by the tests).
+- Test helper `useFakeOrders()`.
+- **Tests:** 9 new (cart lines / totals / badge; quantity + remove; empty → browse; continue → checkout; checkout content + price refresh; confirm → emptied + details; failure keeps cart; note capped at 300; missing location); 295 total pass. `flutter analyze` clean.
+- Unavailable products at checkout get their own handling in T3.5 (today: the generic message).
+- **Not checked on a device:** needs an active customer (T1.10).
+
+**Affected:**
+- Tasks: T3.2 ✅
+- STATUS.md
+
+---
+
 ## CR-029 — 2026-10-21 — Place-order transaction (T3.4)
 
 **Request:** Implement T3.4.

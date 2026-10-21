@@ -43,7 +43,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 ## Phase 3 — Cart & orders (customer)
 
 - [x] **3.1** `CartCubit` (hydrated): add/merge, change qty (1…99), remove, clear, totals. _(R9.1, R9.2)_ — done 2026-10-21 (CR-027)
-- [ ] **3.2** Cart screen + Checkout screen (location from profile, note). _(R9.3)_
+- [x] **3.2** Cart screen + Checkout screen (location from profile, note). _(R9.3)_ — done 2026-10-21 (CR-030)
 - [x] **3.3** `OrderEntity` / `OrderModel` (items, productIds, snapshots, statusHistory). _(D§3.3)_ — done 2026-10-21 (CR-028)
 - [x] **3.4** `OrderRepository.placeOrder` transaction (isActive check only, stock may go negative) & `ProductUnavailableException`. _(R9.4–9.7, D§4.3)_ — done 2026-10-21 (CR-029)
 - [ ] **3.5** Handle unavailable products in UI: show per-item message, remove them from cart. _(R9.5)_
