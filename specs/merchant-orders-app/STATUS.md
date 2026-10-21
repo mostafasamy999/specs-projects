@@ -110,7 +110,7 @@ _Last updated: 2026-10-21 (CR-026)_
 7. Next iOS build will add the `connectivity_plus` pod to `Podfile.lock` (not built in T0.8).
 8. Conventions from T0.7: show numbers via `Formatters` (ar_EG, Arabic-Indic digits); pass user-typed numbers through `ArabicNormalizer.digitsToWestern` before saving; store `nameLower = ArabicNormalizer.normalize(name)`; the location repo throws `LocationTimeoutException` (not a bare `TimeoutException`).
 9. Conventions: every Arabic string goes in `core/constants/app_strings.dart`; for a custom font weight use `style.withCairoWeight(FontWeight.wXXX)`, not `copyWith(fontWeight:)` (Cairo is a variable font).
-10. Skeleton notes: routes live in `lib/core/router/app_routes.dart`; the splash placeholder has dev links to login / customer / admin until T1.4 adds the session `redirect`.
+10. Routes live in `lib/core/router/app_routes.dart`; `sessionRedirect` (T1.4) decides access. Remaining placeholder screens (cart, orders, dashboard, customers, profile) still use `PlaceholderScreen`.
 
 ## 5a. T1.10 checklist (user + Android emulator)
 
