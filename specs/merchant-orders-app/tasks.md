@@ -27,7 +27,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 - [x] **1.6** `LocationCaptureSection` (GPS capture, service-off / permission / deniedForever handling, accuracy warning, address prefill via reverse geocoding, details) + `AddressTile` with "فتح في خرائط جوجل". _(R2, D§4.6)_ — done 2026-10-21 (CR-016)
 - [x] **1.7** Customer registration screen (validation + required location). _(R1.2–1.6, R2.6)_ — done 2026-10-21 (CR-017)
 - [x] **1.8** Admin registration screen + Pending approval screen (Refresh / Logout) + rejected handling. _(R3.1–3.4, R3.8)_ — done 2026-10-21 (CR-018)
-- [ ] **1.9** Write `firestore.rules` users section; deploy. _(D§5, R13.2)_ — rules written 2026-10-21 (CR-019); ⏳ **deploy pending (user runs `firebase deploy --only firestore:rules`)**
+- [x] **1.9** Write `firestore.rules` users section; deploy. _(D§5, R13.2)_ — rules written 2026-10-21 (CR-019); deployed 2026-10-21 (CR-045)
 - [ ] **1.10** Bootstrap first admin from Console and verify routing for all states. _(R3.10)_
 
 ## Phase 2 — Products
@@ -37,7 +37,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 - [x] **2.3** Admin product form (create/edit, validation, image replace). _(R6.1, R6.3)_ — done 2026-10-21 (CR-022)
 - [x] **2.4** Admin products list (search, red "عجز <n>" badge when stock < 0, active toggle). _(R6.4, R6.5)_ — done 2026-10-21 (CR-023)
 - [x] **2.5** Customer products grid (real-time, search) + product details with stock text ("متوفر: n" / "متاح بالطلب") and quantity selector 1…99. _(R8)_ — done 2026-10-21 (CR-024)
-- [ ] **2.6** Products + productImages rules; deploy; indexes for products. _(D§5, D§6)_ — rules written 2026-10-21 (CR-025), indexes unchanged; ⏳ **deploy pending (user, same command as T1.9)**
+- [x] **2.6** Products + productImages rules; deploy; indexes for products. _(D§5, D§6)_ — rules written 2026-10-21 (CR-025), indexes unchanged; deployed 2026-10-21 (CR-045)
 - [x] **2.7** "Receive stock" dialog (positive qty → `increment`) + manual stock correction in form. _(R6.8, R6.9)_ — done 2026-10-21 (CR-026)
 
 ## Phase 3 — Cart & orders (customer)
@@ -49,7 +49,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 - [x] **3.5** Handle unavailable products in UI: show per-item message, remove them from cart. _(R9.5)_ — done 2026-10-21 (CR-031)
 - [x] **3.6** My orders screen (status tabs, pagination 20, real-time). _(R10.1, R10.2, R14.4)_ — done 2026-10-21 (CR-032)
 - [x] **3.7** Order details screen with status timeline + cancel reason, real-time. _(R10.3–10.5)_ — done 2026-10-21 (CR-033)
-- [ ] **3.8** Orders rules (create/read) + product `validOrderDelta`; indexes for orders. _(D§5, D§6, R13.4)_ — rules written 2026-10-21 (CR-034), indexes unchanged; ⏳ **deploy pending (user, same command as T1.9 / T2.6)**
+- [x] **3.8** Orders rules (create/read) + product `validOrderDelta`; indexes for orders. _(D§5, D§6, R13.4)_ — rules written 2026-10-21 (CR-034), indexes unchanged; deployed 2026-10-21 (CR-045)
 
 ## Phase 4 — Admin operations
 
@@ -57,7 +57,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 - [x] **4.2** Admin orders list (status filter, pending badge, real-time, pagination). _(R11.1)_ — done 2026-10-21 (CR-036)
 - [x] **4.3** Admin order details: tap-to-call, `AddressTile` + open in Google Maps, timeline. _(R11.2, R11.3)_ — done 2026-10-21 (CR-037)
 - [x] **4.4** `OrderRepository.changeStatus` transaction (allowed transitions, counter deltas, concurrency check) + cancel reason dialog. _(R11.4–11.7, D§4.4)_ — done 2026-10-21 (CR-038)
-- [ ] **4.5** Orders update rule (`validTransition`); deploy. _(D§5)_ — rule written 2026-10-21 (CR-039); ⏳ **deploy pending (user, same command)**
+- [x] **4.5** Orders update rule (`validTransition`); deploy. _(D§5)_ — rule written 2026-10-21 (CR-039); deployed 2026-10-21 (CR-045)
 - [x] **4.6** Admin requests screen (pending list, approve, reject with confirm). _(R3.5–3.7)_ — done 2026-10-21 (CR-040)
 - [x] **4.7** Customers directory + customer details (address + open in Google Maps, call, orders). _(R12.1, R12.2)_ — done 2026-10-21 (CR-041)
 

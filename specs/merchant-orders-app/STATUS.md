@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-044)_
+_Last updated: 2026-10-21 (CR-045)_
 
 ## 1. Where things live
 
@@ -27,7 +27,7 @@ _Last updated: 2026-10-21 (CR-044)_
 | Plan | **Spark (no-cost), no billing account** — never upgrade |
 | Auth | Email/Password **enabled**; Email link (passwordless) **off**; no other providers |
 | Firestore | Database `(default)` · Standard edition · Native mode · **`europe-west1` (Belgium)** · production mode |
-| Security Rules | **Live: CR-004 version** (deployed 2026-10-20). **Repo: CR-034 version** (users CR-019, products/productImages CR-025, orders create CR-034, orders update CR-039 — tightened 2026-10-21, not deployed yet). |
+| Security Rules | **Live = repo** (deployed 2026-10-21, CR-045): users CR-019, products/productImages CR-025, orders create CR-034, orders update CR-039. Verified by reading the live ruleset back. 57 emulator tests (`rules_test/`) pass on this version. |
 | Indexes | **Deployed** 2026-10-20 — 8 composite indexes from `design.md` §6 (`products.stock` is single-field/automatic, not in the file) |
 | Cloud Storage / Analytics / Gemini | Not enabled (by design) |
 | Registered apps | Android `1:658495017371:android:851470e927dca09816d13e` (`com.mostafasamy.merchant_orders`) · iOS `1:658495017371:ios:96c4a81f3016720116d13e` (`com.mostafasamy.merchantOrders`) |
@@ -75,14 +75,14 @@ _Last updated: 2026-10-21 (CR-044)_
 | T1.6 `LocationRepository` + `LocationCaptureSection` + `AddressTile` + `MapsLinks` | ✅ done 2026-10-21 (CR-016) |
 | T1.7 Customer registration + `RegistrationFields` (+ GPS-provider fallback, Android address fix) | ✅ done 2026-10-21 (CR-017) |
 | T1.8 Admin registration + Pending approval screen (server Refresh via `fetchProfile`) | ✅ done 2026-10-21 (CR-018) |
-| T1.9 Users rules tightened (`firestore.rules` + D§5) | 🟡 written + compiled (dry run) 2026-10-21 (CR-019) — ⏳ **user must deploy** |
-| T1.10 Bootstrap first admin + verify routing for all states | ⏳ **user** — checklist in §5a (after deploying the CR-019 rules) |
+| T1.9 Users rules tightened (`firestore.rules` + D§5) | ✅ written (CR-019), deployed 2026-10-21 (CR-045) |
+| T1.10 Bootstrap first admin + verify routing for all states | ⏳ **user** — checklist in §5a (rules are live now) |
 | T2.1 `Product` / `ProductModel` / `ProductRepository` (batch create/update, receiveStock) | ✅ done 2026-10-21 (CR-020) |
 | T2.2 Image pick + `ProductImageCompressor` + `ProductImageCache` + `ProductImage` | ✅ done 2026-10-21 (CR-021) |
 | T2.3 Admin product form + `ProductFormCubit` (stock written only when corrected) | ✅ done 2026-10-21 (CR-022) — device check after T1.10 |
 | T2.4 Admin products list + `ProductListCubit` (on-device search) | ✅ done 2026-10-21 (CR-023) — device check after T1.10 |
 | T2.5 Customer grid + product details + `QuantitySelector` / `StockText` (add-to-cart in T3.1) | ✅ done 2026-10-21 (CR-024) — device check after T1.10 |
-| T2.6 Products + productImages rules tightened (`firestore.rules` + D§5) | 🟡 written + compiled 2026-10-21 (CR-025) — ⏳ **user must deploy** |
+| T2.6 Products + productImages rules tightened (`firestore.rules` + D§5) | ✅ written (CR-025), deployed 2026-10-21 (CR-045) |
 | T2.7 Receive stock dialog (+ manual correction from T2.3) | ✅ done 2026-10-21 (CR-026) — **Phase 2 code complete** |
 | T3.1 `CartCubit` (hydrated, per uid) + add-to-cart wired | ✅ done 2026-10-21 (CR-027) |
 | T3.3 `OrderEntity` / `OrderModel` | ✅ done 2026-10-21 (CR-028) |
@@ -91,28 +91,28 @@ _Last updated: 2026-10-21 (CR-044)_
 | T3.5 Unavailable products removed from the cart + dialog | ✅ done 2026-10-21 (CR-031) |
 | T3.6 My orders + `OrderListCubit` / `OrderListView` / `OrderTile` (live paging) | ✅ done 2026-10-21 (CR-032) |
 | T3.7 Order details + `StatusTimeline` (shared `OrderDetailsView`) | ✅ done 2026-10-21 (CR-033) |
-| T3.8 Orders rules tightened + cart cap 50 | 🟡 written + compiled 2026-10-21 (CR-034) — ⏳ **user must deploy** — **Phase 3 code complete** |
+| T3.8 Orders rules tightened + cart cap 50 | ✅ written (CR-034), deployed 2026-10-21 (CR-045) — **Phase 3 code complete** |
 | T4.1 Admin shell: pending badge, More menu, logout (+ profile stand-in) | ✅ done 2026-10-21 (CR-035) |
 | T4.2 Admin orders list (`watchAll`, chip pending count) | ✅ done 2026-10-21 (CR-036) |
 | T4.3 Admin order details (call, navigation) | ✅ done 2026-10-21 (CR-037) |
 | T4.4 `changeStatus` transaction + status actions + cancel dialog | ✅ done 2026-10-21 (CR-038) |
-| T4.5 Orders update rule tightened | 🟡 written + compiled 2026-10-21 (CR-039) — ⏳ **user must deploy** |
+| T4.5 Orders update rule tightened | ✅ written (CR-039), deployed 2026-10-21 (CR-045) |
 | T4.6 Admin requests + `UsersRepository` (+ More count) | ✅ done 2026-10-21 (CR-040) |
 | T4.7 Customers directory + customer details | ✅ done 2026-10-21 (CR-041) — **Phase 4 code complete** |
 | T5.1 Product demand list (`ProductDemandCubit`, on-device sort) | ✅ done 2026-10-21 (CR-042) |
 | T5.2 Status count cards (`OrderCountsCubit`, `count()`, refresh on pull + `statusChanges`) | ✅ done 2026-10-21 (CR-042) |
 | T5.3 Product → active orders (`ProductOrdersScreen`, `watchActiveWithProduct`) | ✅ done 2026-10-21 (CR-042) — **Phase 5 code complete**; device check after T1.10 |
 | T6.1 Profile screen (edit name / phone / customer location, logout) + `AuthRepository.updateProfile` | ✅ done 2026-10-21 (CR-043) — device check after T1.10 |
-| T6.2 Self-edit can't change role / status | ✅ app side (CR-043) + emulator deny tests (CR-044) — **Phase 6 code complete**; live after the user deploys the rules |
+| T6.2 Self-edit can't change role / status | ✅ app side (CR-043) + emulator deny tests (CR-044) — **Phase 6 code complete**; live since CR-045 |
 | T7.1 Unit tests (D§9 audit) | ✅ 2026-10-21 (CR-044) — already covered |
 | T7.2 Cubit tests (+ `CheckoutCubit`) | ✅ 2026-10-21 (CR-044) |
 | T7.3 Rules tests on the Firestore emulator (57 cases, `rules_test/`) | ✅ 2026-10-21 (CR-044) |
-| T7.4 Manual QA on two devices | ⏳ **user** (after deploy + T1.10) |
+| T7.4 Manual QA on two devices | ⏳ **user** (after T1.10) |
 | T7.5 Icon, Arabic name, splash, release builds | ⬜ not started — needs the user's icon |
 
 ## 5. Next session — exact order
 
-1. **User action:** in `/Users/mostafasamy/StudioProjects/merchant_orders` run `firebase deploy --only firestore:rules` (covers CR-019 + CR-025 + CR-034 + CR-039; deploys from Claude Code are blocked by its permission check). Then T1.10 (checklist §5a). Phase 2–3 screens still need a device check once an admin and a customer exist (D§9 QA list: two devices, concurrent orders on a stock-0 product, hide while in cart).
+1. **User action:** T1.10 (checklist §5a) — the rules are live since CR-045. After any future `firestore.rules` change: run the emulator tests, then `firebase deploy --only firestore:rules` only with the user's go-ahead. Phase 2–3 screens still need a device check once an admin and a customer exist (D§9 QA list: two devices, concurrent orders on a stock-0 product, hide while in cart).
 2. Then T7.5 (app icon, Arabic app name, splash, Android AAB + iOS archive) — ask the user for the icon artwork and signing details first. T7.4 is the user's manual QA (D§9 list). **Rules tests:** `cd rules_test && npm test` (Firestore emulator, project `demo-merchant-orders` — never the real one; the script picks a JDK 21+ via `/usr/libexec/java_home -v 21+` because firebase-tools 15 refuses Java 17, the default `java` here). Re-run them after any `firestore.rules` change, before asking the user to deploy.
 3. Conventions from T1.3:
    - `sl<SessionCubit>()` is an app-wide lazy singleton — nothing creates it yet. T1.4 must read it (e.g. in `createRouter` and a `BlocProvider.value` in `app.dart`) so it starts at launch.
@@ -141,7 +141,7 @@ _Last updated: 2026-10-21 (CR-044)_
 
 Run the app: `flutter run -d emulator-5554` in the Flutter project root. Use real email addresses you control.
 
-1. **Deploy rules first** (CR-019): `firebase deploy --only firestore:rules`.
+1. ~~Deploy rules first~~ — done 2026-10-21 (CR-045).
 2. **Admin bootstrap (R3.10):** register an admin in the app → pending screen with your name/email. Tap «تحديث» → «لا يزال طلبك قيد المراجعة».
 3. In the Console → Firestore → `users/{uid}` → set `status` = `active` **while the pending screen is open** → app opens the dashboard by itself (R3.8).
 4. Kill and relaunch the app → splash → dashboard (persisted session, R4.3). To switch accounts later, sign out by clearing app data: `adb shell pm clear com.mostafasamy.merchant_orders` (no logout button for active users until the profile screen, Phase 5).

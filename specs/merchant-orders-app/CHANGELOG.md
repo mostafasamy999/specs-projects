@@ -6,6 +6,22 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-045 — 2026-10-21 — Security rules deployed (T1.9, T2.6, T3.8, T4.5)
+
+**Request:** "Start with T1.9 Firestore rules."
+
+**Decision / done:**
+- Before deploying: the 57 emulator rules tests passed (CR-044) and `firebase deploy --only firestore:rules --dry-run` compiled successfully.
+- Deployed with `firebase deploy --only firestore:rules --project merchant-orders-39dd1`. This released the repo's `firestore.rules`, which contains the users rules (CR-019), products / productImages (CR-025), orders create (CR-034) and orders update (CR-039). Only the rules were deployed; indexes were not touched.
+- Verified: the live ruleset read back from the project is identical to the repo file.
+- The rules apply from now on, so T1.10 can run against them.
+
+**Affected:**
+- Tasks: T1.9 ✅, T2.6 ✅, T3.8 ✅, T4.5 ✅
+- STATUS.md (§2 Security Rules, progress, next steps, §5a step 1)
+
+---
+
 ## CR-044 — 2026-10-21 — Tests: D§9 audit, PlaceOrder cubit, security rules on the emulator (T7.1–T7.3, closes T6.2)
 
 **Request:** Commit Phase 6, then Phase 7 tests (T7.1–T7.3).
