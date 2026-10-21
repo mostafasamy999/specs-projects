@@ -37,7 +37,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 - [x] **2.3** Admin product form (create/edit, validation, image replace). _(R6.1, R6.3)_ — done 2026-10-21 (CR-022)
 - [x] **2.4** Admin products list (search, red "عجز <n>" badge when stock < 0, active toggle). _(R6.4, R6.5)_ — done 2026-10-21 (CR-023)
 - [x] **2.5** Customer products grid (real-time, search) + product details with stock text ("متوفر: n" / "متاح بالطلب") and quantity selector 1…99. _(R8)_ — done 2026-10-21 (CR-024)
-- [ ] **2.6** Products + productImages rules; deploy; indexes for products. _(D§5, D§6)_
+- [ ] **2.6** Products + productImages rules; deploy; indexes for products. _(D§5, D§6)_ — rules written 2026-10-21 (CR-025), indexes unchanged; ⏳ **deploy pending (user, same command as T1.9)**
 - [ ] **2.7** "Receive stock" dialog (positive qty → `increment`) + manual stock correction in form. _(R6.8, R6.9)_
 
 ## Phase 3 — Cart & orders (customer)

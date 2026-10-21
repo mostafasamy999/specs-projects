@@ -319,13 +319,42 @@ service cloud.firestore {
     }
 
     // ---------- products ----------
+    // Field lists match ProductModel.toCreateMap / toUpdateMap (CR-025).
+    function validProductFields(p) {
+      return p.name is string && p.name.size() > 0 && p.name.size() <= 80
+        && p.nameLower is string
+        && p.description is string && p.description.size() <= 500
+        && (p.price is int || p.price is float) && p.price > 0
+        && p.stock is int
+        && p.activeQty is int && p.activeQty >= 0
+        && p.totalQty is int && p.totalQty >= 0
+        && p.isActive is bool
+        && p.imageVersion is int;
+    }
+
     match /products/{productId} {
       allow read: if isActiveAdmin() || (isActiveCustomer() && resource.data.isActive == true);
+
       allow create: if isActiveAdmin()
+        && request.resource.data.keys().hasOnly(['name', 'nameLower', 'description', 'price',
+             'imageVersion', 'stock', 'activeQty', 'totalQty', 'isActive', 'createdBy',
+             'createdAt', 'updatedAt'])
+        && validProductFields(request.resource.data)
+        && request.resource.data.stock >= 0
         && request.resource.data.activeQty == 0 && request.resource.data.totalQty == 0
-        && request.resource.data.stock is int && request.resource.data.stock >= 0
-        && request.resource.data.price > 0;
-      allow update: if isActiveAdmin() || (isActiveCustomer() && validOrderDelta());
+        && request.resource.data.imageVersion == 1
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        // the image is written in the same batch (D§4.5)
+        && existsAfter(/databases/$(database)/documents/productImages/$(productId));
+
+      // admin: edit, show/hide, receive stock, order status counters (T4.4)
+      allow update: if (isActiveAdmin()
+            && !changed().hasAny(['createdBy', 'createdAt'])
+            && validProductFields(request.resource.data)
+            && (!('imageVersion' in changed())
+                || request.resource.data.imageVersion == resource.data.imageVersion + 1))
+        || (isActiveCustomer() && validOrderDelta());
       allow delete: if false;   // soft delete via isActive (R6.4)
 
       // customer placing an order: stock goes down by d (may go negative), both counters go up by d
@@ -341,12 +370,17 @@ service cloud.firestore {
       }
     }
 
-    // ---------- productImages (CR-002) ----------
+    // ---------- productImages (CR-002, CR-025) ----------
     match /productImages/{productId} {
       allow read: if isActiveAdmin() || isActiveCustomer();
       allow create, update: if isActiveAdmin()
+        && request.resource.data.keys().hasOnly(['data', 'contentType', 'updatedAt'])
         && request.resource.data.data is bytes
-        && request.resource.data.data.size() <= 300 * 1024;
+        && request.resource.data.data.size() <= 300 * 1024
+        && request.resource.data.contentType == 'image/jpeg'
+        && request.resource.data.updatedAt == request.time
+        // only next to its product (same batch on create)
+        && existsAfter(/databases/$(database)/documents/products/$(productId));
       allow delete: if false;
     }
 

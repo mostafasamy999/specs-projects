@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-024)_
+_Last updated: 2026-10-21 (CR-025)_
 
 ## 1. Where things live
 
@@ -27,7 +27,7 @@ _Last updated: 2026-10-21 (CR-024)_
 | Plan | **Spark (no-cost), no billing account** — never upgrade |
 | Auth | Email/Password **enabled**; Email link (passwordless) **off**; no other providers |
 | Firestore | Database `(default)` · Standard edition · Native mode · **`europe-west1` (Belgium)** · production mode |
-| Security Rules | **Live: CR-004 version** (deployed 2026-10-20). **Repo: CR-019 version** (users section tightened 2026-10-21, not deployed yet). |
+| Security Rules | **Live: CR-004 version** (deployed 2026-10-20). **Repo: CR-025 version** (users CR-019 + products/productImages CR-025 tightened 2026-10-21, not deployed yet). |
 | Indexes | **Deployed** 2026-10-20 — 8 composite indexes from `design.md` §6 (`products.stock` is single-field/automatic, not in the file) |
 | Cloud Storage / Analytics / Gemini | Not enabled (by design) |
 | Registered apps | Android `1:658495017371:android:851470e927dca09816d13e` (`com.mostafasamy.merchant_orders`) · iOS `1:658495017371:ios:96c4a81f3016720116d13e` (`com.mostafasamy.merchantOrders`) |
@@ -81,11 +81,12 @@ _Last updated: 2026-10-21 (CR-024)_
 | T2.3 Admin product form + `ProductFormCubit` (stock written only when corrected) | ✅ done 2026-10-21 (CR-022) — device check after T1.10 |
 | T2.4 Admin products list + `ProductListCubit` (on-device search) | ✅ done 2026-10-21 (CR-023) — device check after T1.10 |
 | T2.5 Customer grid + product details + `QuantitySelector` / `StockText` (add-to-cart in T3.1) | ✅ done 2026-10-21 (CR-024) — device check after T1.10 |
-| Everything from T2.6 onward | ⬜ not started |
+| T2.6 Products + productImages rules tightened (`firestore.rules` + D§5) | 🟡 written + compiled 2026-10-21 (CR-025) — ⏳ **user must deploy** |
+| Everything from T2.7 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 
-1. **User action:** in `/Users/mostafasamy/StudioProjects/merchant_orders` run `firebase deploy --only firestore:rules` (CR-019; the deploy from Claude Code was blocked by its permission check). Then T1.10 (bootstrap first admin from the Console, verify routing for every state).
+1. **User action:** in `/Users/mostafasamy/StudioProjects/merchant_orders` run `firebase deploy --only firestore:rules` (covers CR-019 + CR-025; deploys from Claude Code are blocked by its permission check). Then T1.10 (checklist §5a). Phase 2 screens (T2.3–T2.5) still need a device check once an admin and a customer exist.
 2. Conventions from T1.3:
    - `sl<SessionCubit>()` is an app-wide lazy singleton — nothing creates it yet. T1.4 must read it (e.g. in `createRouter` and a `BlocProvider.value` in `app.dart`) so it starts at launch.
    - Route by `state.status` (`SessionStatus.unknown` → splash, `unauthenticated` → login, `customer`, `adminActive`, `adminPending`). There is no `rejected` status: those are signed out and arrive as `unauthenticated` with `state.message`.

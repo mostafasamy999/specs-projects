@@ -6,6 +6,27 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-025 — 2026-10-21 — Products + productImages rules tightened (T2.6) — deploy pending
+
+**Request:** Implement T2.6 (products + productImages rules; deploy; product indexes).
+
+**Decision / done:** reviewed against what the app writes (`ProductModel`, `ProductRepositoryImpl`) and tightened; no new permissions.
+- **`validProductFields(p)`** (create + admin update): name string 1–80, `nameLower` string, description string ≤ 500, price number > 0, stock int, `activeQty` / `totalQty` int ≥ 0, `isActive` bool, `imageVersion` int.
+- **create (admin):** keys limited to exactly `ProductModel.toCreateMap`; stock ≥ 0; counters 0; `imageVersion == 1`; `createdBy == request.auth.uid`; `createdAt == request.time`; **`existsAfter(productImages/{id})`** — the image must be in the same batch (D§4.5).
+- **update (admin):** `createdBy` / `createdAt` frozen; whole doc still valid after the write; `imageVersion` may only go up by exactly 1. Counters are *not* frozen for admins because the order status change (T4.4) updates them.
+- **update (customer):** `validOrderDelta()` unchanged (Phase 3 reviews it with the order transaction).
+- **productImages create / update (admin):** keys `data, contentType, updatedAt` only; `data` bytes ≤ 300 KB; `contentType == 'image/jpeg'`; `updatedAt == request.time`; **`existsAfter(products/{id})`** — no orphan images.
+- **Indexes:** no change needed. Customer catalog uses `products (isActive, nameLower)` (exists); the admin list orders by `nameLower` alone (automatic single-field index); search is on-device (CR-023). `products (isActive, createdAt)` stays deployed but unused for now.
+- **D§5 synced** — identical to the repo `firestore.rules` (checked). `firebase deploy --only firestore:rules --dry-run` → compiled successfully.
+- **Not deployed** (Claude Code's permission check blocks production deploys). **The user must run** `firebase deploy --only firestore:rules` — this one deploy covers CR-019 and CR-025. Until then the live rules are the CR-004 version; the app works with both.
+
+**Affected:**
+- Design: D§5 (products, productImages)
+- Tasks: T2.6 (rules written; ⏳ deploy by user)
+- STATUS.md
+
+---
+
 ## CR-024 — 2026-10-21 — Customer product grid + details (T2.5)
 
 **Request:** Implement T2.5.
