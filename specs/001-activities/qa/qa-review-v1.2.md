@@ -1,0 +1,500 @@
+# QA Review — 001 New Activities (Visits & Tasks)
+
+**Reviewer role:** Senior QA Analyst (requirements review + test design only; no code read, no code changed)
+**Review date:** 2026-10-21
+**Spec baseline:** `specs/001-activities/` v1.2 (Approved, last updated 2026-10-21)
+
+| File reviewed | Lines | Status |
+|---|---|---|
+| `business-requirements.md` (BR) | 592 | Read in full |
+| `api-contracts.md` (API) | 579 | Read in full |
+| `changelog.md` (CL) | 110 | Read in full |
+| `open-questions.md` (OQ) | 59 | Read in full |
+
+**Limitations**
+- Only these four files exist under `specs/`. The files they reference — root `README.md`, `how to use`, and the app code at `~/StudioProjects/talentlink` — were **not** reviewed (the first two aren't in the specs folder I was given; the code is out of scope for a QA spec review).
+- The create-form validation, the company/employee/department lookup endpoints and the `RemoteDynamicForm` shape are documented only as "existing behavior". No expected results can be taken from the spec for them, so those test cases are marked **Blocked – undocumented**.
+- No captured request/response samples exist (API header). Every API expectation below is based on DTO shapes, not observed traffic.
+
+**Conventions in this document**
+- **[DOC]** = expected result taken directly from the spec. **[ASSUMED-IN-CODE]** = the spec records it as code behavior that isn't confirmed. **[PO-CONFIRM]** = the spec doesn't define it; the test can't pass or fail until the product owner answers. **[BLOCKED Qn]** = waiting on a numbered open question.
+- Test reference date: **today = Wed 2026-10-21**, device and server in the same time zone (the spec doesn't define time zones, see G-03).
+- Test users: **M1** = Manager with team E1, E2 across companies C1, C2. **E1** = Employee (company C1, department D1). **E2** = Employee (company C2, department D2).
+
+---
+
+## 1. QA summary and specification readiness
+
+### Overall verdict: **Partially ready — testable for the list/filter core, not ready for workload, permissions, create validation or detail actions.**
+
+| Area | Readiness | Why |
+|---|---|---|
+| Dashboard | 🟡 Partial | Metrics approved (Q10), but status-list field names unconfirmed (Q20), "late" undefined, Visit summary counts parsed but not mapped, and no rule on whether the dashboard follows the filters |
+| Current / Previous | 🟡 Partial | Business rule clear (Q2). The boundary depends on Q14 (inclusive `endDateTime`) and Q23 (date format). Time zone and recurring-occurrence start are undefined |
+| Quick filters / Scope | 🔴 Not ready | The scope → `onlyMe` mapping contradicts itself between files and with the business meaning (Q16). Chip combination rules are undefined |
+| Filter sheet | 🟢 Mostly ready | Apply / Reset / Dismiss, date validation and dependent-clear rules are defined. Missing: category → execution type clear, defaults for Reset, chip-vs-sheet date conflict |
+| Search | 🔴 Not ready | Matched fields unknown (Q19). Debounce interval, minimum length and trimming undefined |
+| Sorting | 🟢 Ready | Q8 confirmed. Tie-break undefined (minor) |
+| Pagination | 🟢 Mostly ready | Rules are clear. Page size, dedupe key and the `totalCount`-missing case are undefined |
+| Create / Edit | 🟡 Partial | v1.2 toggle behavior is clear. Field-level validation is "existing baseline" with no written rules |
+| Details & actions | 🔴 Not ready | Permission flags blocked (Q13). Status transitions, step order and status 7 handling undefined |
+| Progress | 🟢 Mostly ready | 0–100 int confirmed (Q7). Who may update is blocked (Q13) |
+| Workload / Assignment | 🔴 Blocked | Status field doesn't exist yet (Q12). Date window contradicts "today" (Q17) |
+| Errors & UI states | 🟡 Partial | States listed. Retry behavior, timeouts and error messages undefined (Q24) |
+| Arabic / English | 🟡 Partial | Toggle direction defined. Whether backend names are localized is TBD |
+| Regression (old module) | 🟢 Ready | Isolation rules and shared classes clearly listed |
+
+**Numbers:** 191 test cases written (45 P0). 108 have fully documented expected results, 66 have at least one [PO-CONFIRM] or [ASSUMED-IN-CODE] part, and 17 are blocked (Q12, Q13, Q14, Q19 or the undocumented create baseline). 31 specification gaps found, 9 of them critical.
+
+**Process observations**
+- The spec is marked **Approved** while three backend questions (Q12–Q14) block core behavior and ten more (Q15–Q24) aren't sent yet. QA recommends "Approved with open items" until at least Q14, Q16 and Q19 are answered.
+- The v1.2 change (Visit default) records "Reason: requested by the user" (CL line 20) but no product-owner confirmation. All other product decisions cite a PO answer. Traceability gap.
+- BR §12.4 "State (2026-10-18) … No app code has changed yet" is stale: T10.1 and T10.2 are ticked as done on 2026-10-21.
+
+---
+
+## 2. Critical gaps and ambiguities
+
+Severity: **Critical** = a test cannot have a defined expected result, or the spec contradicts itself on core behavior. **High** = likely defect or user-visible inconsistency. **Medium / Low** = edge cases.
+
+| ID | Type | Severity | Finding | Where | Impact | Question for the product owner / backend |
+|---|---|---|---|---|---|---|
+| G-01 | Contradiction | **Critical** | Scope → request mapping contradicts itself. API §1.7 says **My activities** sends "the user's allowed companies and employees". BR §12.1 and T5.3 say Mine and Private send "the user's **own** IDs". | API §1.7, BR §12.1, T5.3 | "My activities" might return the whole team's activities. Test expected results differ depending on which file is right. | For "My activities", must the request contain only the logged-in user's own employee ID, or every employee they're allowed to see? |
+| G-02 | Contradiction | **Critical** | `onlyMe = true` is sent for both **All** (team + mine + private) and **Private only**, which have opposite meanings. The only difference is the ID list. On create, `onlyMe` means "only the creator sees it". The DTO says `null` = All scope, but the code never sends null. | API §1.7, §3.10, OQ Q16 | Private-only may show non-private items, or All may hide public ones. The scope filter can't be verified. | What does `onlyMe` mean on list/dashboard requests? What exact request represents "All", "My team", "My activities" and "Private only"? |
+| G-03 | Missing rule | **Critical** | No time zone rule. "Today 00:00" isn't defined as device local time, company time or server time. | BR §7.2, API §1.6 | Users in another time zone, or a device with the wrong clock, will see activities in the wrong bucket. Gap/overlap rule can break. | Which time zone defines "today 00:00" for Current/Previous, the dashboard and the workload? |
+| G-04 | Undefined API | **Critical** | Previous boundary depends on whether `endDateTime` is inclusive (Q14) and whether the backend reads `yyyy-MM-dd` or `yyyy-MM-ddTHH:mm:ss` (Q23). If the backend truncates to a date, "2026-10-20T23:59:59" and "2026-10-21T00:00:00" behave differently than the spec intends. | BR §7.2, API §1.6, Q14, Q23 | Activities at 00:00 today may appear in both lists, or yesterday's may still drop. The core WP1 fix can't be signed off. | Is `endDateTime` inclusive? Does the backend compare date-times or only dates? |
+| G-05 | Missing rule | **Critical** | "Scheduled start" isn't defined for recurring (weekly/monthly) activities. A list item is one occurrence, but the card shows only `masterData.fromDateTime`/`endDateTime` (API §4.3). | BR §6.7, §7.2, API §4.1, §4.3 | Sorting and Current/Previous might use the master start, not the occurrence date. A recurring activity that started last month would sit in Previous forever. | For a recurring activity, are Current/Previous and sorting based on the occurrence date/time or the master's start? Which date must the card show? |
+| G-06 | Ambiguous | **Critical** | Search fields unknown (Q19). Debounce interval, minimum characters, trimming and case/diacritic sensitivity aren't defined. | BR §6.6, Q19 | The acceptance criterion "matching results are returned according to the agreed search contract" refers to a contract that doesn't exist. | Which fields does `searchValue` match? Debounce ms? Minimum length? Trimmed? Case-insensitive? Arabic diacritics/alef variants normalized? |
+| G-07 | Missing rule | **Critical** | Status **7 Partially Completed** is in neither the Open group {1,2} nor the Non-editable group {3,4,5}. | BR §4.2, §7.1 | Actions on a partially completed activity are undefined (edit, progress, reschedule, complete). | Which actions are allowed when the status is Partially Completed? How does an activity reach status 7? |
+| G-08 | Blocked | **Critical** | Workload status field doesn't exist yet (Q12). | BR §6.5, API §3.6 | WP2 and its four acceptance-criteria-level states can't be tested. | (Already sent) field name, type and value set. Also see G-15. |
+| G-09 | Blocked | **Critical** | Per-action permission flags don't exist (Q13). Only `canEdit` exists. | BR §3, API §3.7 | No permission test can pass against the confirmed rule (Q9). Security risk if actions show by status alone. | (Already sent) Plus: which screens can the Employee role open (Add? Main? Filter by employee?) |
+| G-10 | Contradiction | High | Workload window: BR §4.2 says the window is **today**; API §3.6 / Q17 says `fromDateTime` and `endDateTime` are **both the current instant**. A zero-width window. | BR §4.2, API §3.6, Q17 | Workload may always be empty → every employee shown as Unknown (after WP2) or Available (today). | Which window defines workload: today, current instant, or the scheduled period of the activity being assigned? |
+| G-11 | Ambiguous | High | Does the dashboard follow the quick filters and filter sheet? "Must stay consistent with … the dashboard state" (BR §6.1) vs the dashboard request having no priority, search or department fields. | BR §5.1, §6.1, API §3.1 | After filtering by Priority the dashboard may show unfiltered numbers. | Which filters apply to the dashboard counts and chart? Which do not? |
+| G-12 | Missing rule | High | Combination rules for chips are missing: Current vs Previous vs Main (mutually exclusive?), the default chip on open, the default scope, and how a chip interacts with the filter sheet's start/end dates. | BR §6.1, §6.2 | Two different date ranges could be sent at once; chips may show selected state inconsistently. | Which chips are single-select vs multi-select? What is selected on first open? If the user sets a date range in the sheet, is Current/Previous cleared? |
+| G-13 | Contradiction | High | Main list ignores Current/Previous: `currentOrOld` is always 0, `priorityId` is a list, `categoryId` is an int, and the response shape is unknown (Q18). | API §3.3 | Main + Previous may show current items. Main pagination may stop early or loop. | Can Main be combined with Current/Previous? What is the Main response shape and total? |
+| G-14 | Missing validation | High | Create/Edit validation is "the existing form" with no written rules: required fields per type, title length, from/to date and time rules, past dates, recurrence rules, location required for Visits, contact mobile format, attachment limits. | BR §5.3, Q6 | QA cannot derive expected results. Only "same as today's behavior" regression testing is possible. | Please list the required fields and validation messages for Visit and Task, or attach the existing form's rule sheet. |
+| G-15 | Missing rule | High | Employees absent from the workload response: are they Available or Unknown? The rule "missing → unknown, never Available" would make every idle employee Unknown if the backend omits them. | BR §6.5, API §3.6 | Every free employee may be shown Unknown, defeating the picker's purpose. | Will the backend return an entry with a status for every employee, including employees with no activities? |
+| G-16 | Missing rule | High | Status change: allowed transitions, which target statuses are offered, and whether `statusReason` is mandatory (e.g. for Cancelled/Rejected). | BR §5.4, API §3.15 | Users may reject without a reason, or reopen completed items. | What is the status transition matrix? When is a reason required? |
+| G-17 | Missing rule | High | Step order and preconditions: can Start happen before Check-in? Complete before Start? Check-out without Check-in? Location permission denied when `locationRequired`? Does Complete set status 4 or 7? Does progress 100 auto-complete? | BR §5.4, API §3.11–3.14 | Field users can submit steps out of order; data integrity risk. | Please define the step state machine for Visits and Tasks. |
+| G-18 | Undefined API | High | `totalCount` missing maps to 0 (API §3.2). With 10 items returned and total 0, "stop when every item is loaded" can't be evaluated. | API §3.2, BR §8.1 | List may stop after page 1, or the empty state may show over real items. | Is `totalCount` always present? If absent, should the app fall back to "full page = maybe more" like the Main list? |
+| G-19 | Contradiction | Medium | BR §7.3 says an empty selection "may be sent as `null`", but also that All sends **every allowed ID**. API marks `companyId`/`employeeId` as required arrays. | BR §7.3, API §3.1–3.2 | Two valid-looking requests for the same UI state; backend results may differ. | For "All", send `null`, `[]`, or the full allowed-ID list? (One answer per field.) |
+| G-20 | Missing rule | Medium | Department filter has no request field (Q15). Whether choosing a parent department includes child departments is undefined. | BR §6.4, Q15 | Department results may miss sub-department employees. | Is selecting a department recursive over its sub-departments? |
+| G-21 | Missing rule | Medium | Dependent-clear rules don't cover: Visits → All (are Visit-only values cleared?), and Category change → execution type (execution types depend on category, API §3.5). | BR §6.2, §7.4 | A stale execution type may be submitted for a different category. | Clear execution type when category changes? Clear Visit-only values when type becomes All? |
+| G-22 | Missing rule | Medium | Employee picker "not displayed until a company has been selected" vs company **defaults to All**. Does All count as selected? | BR §6.4, §7.3, §10 | Picker may be hidden on first open, or shown, depending on interpretation. | With company = All (the default), is the employee picker shown? |
+| G-23 | Undefined | Medium | Dashboard: definition of `tasksLate`/`visitsLate`, which statuses appear in the stacked bar (mapping sums only 1, 2, 4), "empty summary" definition, and Visit summary today/current/previous parsed but not mapped. | API §3.1, BR §5.1 | Bar segments may not add up to the totals; Visit and Task summaries show different data without a rule. | Which statuses appear in the bar and rows? What does "late" mean? What must the Visit Summary show? |
+| G-24 | Missing rule | Medium | Type switch on Add clears the form, but there's no rule for warning the user about losing entered data. | BR §5.3 | Data loss complaints. | Show a confirmation before clearing a non-empty form on type switch? |
+| G-25 | Missing rule | Medium | Progress: can it decrease? Is it editable for Completed/Cancelled/Rejected? What does `null` progress display ("0%" or "not started")? Input method (slider steps, free text)? | BR §7.5, API §3.19, §4.2 | Inconsistent display and possibly invalid updates. | Define progress editability per status and the display for `null`. |
+| G-26 | Undefined API | Medium | Error messaging: the `error` array is ignored; `responseMessage` may be empty; no timeout values; no retry action defined for any state. | API §1.5, BR §8.2, Q24 | Blank error toasts, no way to recover except leaving the screen. | Which message shows when `responseMessage` is empty? Which states need a Retry button? Timeout length? |
+| G-27 | Missing rule | Medium | Refresh behavior: what happens to sort, filters and current page on pull-to-refresh, after create/edit/status change, and at midnight rollover ("today" recalculated?). | BR §6.7, §8.1 | Stale lists after actions; activities in the wrong bucket after midnight. | Which actions trigger a list/dashboard refresh? Is "today" recomputed on refresh? |
+| G-28 | Assumed in code | Low | Unknown `typeId` falls back to **Task**. Unknown status IDs (6, 8…) have no display rule. | BR §4.2 | A new backend type would silently show as Task. | Confirm the fallback, or show "Unknown"? |
+| G-29 | Ambiguous | Low | "Creator" (searchable, displayed) — the list item has only `assignByName`. Is assigner = creator? | BR §5.2, §6.6, API §4.1 | Wrong field shown/searched. | Is `assignByName` the creator? |
+| G-30 | Undefined | Low | Localization: are `priorityName`, `statusName`, `typeName`, `actionName` localized by `langId`? Is `langId` "ar" for Arabic? What happens to the screen when the language changes? | API §1.2, §3.4 | English labels in the Arabic UI. | Does the backend localize lookup names by `langId`? |
+| G-31 | Traceability | Low | v1.2 "Visit default" has no product-owner approval recorded. `isEnabled = false` activities: visible in lists or hidden? | CL v1.2, API §3.18 | Disabled items may still appear and be actionable. | Confirm v1.2 with the PO. Should disabled activities appear in the lists and dashboard? |
+
+---
+
+## 3. Prioritized test cases
+
+Priority: **P0** = smoke / blocker, **P1** = core functional, **P2** = edge / secondary, **P3** = cosmetic.
+Steps are numbered within the cell. "Req" = requirement reference.
+
+### 3.1 Dashboard (Module: Activities Dashboard)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| DSH-01 | Dashboard is the entry screen and shows returned data | M1 logged in; backend returns data | `taskCount`=6, `visitCount`=4 | 1) Open Activities from the app menu | [DOC] Dashboard opens first. App bar: Back, "Activities", Add, Filter. Donut shows Tasks 6 and Visits 4. Visit Summary and Tasks Summary sections are visible and visually distinct. Quick filters are visible | P0 | Positive | BR §5.1, §10 Dashboard |
+| DSH-02 | Status counts map by status ID | As DSH-01 | `taskStatusList`: {1:2},{2:1},{4:3} | 1) Open dashboard 2) Read task status bar and rows | [DOC] Pending 2, In Progress 1, Completed 3 for Tasks | P1 | Positive | API §3.1 mapping, Q10 |
+| DSH-03 | Statuses 3, 5, 7 in the status list | As DSH-01 | `taskStatusList`: {3:1},{5:1},{7:2},{4:1} | 1) Open dashboard | [PO-CONFIRM G-23] Mapping sums only 1, 2, 4. Whether Cancelled, Rejected and Partially Completed are shown is undefined. Record what is displayed | P2 | Boundary | API §3.1, G-23 |
+| DSH-04 | Missing numbers become 0 | As DSH-01 | `result` without `taskCount`, `visitStatusList` | 1) Open dashboard | [DOC] Missing values display as 0. No crash, no "null" | P1 | Negative | API §3.1 |
+| DSH-05 | Empty summary | M1 has no activities | `taskCount`=0, `visitCount`=0, empty lists | 1) Open dashboard | [DOC] Empty-summary state is shown (BR §8.2). Donut doesn't render broken/NaN. [PO-CONFIRM] exact empty UI | P1 | Boundary | BR §8.2 |
+| DSH-06 | Dashboard business failure | — | `success`=false, `statusCode`=200, `responseMessage`="Server busy" | 1) Open dashboard | [DOC] Error state shows "Server busy". Loading indicator stops | P0 | Negative | BR §10, §8.2; API §1.5 |
+| DSH-07 | `success` true but `statusCode` ≠ 200 | — | `success`=true, `statusCode`=400 | 1) Open dashboard | [DOC] Treated as failure → error state | P1 | Negative | API §1.5 |
+| DSH-08 | Network timeout / offline | Airplane mode on | — | 1) Open dashboard | [DOC] Error state, loader stops. [PO-CONFIRM G-26] Retry control and message text | P0 | Negative | BR §8.2 |
+| DSH-09 | Default dashboard request body | M1, no filters applied | Allowed companies C1, C2 | 1) Open dashboard 2) Capture request (Chucker) | [DOC] `data` contains `typeId`=null, `statusId`=null, `categoryId`=[], `executionTypeId`=null, `companyId`=[C1,C2] and all allowed `employeeId`, null keys present (`includeIfNull`). [PO-CONFIRM G-19] null vs full ID list | P1 | Integration | API §3.1, BR §7.3 |
+| DSH-10 | Tasks quick filter on dashboard | Dashboard loaded | — | 1) Tap Tasks chip | [DOC] Activity view restricted to Tasks (list `typeId`=1). [PO-CONFIRM G-11] whether donut/summaries also refresh | P0 | Positive | BR §10 Dashboard |
+| DSH-11 | Late counts | — | `tasksLate`=2, `visitsLate`=1 | 1) Open dashboard | [PO-CONFIRM G-23] Where and whether late counts show; definition of late | P3 | Positive | API §3.1 |
+| DSH-12 | Dashboard follows filter sheet | Dashboard loaded | Filter: Status=Pending, Priority=High | 1) Apply filter 2) Observe dashboard | [PO-CONFIRM G-11] Dashboard request carries `statusId`=1. Priority cannot be sent (no field) | P2 | Integration | BR §6.1, API §3.1 |
+
+### 3.2 Current / Previous time scope (Module: Quick filters — time)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| TS-01 | Activity exactly at today 00:00 | Today 2026-10-21 | A1 start `2026-10-21T00:00:00` | 1) Tap Current 2) Tap Previous | [DOC] A1 is in Current only, never in Previous | P0 | Boundary | BR §7.2, T1.1 |
+| TS-02 | Yesterday's activity is not dropped (WP1 fix) | — | A2 start `2026-10-20T10:00:00` | 1) Tap Previous 2) Tap Current | [DOC] A2 is in Previous only. (Current code drops it — expected to fail until WP1) | P0 | Regression | BR §12.1 WP1, Q2 |
+| TS-03 | Last second of yesterday | — | A3 start `2026-10-20T23:59:59` | 1) Tap Previous 2) Tap Current | [DOC] A3 in Previous only | P0 | Boundary | BR §7.2 |
+| TS-04 | Future activity | — | A4 start `2027-01-01T09:00:00` | 1) Tap Current | [DOC] A4 in Current (no end bound) | P1 | Positive | BR §6.1 |
+| TS-05 | Old activity | — | A5 start `2020-01-01T09:00:00` | 1) Tap Previous | [DOC] A5 in Previous (no start bound) | P1 | Positive | BR §6.1 |
+| TS-06 | Current request | — | — | 1) Tap Current 2) Capture list request | [DOC] `fromDateTime`="2026-10-21T00:00:00", `endDateTime`=null | P0 | Integration | API §3.2 |
+| TS-07 | Previous request | — | — | 1) Tap Previous 2) Capture request | [BLOCKED Q14] `fromDateTime`=null; `endDateTime`="2026-10-21T00:00:00" if exclusive, or "2026-10-20T23:59:59" if inclusive (current fallback). Never "2026-10-20T00:00:00" | P0 | Integration | API §3.2, BR §12.4 |
+| TS-08 | No gap, no overlap | Dataset A1–A5 + 5 more around midnight | 10 activities total | 1) Count Current 2) Count Previous 3) Count with no time scope | [DOC] Current + Previous = total; no activity ID appears in both | P0 | Boundary | BR §6.1, §7.2 |
+| TS-09 | Midnight rollover | App open at 2026-10-21 23:59 on Current | A6 start `2026-10-21T08:00` | 1) Wait until 00:01 on 2026-10-22 2) Pull to refresh | [PO-CONFIRM G-27] Whether A6 moves to Previous and request uses 2026-10-22 | P2 | Boundary | G-27 |
+| TS-10 | Device in another time zone | Device TZ UTC+0, company/server UTC+3 | A7 start 2026-10-21 01:00 (server time) | 1) Open Current and Previous | [PO-CONFIRM G-03] Bucket depends on undefined TZ rule | P2 | Boundary | G-03 |
+| TS-11 | Previous chip stays highlighted | — | — | 1) Tap Previous 2) Navigate into a detail and back | [DOC] Previous chip still highlighted | P1 | Regression | T1.2 |
+| TS-12 | Saved filter from before WP1 | App upgraded from build with old Previous range | — | 1) Open Activities after upgrade | [DOC] No filter keeps the old yesterday-00:00 bound; Previous chip matches | P2 | Regression | BR WP1 |
+| TS-13 | Recurring activity occurrence | Weekly activity master start 2026-09-01, occurrence 2026-10-23 | — | 1) Tap Current | [PO-CONFIRM G-05] Is the 2026-10-23 occurrence in Current? | P1 | Boundary | G-05 |
+
+### 3.3 Quick filters (Module: Quick filters — type, main, scope, status, priority, department)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| QF-01 | Visits chip | Mixed data | 3 visits, 4 tasks | 1) Tap Visits | [DOC] Request `typeId`=2; only Visits listed | P0 | Positive | BR §6.1 |
+| QF-02 | Tasks chip | Mixed data | — | 1) Tap Tasks | [DOC] Request `typeId`=1; only Tasks | P0 | Positive | BR §6.1, §10 |
+| QF-03 | Main chip uses Main endpoint | — | — | 1) Tap Main | [DOC] Request goes to `GetVisitAndTaskList`; items are master activities | P1 | Integration | API §3.3 |
+| QF-04 | Main with priority | — | Priority High (id 3) | 1) Tap Main 2) Set Priority High | [DOC] `priorityId`=[3]. With no priority → `[]`, never `0` | P1 | Integration | API §3.3 |
+| QF-05 | Main + Previous | — | — | 1) Tap Main 2) Tap Previous | [PO-CONFIRM G-13] `currentOrOld` always 0 today, so Previous is ignored on Main | P1 | Integration | API §3.3, G-13 |
+| QF-06 | Scope All | M1 | Allowed companies C1, C2 | 1) Select Scope All | [ASSUMED-IN-CODE] `onlyMe`=true, all allowed IDs. [PO-CONFIRM G-02] Results include team + mine + private | P1 | Integration | BR §6.1, API §1.7, Q16 |
+| QF-07 | Scope My team | M1 | — | 1) Select My team | [ASSUMED-IN-CODE] `onlyMe`=false, all allowed IDs | P1 | Integration | API §1.7 |
+| QF-08 | Scope My activities | M1 | — | 1) Select My activities | [PO-CONFIRM G-01] `onlyMe`=false; ID list = own IDs (BR) or allowed IDs (API). Results only M1's activities | P1 | Integration | API §1.7, T5.3 |
+| QF-09 | Scope Private only | M1 has 2 private, 5 public | — | 1) Select Private | [DOC] Only the 2 private activities appear, each with a privacy indicator. Request per API: `onlyMe`=true, own IDs | P1 | Positive | BR §6.1, §5.2 |
+| QF-10 | Status chip | — | Completed (4) | 1) Select Status Completed | [DOC] `statusId`=4; every item shows Completed | P1 | Positive | BR §6.1 |
+| QF-11 | Priority chip | — | High (id 3) | 1) Select Priority High | [DOC] `priorityId`=3 (single int); every item High | P1 | Positive | BR §6.1, API §3.2 |
+| QF-12 | Department chip | E1 in D1, E2 in D2 | D1 | 1) Select Department D1 | [ASSUMED-IN-CODE Q15] No department field; `employeeId` contains only D1 employees; only E1's activities | P1 | Integration | BR §6.1, Q15 |
+| QF-13 | Chip ↔ sheet consistency | — | — | 1) Tap Tasks 2) Open Filter 3) Change type to Visits 4) Apply | [DOC] Sheet opens with Tasks; after apply the Visits chip is selected | P1 | Integration | BR §6.1 |
+| QF-14 | Default chip on first open | Fresh install | — | 1) Open Activities | [PO-CONFIRM G-12] Default time scope and scope chip | P2 | Positive | G-12 |
+| QF-15 | Current and Previous together | — | — | 1) Tap Current 2) Tap Previous | [PO-CONFIRM G-12] Single-select (Previous replaces Current) or toggle off | P2 | Boundary | G-12 |
+
+### 3.4 Filter sheet (Module: Filter Sheet)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| FLT-01 | Apply status and priority | List on page 3 | In Progress (2), High (3) | 1) Open Filter 2) Pick both 3) Apply | [DOC] Request `statusId`=2, `priorityId`=3, `skip`=0. List refreshes | P0 | Positive | BR §10 Filtering, §8.1 |
+| FLT-02 | Dismiss keeps applied filters | Applied Status=Pending | — | 1) Open Filter 2) Change to Completed 3) Dismiss (swipe down / back) 4) Reopen | [DOC] No new request; list still Pending; sheet shows Pending | P0 | Negative | BR §5.5, §10 |
+| FLT-03 | Reset only clears the draft | Applied Status=Pending, Priority=High | — | 1) Open Filter 2) Reset 3) Dismiss | [DOC] Draft cleared to defaults; after Dismiss applied filters are still Pending/High. [PO-CONFIRM G-12] list of defaults | P1 | Positive | BR §5.5 |
+| FLT-04 | Reset then Apply | As FLT-03 | — | 1) Reset 2) Apply | [DOC] Request with defaults (`statusId`=null, `priorityId`=null, privacy default true) | P1 | Positive | BR §5.5, §7.3 |
+| FLT-05 | Visits → Tasks clears Visit-only | — | Category "Field", Execution "On-site" | 1) Type Visits 2) Pick category + execution 3) Switch to Tasks 4) Apply | [DOC] Category and execution hidden; request `categoryId`=[], `executionTypeId`=null | P0 | Positive | BR §7.4, §10 |
+| FLT-06 | Visit-only hidden for All | — | — | 1) Type All | [DOC] Category and execution type hidden. [PO-CONFIRM G-21] whether earlier values are cleared | P1 | Boundary | BR §6.2 |
+| FLT-07 | Category change reloads execution types | Type Visits | Category A → B | 1) Pick A, execution X 2) Change to B | [DOC] `GetTaskExecutionTypeList` called with `{"id": B}`. [PO-CONFIRM G-21] X cleared | P1 | Integration | API §3.5 |
+| FLT-08 | Only one category | Type Visits | — | 1) Try to pick 2 categories | [DOC] At most one ID sent in `categoryId` | P2 | Boundary | API §3.2 |
+| FLT-09 | Start equals end | — | Start = End = 2026-10-21 10:00 | 1) Set dates 2) Apply | [DOC] Allowed ("not later than"). Request has both values | P1 | Boundary | BR §7.3 |
+| FLT-10 | Start after end | — | Start 2026-10-22 10:00, End 2026-10-21 10:00 | 1) Set dates 2) Apply | [DOC] Not submitted, no request. [PO-CONFIRM] message text and whether Apply is disabled | P0 | Negative | BR §7.3 |
+| FLT-11 | Start 1 minute after end | — | Start 2026-10-21 10:01, End 10:00 | 1) Apply | [DOC] Rejected as FLT-10 | P1 | Boundary | BR §7.3 |
+| FLT-12 | Only start date | — | Start 2026-10-01 00:00 | 1) Apply | [DOC] `fromDateTime`="2026-10-01T00:00:00", `endDateTime`=null | P2 | Positive | API §1.6 |
+| FLT-13 | Sheet range vs Current chip | Current chip active | Range 2026-09-01 → 2026-09-30 | 1) Apply range | [PO-CONFIRM G-12] Which range is sent; whether Current is deselected | P1 | Integration | G-12 |
+| FLT-14 | Company change clears employees | — | C1 + E1 | 1) Pick C1, E1 2) Change to C2 3) Apply | [DOC] E1 removed from selection and from `employeeId` | P0 | Positive | BR §6.3, §7.4, §10 |
+| FLT-15 | Employee picker needs a company | No company selected | — | 1) Open Filter | [DOC] Employee picker not displayed. [PO-CONFIRM G-22] when company = All | P1 | Negative | BR §6.4, §10 |
+| FLT-16 | Company All | M1 with C1, C2 | — | 1) Leave company on All 2) Apply | [DOC] `companyId` contains C1 and C2 (every allowed ID). [PO-CONFIRM G-19] | P1 | Integration | BR §7.3 |
+| FLT-17 | Employee All | — | — | 1) Leave employee on All | [DOC] `employeeId` = every allowed employee ID | P1 | Integration | BR §7.3 |
+| FLT-18 | Empty company list fallback | Company list returns [] | — | 1) Open Filter | [DOC] Current company used "where permitted". [PO-CONFIRM] when it's permitted | P2 | Boundary | BR §6.3 |
+| FLT-19 | Department change clears out-of-scope employees | E1 in D1 | — | 1) Pick D1, E1 2) Change to D2 | [DOC] E1 cleared | P1 | Positive | BR §7.4 |
+| FLT-20 | Parent department | D1 has child D1a with E3 | — | 1) Pick D1 | [PO-CONFIRM G-20] Whether E3's activities are included | P2 | Boundary | G-20 |
+| FLT-21 | Privacy default | M1 has private + public | — | 1) Open Filter without changes 2) Apply | [DOC] `isPrivate` default true → private and public both listed | P1 | Positive | BR §7.3 |
+| FLT-22 | Priority lookup fails | `GetPriorityList` returns failure | — | 1) Open Filter | [DOC] Lookup error state in the priority section; sheet still usable | P2 | Negative | BR §8.2 |
+| FLT-23 | Priority lookup empty | Returns [] | — | 1) Open Filter | [DOC] "No available options" state | P2 | Boundary | BR §8.2 |
+| FLT-24 | Full applied state sent | Applied: Type Visits, Status Pending | — | 1) Open Filter 2) Change only Priority to Low 3) Apply | [DOC] Request still includes `typeId`=2 and `statusId`=1 plus the new priority | P1 | Regression | BR §8.1 |
+
+### 3.5 Search (Module: Activities List — Search)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| SRC-01 | Search by title | Activity "Quarterly Audit" exists | "Audit" | 1) Type "Audit" | [DOC] One request with `searchValue`="Audit", `skip`=0. [BLOCKED Q19] "Quarterly Audit" returned | P0 | Positive | BR §6.6, §10 |
+| SRC-02 | Search by assigned employee | Assigned to "Ahmed Ali" | "Ahmed" | 1) Type "Ahmed" | [BLOCKED Q19] Activities assigned to Ahmed returned | P1 | Positive | BR §6.6 |
+| SRC-03 | Search by creator | Created by "Sara" | "Sara" | 1) Type "Sara" | [BLOCKED Q19, G-29] Activities created by Sara | P1 | Positive | BR §6.6 |
+| SRC-04 | Debounce | — | Type "A","u","d","i","t" within 1 s | 1) Type quickly 2) Count requests | [DOC] Not one request per keystroke; final request "Audit". [PO-CONFIRM G-06] interval | P1 | Positive | BR §6.6 |
+| SRC-05 | Clear search | Search "Audit" active | — | 1) Clear the field | [DOC] Request `searchValue`="" and full list returns; `skip`=0 | P1 | Positive | API §3.2 |
+| SRC-06 | No match | — | "zzqq" | 1) Type "zzqq" | [DOC] Empty state shown | P1 | Negative | BR §10 List |
+| SRC-07 | Arabic text | Arabic title "زيارة عميل" | "زيارة" | 1) Type "زيارة" | [DOC] Sent unchanged as UTF-8. [BLOCKED Q19] matching result | P2 | Positive | BR §6.6 |
+| SRC-08 | Whitespace only | — | "   " | 1) Type spaces | [PO-CONFIRM G-06] Trimmed to "" or sent as is | P2 | Boundary | G-06 |
+| SRC-09 | Special characters | — | `%'_"<>` | 1) Type value | [DOC] No crash; sent literally; error or empty state, not a hang | P2 | Negative | BR §8.2 |
+| SRC-10 | Search + filter | Status=Pending applied | "Audit" | 1) Type "Audit" | [DOC] Request has `statusId`=1 and `searchValue`="Audit" | P1 | Integration | BR §8.1 |
+| SRC-11 | Search on Main | Main chip active | "Audit" | 1) Type "Audit" | [DOC] `GetVisitAndTaskList` receives `searchValue`="Audit" | P2 | Integration | API §3.3 |
+| SRC-12 | Very long input | — | 500 characters | 1) Paste | [PO-CONFIRM] Max length; no crash | P3 | Boundary | G-06 |
+
+### 3.6 Sorting (Module: Activities List — Sort)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| SRT-01 | Default newest first | 3 activities: 10-18, 10-20, 10-25 | — | 1) Open list | [DOC] `direction`="desc"; order 10-25, 10-20, 10-18 | P0 | Positive | BR §6.7, API §1.6 |
+| SRT-02 | Oldest first | List on page 2 | — | 1) Choose Oldest first | [DOC] `direction`="asc", `skip`=0; order reversed | P1 | Positive | BR §6.7, §8.1 |
+| SRT-03 | Sort kept on refresh/filter | Oldest first selected | — | 1) Pull to refresh 2) Apply a status filter | [DOC] `direction` stays "asc" both times | P1 | Regression | BR §6.7 |
+| SRT-04 | Same start time | 3 activities at 2026-10-21 09:00 across 2 pages | pageSize such that they split | 1) Scroll both pages | [DOC] No duplicates or missing items. [PO-CONFIRM] tie-break order | P2 | Boundary | BR §8.1 |
+
+### 3.7 Pagination (Module: Activities List — Paging)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| PAG-01 | First page | — | `totalCount`=25, pageSize N | 1) Open list | [DOC] Request `skip`=0, `pageSize`=N. [PO-CONFIRM] value of N | P0 | Positive | BR §8.1 |
+| PAG-02 | Next pages without duplicates | 25 items, pageSize 10 | — | 1) Scroll to end twice | [DOC] Requests `skip`=10 then 20; 25 unique items | P0 | Positive | BR §10 List |
+| PAG-03 | Stop when complete | 25 loaded | — | 1) Scroll to end again | [DOC] No 4th request; no endless loader | P0 | Boundary | BR §8.1 |
+| PAG-04 | No concurrent page loads | Slow network (3 s) | — | 1) Fling to bottom repeatedly | [DOC] Only one request in flight for `skip`=10 | P1 | Negative | BR §8.1 |
+| PAG-05 | Reset on filter/search/sort/chip change | On page 3 | — | 1) Change status 2) Change search 3) Change sort 4) Change chip | [DOC] Each change sends `skip`=0 and replaces the list | P0 | Regression | BR §8.1, §10 |
+| PAG-06 | Page 2 fails | Page 1 loaded | Page 2 returns 500 | 1) Scroll to end | [DOC] Page 1 items stay; pagination error shown separately; loader stops. [PO-CONFIRM G-26] retry control | P1 | Negative | BR §8.1, §8.2 |
+| PAG-07 | Duplicate across pages | New activity inserted server-side between page 1 and page 2 | Same `detailsid` 101 on both pages | 1) Load page 2 | [DOC] 101 shown once. [ASSUMED] dedupe key = `detailsid` | P1 | Boundary | BR §8.1 |
+| PAG-08 | `totalCount` missing | — | 10 items, no `totalCount` | 1) Open list 2) Scroll | [PO-CONFIRM G-18] Mapped to 0; whether paging continues | P1 | Negative | API §3.2 |
+| PAG-09 | Exact multiple | `totalCount`=20, pageSize 10 | — | 1) Scroll to end | [DOC] Exactly 2 requests | P1 | Boundary | BR §8.1 |
+| PAG-10 | Main list without total | Main chip | Page 1 = 10 items, page 2 = 3 | 1) Scroll | [DOC] Requests page 2 (full page = maybe more); stops after 3 | P2 | Boundary | API §3.3 |
+| PAG-11 | Pull-to-refresh | Page 2 loaded | — | 1) Pull to refresh | [DOC] Refreshing state; page 1 reloaded with `skip`=0. [PO-CONFIRM] old items kept if refresh fails | P1 | Positive | BR §8.2 |
+| PAG-12 | `totalCount`=0 with empty items | — | `{"totalCount":0,"items":[]}` | 1) Open list | [DOC] Empty state; no further requests | P1 | Boundary | BR §10 |
+
+### 3.8 List item display (Module: Activities List — Item)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| LST-01 | All fields shown | — | Item with all fields, `onlyMe`=true, progress 40 | 1) Open list | [DOC] Title, type, status, priority, assigned employee, creator, date/time, progress 40, privacy indicator | P1 | Positive | BR §5.2 |
+| LST-02 | Missing fields not faked | — | `priorityName`=null, `userName`="" | 1) Open list | [DOC] Field hidden; no "null", "N/A" or invented value | P1 | Negative | BR §5.2 |
+| LST-03 | Progress only where applicable | — | Item without progress | 1) View card | [DOC] No progress shown. [PO-CONFIRM G-25] null vs 0 | P2 | Boundary | BR §5.2 |
+| LST-04 | Unknown type ID | — | `typeId`=3 | 1) View card | [ASSUMED-IN-CODE] Shows as Task. [PO-CONFIRM G-28] | P2 | Negative | BR §4.2 |
+| LST-05 | Unknown status ID | — | `status.id`=6 | 1) View card | [PO-CONFIRM G-28] | P3 | Negative | BR §7.1 |
+| LST-06 | Empty results | — | `items`=[] | 1) Apply filter with no matches | [DOC] Empty state | P0 | Negative | BR §10 List |
+| LST-07 | Initial load error | — | 500 | 1) Open list | [DOC] Initial-load error state; no spinner left | P0 | Negative | BR §8.2 |
+| LST-08 | Backend spellings | — | `longtitude`, `addressTest`, `detailsid` populated | 1) View card / open item | [DOC] Values displayed and used (details opens with `detailsid`) | P1 | Integration | API §1.6 |
+| LST-09 | Disabled activity | — | `isEnabled`=false | 1) Open list | [PO-CONFIRM G-31] Shown or hidden; indicator | P2 | Boundary | API §3.18 |
+
+### 3.9 Create / Edit (Module: Add Activity)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| CRT-01 | Visit is the default | M1 | — | 1) Tap Add | [DOC] Visit selected; category, execution type, location and contact fields shown | P0 | Positive | BR §5.3 v1.2, T10.3 |
+| CRT-02 | Toggle order EN | English UI | — | 1) Tap Add | [DOC] Visit on the left (start), Task on the right (end) | P1 | Positive | BR §5.3 |
+| CRT-03 | Toggle order AR | Arabic UI | — | 1) Tap Add | [DOC] Visit on the right (start), Task on the left | P1 | Positive | BR §5.3 |
+| CRT-04 | Type switch clears form | — | Title "Test", category A | 1) Enter data 2) Switch to Task 3) Switch back | [DOC] Form is clean after each switch. [PO-CONFIRM G-24] confirmation prompt | P1 | Positive | BR §5.3 |
+| CRT-05 | Create Visit request | All Visit fields valid | Title "Client visit", category 5, exec 2, lat/long set, contact "Omar"/"0500000000", assign [E1] | 1) Fill 2) Save | [DOC] Multipart; `requestbody` envelope; `data`: `id`=0, `typeId`=2, `visitCategory`=5, `taskExecutionType`=2, `longitude`/`latitude` set, `statusId`=1, `isEnabled`=true, `companyId`=logged-in company, `attachments`=[], `translate`=[], `onlyMe`=false | P0 | Integration | API §3.10 |
+| CRT-06 | Create Task request | — | Title "Prepare report", assign [E1] | 1) Switch to Task 2) Fill 3) Save | [DOC] `typeId`=1, `visitCategory`=null, `taskExecutionType`=null | P0 | Integration | API §3.10 |
+| CRT-07 | Trim | — | Title "  Audit  ", description " x " | 1) Save | [DOC] `title`="Audit", `description`="x" | P1 | Boundary | API §3.10 |
+| CRT-08 | Private activity | — | Private on | 1) Create as M1 2) Log in as E1 3) Search for it | [DOC] `onlyMe`=true; only creator M1 sees it | P1 | Positive | API §3.10, Q16 |
+| CRT-09 | Weekly schedule | — | Saturday + Monday | 1) Choose weekly 2) Save | [DOC] `weeklyDays`=[1,3], `monthlyDays`=[] | P1 | Positive | API §1.6, §3.10 |
+| CRT-10 | Monthly day 31 | — | Day 31 | 1) Choose monthly 31 | [DOC] `monthlyDays`=[31]. [PO-CONFIRM] behavior in 30-day months/February | P2 | Boundary | API §1.6 |
+| CRT-11 | Required fields | — | Empty form | 1) Save | [BLOCKED – undocumented G-14] Validation per existing form | P1 | Negative | BR §5.3 Q6 |
+| CRT-12 | From after To | — | From 2026-10-22, To 2026-10-21 | 1) Save | [BLOCKED – undocumented G-14] | P1 | Negative | G-14 |
+| CRT-13 | Create fails | — | Backend `success`=false | 1) Save | [DOC] Error feedback with `responseMessage`. [PO-CONFIRM] form data retained | P1 | Negative | API §1.5 |
+| CRT-14 | Attachments | — | 2 files | 1) Attach 2) Save | [DOC] Two `file` parts; `attachments`=[] in `data` | P2 | Integration | API §1.3, §3.10 |
+| CRT-15 | Edit Task — type locked | Task from Main list | — | 1) Main chip 2) Open Task 3) Edit | [DOC] Toggle shows Task, locked; `GetVisitOrTaskMasterData` with master ID; save sends `id`=master ID and current `statusId` | P0 | Regression | BR §5.3, API §3.8, §3.10 |
+| CRT-16 | Edit Visit — type locked | Visit from Main list | — | 1) Edit | [DOC] Toggle shows Visit, locked | P1 | Regression | BR §5.3 |
+| CRT-17 | After create | — | — | 1) Create 2) Return to dashboard | [PO-CONFIRM G-27] List and dashboard refreshed | P2 | Integration | G-27 |
+| CRT-18 | Location for Visit | Location permission denied | — | 1) Create Visit | [BLOCKED – undocumented G-14] Whether location is mandatory | P2 | Negative | G-14 |
+
+### 3.10 Details and actions (Module: Activity Details)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| DET-01 | Open from list | — | `detailsid`=101 | 1) Tap item | [DOC] `GetVisitOrTaskDetails` with `{"id":101}` | P0 | Integration | API §3.7 |
+| DET-02 | Open master from Main | — | master 55 | 1) Main chip 2) Tap item | [DOC] `GetVisitOrTaskMasterData` with `{"id":55}`; master view | P1 | Integration | API §3.8 |
+| DET-03 | Open status allows actions | Status Pending (1) | — | 1) Open details | [ASSUMED-IN-CODE] Edit-type actions available (Open = {1,2}), subject to Q13 | P0 | Positive | BR §4.2 |
+| DET-04 | Non-editable status | Status Completed (4) | — | 1) Open details | [ASSUMED-IN-CODE] Edit-type actions hidden (Non-editable = {3,4,5}) | P0 | Negative | BR §4.2 |
+| DET-05 | Partially Completed | Status 7 | — | 1) Open details | [PO-CONFIRM G-07] | P1 | Boundary | G-07 |
+| DET-06 | Change status request | Pending | Target Cancelled, reason "Client absent" | 1) Change status | [DOC] `{"detailsId":101,"statusId":"3","statusReason":"Client absent"}` — `statusId` is a string | P1 | Integration | API §3.15 |
+| DET-07 | Status reason empty | — | Target Rejected, no reason | 1) Submit | [PO-CONFIRM G-16] Mandatory or `""` | P1 | Negative | G-16 |
+| DET-08 | Reschedule request | — | 2026-10-25 09:00–10:00 | 1) Reschedule | [DOC] `newDate`="2026-10-25", `newFromTime`="09:00:00", `newToTime`="10:00:00", `startDateTime`/`endDateTime` both present | P1 | Integration | API §3.16 |
+| DET-09 | Reschedule to the past | — | 2026-10-01 | 1) Reschedule | [PO-CONFIRM] allowed or blocked | P2 | Negative | API §3.16 |
+| DET-10 | Check-in with location | Category `hasCheckIn`=true, `locationRequired`=true | GPS 24.7, 46.6 | 1) Check in | [DOC] `isCheckin`=true; `longitude`/`latitude` sent; `detailsId`=occurrence | P1 | Integration | API §3.12 |
+| DET-11 | No check-in step | `hasCheckIn` missing | — | 1) Open details | [DOC] Missing means no → no check-in action | P1 | Negative | API §3.12 |
+| DET-12 | Location denied | `locationRequired`=true; permission denied | — | 1) Check in | [PO-CONFIRM G-17] | P1 | Negative | G-17 |
+| DET-13 | Step dynamic form | Category with form for actionId 3 | Required question blank | 1) Start 2) Submit blank | [DOC] `GetTaskDynamicQuestion` `{"id":master,"actionId":3}`. [BLOCKED – undocumented] required-field handling (`isRequired`) | P1 | Negative | API §3.11 |
+| DET-14 | Step without form | No form for actionId 4 | — | 1) Complete | [DOC] No questions asked | P2 | Positive | API §3.11 |
+| DET-15 | File answer | File control | 2 files | 1) Submit step | [DOC] `responseValue` = comma-separated file names; 2 `file` parts | P2 | Integration | API §3.12 |
+| DET-16 | Step order | Not checked in | — | 1) Try Complete before Check-in/Start | [PO-CONFIRM G-17] | P1 | Negative | G-17 |
+| DET-17 | Add note | — | "Called client" | 1) Add note | [DOC] `{"detailsId":101,"comment":"Called client"}`. [BLOCKED Q21] how it appears | P1 | Integration | API §3.17 |
+| DET-18 | Empty note | — | "" | 1) Submit | [PO-CONFIRM] blocked or sent | P2 | Negative | API §3.17 |
+| DET-19 | Disable activity | Master 55 enabled | — | 1) Disable | [DOC] `{"id":55,"isEnabled":false}`. [PO-CONFIRM G-31] effect on lists | P1 | Integration | API §3.18 |
+| DET-20 | Timeline | — | Entries actionId 0–4, `modifiedAt`="10/21/2026 9:05:00 AM" | 1) Open timeline | [DOC] Each action labeled; author from `modifiedByNAme`; date parsed. [BLOCKED] master vs occurrence ID | P2 | Positive | API §3.9 |
+
+### 3.11 Progress (Module: Activity Progress)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| PRG-01 | Valid update | Task In Progress, update allowed | 50 | 1) Set 50 2) Save | [DOC] `{"detailsId":101,"progress":50}`; UI shows confirmed 50 | P0 | Positive | BR §7.5, §10, API §3.19 |
+| PRG-02 | Lower bound | — | 0 | 1) Save 0 | [DOC] Accepted | P0 | Boundary | BR §7.5 |
+| PRG-03 | Upper bound | — | 100 | 1) Save 100 | [DOC] Accepted. [PO-CONFIRM G-17] auto-complete? | P0 | Boundary | BR §7.5 |
+| PRG-04 | Out of range | — | -1, 101 | 1) Try to enter | [DOC] Not submittable (int 0..100) | P1 | Negative | BR §7.5 |
+| PRG-05 | Non-integer | — | 50.5 | 1) Try to enter | [DOC] Not submittable as decimal (`int`) | P1 | Negative | BR §7.5 |
+| PRG-06 | Server rounds/clamps | — | Response `progress`=49.6, then 120 | 1) Save | [DOC] Displayed 50, then 100 | P1 | Boundary | API §3.19 mapping |
+| PRG-07 | Response without progress | — | Sent 70; `result` without progress | 1) Save | [DOC] Displays 70 | P1 | Negative | API §3.19 |
+| PRG-08 | Update fails | Shown 30 | Send 60; backend fails | 1) Save | [DOC] Error feedback; display stays 30 (confirmed server state) | P0 | Negative | BR §10 Progress |
+| PRG-09 | Visit progress | Visit In Progress | 40 | 1) Save | [DOC] Allowed for Visits too | P1 | Positive | BR §7.5 |
+| PRG-10 | Never updated | `details.progress`=null | — | 1) Open details | [PO-CONFIRM G-25] display | P2 | Boundary | API §4.2 |
+| PRG-11 | Progress on Completed | Status 4 | — | 1) Open details | [BLOCKED Q13] + [PO-CONFIRM G-25] | P1 | Negative | BR §7.5 |
+| PRG-12 | Decrease progress | Current 80 | 40 | 1) Save | [PO-CONFIRM G-25] | P2 | Boundary | G-25 |
+
+### 3.12 Assignment and workload (Module: Assigned-to picker)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| ASG-01 | Picker unavailable without company | No company | — | 1) Open Add 2) Try assign | [DOC] Employee picker unavailable | P0 | Negative | BR §10 Employee |
+| ASG-02 | Company change clears assignees | C1 + E1 selected | Change to C2 | 1) Change company | [DOC] E1 cleared. [PO-CONFIRM] same rule in the create form as in the filter | P1 | Positive | BR §6.3, §10 |
+| ASG-03 | Four backend statuses | — | E1 Available, E2 Busy, E3 Very Busy, E4 Overloaded | 1) Open picker | [BLOCKED Q12] Each label and color as returned; no app thresholds | P0 | Positive | BR §6.5, Q4 |
+| ASG-04 | Missing status | — | E1 entry without status | 1) Open picker | [DOC] Unknown, never Available. [BLOCKED Q12] field name | P0 | Negative | BR §6.5, §10 |
+| ASG-05 | Unrecognized status value | — | Status "Holiday" | 1) Open picker | [DOC] Unknown | P1 | Negative | BR WP2 |
+| ASG-06 | Workload request fails | — | 500 | 1) Open picker | [DOC] No employee shown Available; no chip or Unknown chip | P0 | Negative | BR §10, T2.6 |
+| ASG-07 | Grouped workload | E1 has 2 visits, 1 task | — | 1) Tap E1's status | [DOC] Grouped list showing the Visits and the Task | P1 | Positive | BR §6.5 |
+| ASG-08 | Employee absent from response | E5 has no activities | — | 1) Open picker | [PO-CONFIRM G-15] | P1 | Boundary | G-15 |
+| ASG-09 | Workload request window | — | — | 1) Open picker 2) Capture request | [ASSUMED-IN-CODE Q17] `fromDateTime`=`endDateTime`=current instant, `onlyMe`=false. [PO-CONFIRM G-10] | P1 | Integration | API §3.6 |
+| ASG-10 | Employee search | — | "Ahmed", "أحمد" | 1) Search in picker | [DOC] Matching employees listed. [PO-CONFIRM] matched fields | P2 | Positive | BR §6.5 |
+| ASG-11 | Picker states | — | Slow / empty / error responses | 1) Open picker for each | [DOC] Loading, empty and error states; loader stops on error | P1 | Negative | BR §6.5, §8.2 |
+| ASG-12 | Group without employeeId | — | One group missing `employeeId` | 1) Open picker | [DOC] Group skipped; no crash | P2 | Negative | API §3.6 |
+
+### 3.13 Permissions and privacy (Module: Permissions)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| PERM-01 | Role screen access | E1 (Employee role) | — | 1) Open Activities | [DOC] Only screens the role allows. [PO-CONFIRM G-09] which (Add, Main, employee filter) | P0 | Positive | BR §3 |
+| PERM-02 | Flag false hides action | Status Pending, master role | `canReschedule`=false (Q13) | 1) Open details | [BLOCKED Q13] Reschedule hidden although role and status allow it | P0 | Negative | BR §3, WP4 |
+| PERM-03 | Flag true shows action | As above | `canReschedule`=true | 1) Open details | [BLOCKED Q13] Reschedule shown | P1 | Positive | BR §3 |
+| PERM-04 | `canEdit` per assignee wins | List item top-level `canEdit`=true; `masterData.assignedTo` for M1 `canEdit`=false | — | 1) Open item | [DOC] Edit not allowed (per-assignee value wins) | P1 | Negative | API §4.1 |
+| PERM-05 | `canEdit` fallback | `assignedTo` empty; top-level `canEdit`=true | — | 1) Open item | [DOC] Top-level value used | P2 | Boundary | API §4.1 |
+| PERM-06 | Others' private activity | M1 private activity assigned to nobody else | — | 1) Log in as E1 2) All scopes + search title | [DOC] Never visible to E1 | P1 | Negative | API §3.10 Q16 |
+| PERM-07 | Forged master route | E1 opens a master route (deep link with `isMaster`=true) | — | 1) Open link | [PO-CONFIRM] Must be denied by role; security check | P1 | Negative | BR §3 |
+
+### 3.14 API and error handling (Module: Integration)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| API-01 | Envelope fields | Logged in | — | 1) Capture any request | [DOC] `userId`, `subscriberId`, `companyId`, `langId`, `deviceTypeCode`, `deviceToken`, `deviceSerial`, `appVersion`, `oSVersion`, and body in `data`; all `POST` | P0 | Integration | API §1.1, §1.2 |
+| API-02 | Multipart format | — | — | 1) Create activity 2) Capture | [DOC] `requestbody` is the JSON-encoded envelope; files in separate `file` parts | P1 | Integration | API §1.3 |
+| API-03 | Empty failure message | — | `success`=false, `responseMessage`="", `error`=["Invalid"] | 1) Trigger list load | [PO-CONFIRM G-26] Shown text; no blank toast | P1 | Negative | API §1.5, Q24 |
+| API-04 | Session expired | Expired token | 401 | 1) Pull to refresh | [DOC] Existing `AuthInterceptor` behavior unchanged | P1 | Regression | API §1.5 |
+| API-05 | Timeout | Network throttled beyond timeout | — | 1) Open list | [DOC] Error state; no infinite loader. [PO-CONFIRM] timeout length, retry | P1 | Negative | BR §8.2 |
+| API-06 | Malformed / null result | — | `success`=true, 200, `result`=null | 1) Open list / dashboard | [DOC] Handled without crash (missing numbers → 0, `totalCount` → 0) | P2 | Negative | API §3.1, §3.2 |
+| API-07 | Main list priority never 0 | Main chip, no priority | — | 1) Capture request | [DOC] `priorityId`=[] (a plain `0` causes 500) | P1 | Negative | API §3.3 |
+| API-08 | `includeIfNull` | — | No filters | 1) Capture list request | [DOC] Null fields present as `null` keys | P2 | Integration | API §3.1–3.3 |
+| API-09 | Date format on filters | Range set | 2026-10-14 11:00 | 1) Capture | [ASSUMED-IN-CODE Q23] `"2026-10-14T11:00:00"` | P2 | Integration | API §1.6 |
+
+### 3.15 Arabic / English (Module: Localization)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| L10N-01 | Arabic layout | App in Arabic | — | 1) Open dashboard, list, filter, Add, details | [DOC] RTL layout; translated labels; Visit at the start (right) of the toggle | P1 | Positive | BR §5.3 |
+| L10N-02 | `langId` and backend names | App in Arabic | — | 1) Capture request 2) View priorities/statuses | [DOC] `langId` reflects Arabic. [PO-CONFIRM G-30] names localized | P1 | Integration | API §1.2, §3.4 |
+| L10N-03 | Workload labels | After WP2 | — | 1) Picker in AR and EN | [BLOCKED Q12] Very Busy, Overloaded and Unknown labels exist in both ARB files | P2 | Positive | BR WP2 |
+| L10N-04 | Dates under Arabic locale | App in Arabic | Timeline `modifiedAt` "10/21/2026 9:05:00 AM" | 1) Open timeline | [DOC] Parsed correctly regardless of UI locale | P2 | Negative | API §3.9 |
+| L10N-05 | Language switch | Dashboard open | — | 1) Switch EN → AR 2) Return | [PO-CONFIRM] Data reloaded with new `langId` | P3 | Positive | G-30 |
+
+### 3.16 Regression — existing Visit/Task module (Module: Old module)
+
+| ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
+|---|---|---|---|---|---|---|---|---|
+| REG-01 | Old module screens unchanged | Build with new module | — | 1) Run old visit list, visit & task list, add visit, add task, visit detail, visit timeline, assigned-to-me flows | [DOC] Same behavior as previous release | P0 | Regression | BR §2, §4.1, §10 Architecture |
+| REG-02 | Shared Main list endpoint | — | — | 1) Use old module list (`GetVisitAndTaskList`) | [DOC] Unchanged results and request | P0 | Regression | API §3.3 |
+| REG-03 | Old reschedule payload | Old module | — | 1) Reschedule in old module 2) Capture | [DOC] No `startDateTime`/`endDateTime` keys (null v2 fields omitted) | P1 | Regression | API §3.16 |
+| REG-04 | List type filter order after v1.2 | — | — | 1) Open list type filter | [DOC] Order unchanged (enum order unchanged) | P1 | Regression | CL v1.2, T10.2 |
+| REG-05 | Shared models | — | — | 1) Exercise old flows using lookups, statuses, assigned-to, dynamic forms | [DOC] No change in old flows | P1 | Regression | BR §4.1 |
+| REG-06 | Old step submissions | Old module | — | 1) Check in / start / complete in old module | [DOC] Unchanged (shared v1 step/status classes) | P1 | Regression | BR §4.1 |
+| REG-07 | Edit shows saved type | Existing Visit and Task | — | 1) Edit each | [DOC] Saved type locked (v1.2 didn't change edit) | P1 | Regression | BR §5.3 |
+
+---
+
+## 4. Requirement coverage matrix
+
+Status: ✅ covered with defined expected results · 🟡 covered, part of the expectation needs PO confirmation · 🔒 blocked · ⚪ not testable from the spec.
+
+| Requirement | Source | Test cases | Status |
+|---|---|---|---|
+| Dashboard layout and entry | BR §5.1 | DSH-01 | ✅ |
+| Approved metrics (donut, bar, rows) | BR §5.1 Q10, API §3.1 | DSH-02, DSH-03, DSH-04, DSH-11 | 🟡 (Q20, G-23) |
+| Dashboard empty / error | BR §8.2, §10 | DSH-05–DSH-08 | 🟡 (retry G-26) |
+| Dashboard follows filters | BR §6.1 | DSH-10, DSH-12 | 🟡 (G-11) |
+| Current / Previous split | BR §6.1, §7.2 Q2 | TS-01–TS-08, TS-13 | 🟡/🔒 (Q14, G-03, G-05) |
+| WP1 Previous fix | BR §12.2 | TS-02, TS-07, TS-11, TS-12 | 🔒 Q14 for request value |
+| Type, Main, Status, Priority chips | BR §6.1 Q11 | QF-01–QF-05, QF-10, QF-11 | ✅ / 🟡 (G-13) |
+| Scope chip | BR §6.1, API §1.7 | QF-06–QF-09 | 🟡 (G-01, G-02) |
+| Department chip / filter | BR §6.1, §6.4, Q15 | QF-12, FLT-19, FLT-20 | 🟡 (Q15, G-20) |
+| Chip ↔ sheet consistency | BR §6.1 | QF-13–QF-15, FLT-13 | 🟡 (G-12) |
+| Filter Apply / Reset / Dismiss | BR §5.5 | FLT-01–FLT-04 | ✅ |
+| Visit-only filters + clear | BR §6.2, §7.4 | FLT-05–FLT-08 | ✅ / 🟡 (G-21) |
+| Date range validation | BR §7.3 | FLT-09–FLT-12 | ✅ |
+| Company / employee rules | BR §6.3, §6.4, §7.3 | FLT-14–FLT-18, ASG-01, ASG-02 | 🟡 (G-19, G-22) |
+| Privacy default | BR §7.3 | FLT-21 | ✅ |
+| Lookup states | BR §8.2 | FLT-22, FLT-23, ASG-11 | ✅ |
+| Full applied state sent | BR §8.1 | FLT-24, SRC-10 | ✅ |
+| Search fields | BR §6.6 Q19 | SRC-01–SRC-03, SRC-07 | 🔒 Q19 |
+| Search debounce / edge input | BR §6.6 | SRC-04–SRC-06, SRC-08, SRC-09, SRC-11, SRC-12 | 🟡 (G-06) |
+| Sorting | BR §6.7 Q8 | SRT-01–SRT-04 | ✅ |
+| Pagination | BR §8.1 | PAG-01–PAG-12 | ✅ / 🟡 (G-18) |
+| List item content | BR §5.2 | LST-01–LST-05, LST-08, LST-09 | ✅ / 🟡 |
+| List states | BR §8.2 | LST-06, LST-07, PAG-06, PAG-11 | ✅ |
+| Create default Visit / toggle (v1.2) | BR §5.3, T10.1–T10.3 | CRT-01–CRT-04, L10N-01 | ✅ |
+| Create request contract | API §3.10 | CRT-05–CRT-10, CRT-14 | ✅ |
+| Create validation | BR §5.3 Q6 | CRT-11, CRT-12, CRT-18 | ⚪ (G-14) |
+| Edit locked type | BR §5.3 | CRT-15, CRT-16, REG-07 | ✅ |
+| Details actions (status, reschedule, steps, note, enable) | BR §5.4, API §3.7–3.18 | DET-01–DET-20 | 🟡 (G-07, G-16, G-17) |
+| Permission rule (role + flags) | BR §3 Q9 | PERM-01–PERM-07, DET-03, DET-04 | 🔒 Q13 |
+| Progress 0–100 int | BR §7.5 Q7, API §3.19 | PRG-01–PRG-12 | ✅ / 🔒 Q13 for who |
+| Workload statuses | BR §6.5 Q4 | ASG-03–ASG-08 | 🔒 Q12 |
+| Workload window | API §3.6 Q17 | ASG-09 | 🟡 (G-10) |
+| Envelope / errors | API §1.2–1.5 | API-01–API-09, DSH-06, DSH-07 | 🟡 (Q24) |
+| Arabic / English | BR §5.3, API §1.2 | L10N-01–L10N-05, CRT-03, SRC-07 | 🟡 (G-30) |
+| Isolation from old module | BR §2, §4.1, §9.2, §10 | REG-01–REG-06 | ✅ |
+| Fakes removed / test fixtures (WP3, WP5) | BR §9.3, §12 | — | ⚪ Developer-level (analyzer, unit tests); outside black-box QA |
+
+---
+
+## 5. Questions requiring clarification
+
+Grouped by who answers. Order = what to ask first.
+
+### Must answer before testing sign-off (blockers)
+
+1. **(G-01, G-02, Q16)** For each scope — All, My team, My activities, Private only — what exactly should the list/dashboard request send (`onlyMe` value and the employee/company ID list), and what should the user see?
+2. **(G-04, Q14, Q23)** Is `endDateTime` inclusive, and does the backend compare the full date-time or only the date?
+3. **(G-03)** Which time zone defines "today 00:00"?
+4. **(G-05)** For recurring activities, do Current/Previous and sorting use the occurrence date or the master start? Which date does the card show?
+5. **(G-06, Q19)** Which fields does search match? Debounce interval, minimum length, trimming, case and Arabic normalization?
+6. **(G-07)** Which actions are allowed for status 7 (Partially Completed), and how does an activity get there?
+7. **(Q12, G-15)** Workload status field, and will every employee have an entry (including idle ones)?
+8. **(Q13, G-09)** Per-action flags, and which screens each role can open?
+9. **(G-14)** The written validation rules of the existing create/edit form, per type.
+
+### Should answer before release
+
+10. **(G-10, Q17)** Workload window: today, now, or the period of the activity being assigned?
+11. **(G-11)** Which filters change the dashboard numbers?
+12. **(G-12)** Chip combination rules, the default chips on first open, and Reset defaults.
+13. **(G-13, Q18)** Main + Current/Previous behavior and the Main response shape.
+14. **(G-16)** Status transition matrix and when a reason is mandatory.
+15. **(G-17)** Step order (check-in → start → complete → check-out?) and location-denied behavior.
+16. **(G-18)** Is `totalCount` always returned?
+17. **(G-19)** For "All": `null`, `[]` or the full allowed-ID list?
+18. **(G-22)** Is the employee picker shown when the company is All?
+19. **(G-26, Q24)** Error messages when `responseMessage` is empty; which states need Retry; timeout length.
+20. **(G-27)** What refreshes the list and dashboard (after create/edit/status change, midnight)?
+
+### Nice to answer
+
+21. **(G-20)** Department selection includes sub-departments?
+22. **(G-21)** Category change clears execution type? Type All clears Visit-only values?
+23. **(G-23)** Bar/rows statuses, meaning of "late", Visit Summary contents.
+24. **(G-24)** Confirm before clearing the form on type switch?
+25. **(G-25)** Progress editability per status, decreases, display for `null`.
+26. **(G-28)** Unknown type/status display.
+27. **(G-29)** Is `assignByName` the creator?
+28. **(G-30)** Are backend names localized by `langId`?
+29. **(G-31)** Are disabled activities listed? PO sign-off of v1.2.
+30. Page size for the list and Main list.
+
+---
+
+## 6. Recommended minimum suites
+
+### 6.1 Smoke suite (≈ 20 cases, run on every build)
+
+| # | Case | Why |
+|---|---|---|
+| 1 | DSH-01 | Module entry works |
+| 2 | DSH-06 | Error state doesn't hang |
+| 3 | TS-01 | Current boundary |
+| 4 | TS-02 | WP1 fix (yesterday not dropped) |
+| 5 | TS-08 | No gap / no overlap |
+| 6 | QF-01 | Visits chip |
+| 7 | QF-02 | Tasks chip |
+| 8 | FLT-01 | Apply filters |
+| 9 | FLT-02 | Dismiss keeps filters |
+| 10 | FLT-05 | Visit-only clear |
+| 11 | FLT-10 | Date validation |
+| 12 | FLT-14 | Company clears employees |
+| 13 | SRC-01 | Search request sent |
+| 14 | SRT-01 | Default sort |
+| 15 | PAG-02 | Next page, no duplicates |
+| 16 | PAG-05 | Reset on change |
+| 17 | LST-06 | Empty state |
+| 18 | CRT-01 | Visit default (v1.2) |
+| 19 | CRT-05 / CRT-06 | Create Visit and Task |
+| 20 | PRG-01, PRG-08 | Progress success and failure |
+| 21 | REG-01 | Old module unaffected |
+
+Add **ASG-04, ASG-06** once Q12 is answered and **PERM-02** once Q13 is answered.
+
+### 6.2 Regression suite (run before each release)
+
+- All **P0** and **P1** cases in §3, excluding those still marked 🔒 at run time.
+- Always include the regression-type cases: TS-02, TS-11, TS-12, SRT-03, PAG-05, FLT-24, CRT-15, CRT-16, REG-01–REG-07, API-04.
+- Run the localization pass (L10N-01, L10N-02, CRT-03) in Arabic and repeat the smoke suite once in Arabic.
+- Run the error pass (DSH-06–DSH-08, LST-07, PAG-06, API-03, API-05, ASG-06, PRG-08) with a proxy or mock that forces `success=false`, HTTP 500, timeout and offline.
+- **Test data set to keep stable:** activities at 2026-10-20 23:59:59, 2026-10-21 00:00:00, yesterday 10:00, far past, far future, one recurring weekly activity, one private, one disabled, one in each status 1/2/3/4/5/7, 25+ items for paging.
