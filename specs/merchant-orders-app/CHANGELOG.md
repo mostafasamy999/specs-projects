@@ -6,6 +6,22 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-031 — 2026-10-21 — Unavailable products at checkout (T3.5)
+
+**Request:** Implement T3.5.
+
+**Decision / done:**
+- `CheckoutCubit` catches `ProductUnavailableException` (thrown with nothing written, CR-029): removes those `productIds` from the cart (`CartCubit.removeAll`, saved on disk too) and emits the names.
+- `CheckoutScreen` shows a dialog «تم تحديث السلة» with one line per product («المنتج "…" لم يعد متاحاً وتم حذفه من السلة») and «حسناً». The customer stays on checkout with the remaining items and can confirm again; if nothing is left the screen shows the empty-cart view («سلتك فارغة» + «تصفح المنتجات»).
+- Other errors keep the SnackBar.
+- **Tests:** 2 new (one item removed → dialog + rest kept; all removed → both names + empty view); 297 total pass. `flutter analyze` clean.
+
+**Affected:**
+- Tasks: T3.5 ✅
+- STATUS.md
+
+---
+
 ## CR-030 — 2026-10-21 — Cart + checkout screens (T3.2)
 
 **Request:** Implement T3.2 (after T3.3 / T3.4, see CR-028).
