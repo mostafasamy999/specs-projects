@@ -392,13 +392,13 @@ Not used — no Cloud Storage (CR-002).
 | `orders` | `customerId ↑`, `status ↑`, `createdAt ↓` | My orders by status |
 | `orders` | `status ↑`, `createdAt ↓` | Admin orders by status |
 | `orders` | `productIds (array-contains)`, `status ↑`, `createdAt ↓` | Dashboard → orders of a product |
-| `products` | `isActive ↑`, `createdAt ↓` | Customer catalog |
-| `products` | `isActive ↑`, `nameLower ↑` | Customer search |
+| `products` | `isActive ↑`, `createdAt ↓` | (unused for now — catalog is ordered by name) |
+| `products` | `isActive ↑`, `nameLower ↑` | Customer catalog A→Z (search filters on-device — CR-023) |
 | `products` | `stock ↑` (single-field, auto — **not** listed in `firestore.indexes.json`, the CLI rejects single-field composites) | Dashboard sort by shortage |
 | `users` | `role ↑`, `status ↑`, `createdAt ↓` | Admin requests |
 | `users` | `role ↑`, `name ↑` | Customers directory |
 
-Search: prefix query `nameLower >= q && nameLower < q + ''` (U+F8FF — use `ArabicNormalizer.prefixEnd(q)`; normalize with `ArabicNormalizer.normalize`) (Arabic: store normalized text — strip tashkeel, unify `أ/إ/آ → ا`, `ة → ه`, `ى → ي`).
+Search (CR-023): **on-device** — the live product list is filtered by `nameLower.contains(normalize(q))` (free per keystroke, works offline, matches inside words). Fallback if the catalog grows to thousands: prefix query `nameLower >= q && nameLower < q + ''` (U+F8FF — use `ArabicNormalizer.prefixEnd(q)`; normalize with `ArabicNormalizer.normalize`) (Arabic: store normalized text — strip tashkeel, unify `أ/إ/آ → ا`, `ة → ه`, `ى → ي`).
 
 ## 7. Screens map
 
