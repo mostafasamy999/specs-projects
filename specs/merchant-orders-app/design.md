@@ -391,12 +391,32 @@ service cloud.firestore {
       allow read: if isActiveAdmin()
         || (isActiveCustomer() && resource.data.customerId == request.auth.uid);
 
+      // Matches OrderModel.toCreateMap (CR-034). Product counters are
+      // checked per product by validOrderDelta (same transaction, D§4.3).
       allow create: if isActiveCustomer()
+        && request.resource.data.keys().hasOnly(['shortCode', 'customerId', 'customerName',
+             'customerPhone', 'location', 'items', 'productIds', 'itemsCount', 'total', 'note',
+             'status', 'statusHistory', 'createdAt', 'updatedAt'])
         && request.resource.data.customerId == request.auth.uid
+        // snapshots must be the customer's own profile (R9.6)
+        && request.resource.data.customerName == me().name
+        && request.resource.data.customerPhone == me().phone
+        && request.resource.data.location is map
         && request.resource.data.status == 'pending'
         && request.resource.data.items is list
         && request.resource.data.items.size() > 0
-        && request.resource.data.items.size() <= 50;
+        && request.resource.data.items.size() <= 50
+        && request.resource.data.productIds is list
+        && request.resource.data.productIds.size() == request.resource.data.items.size()
+        && request.resource.data.itemsCount is int && request.resource.data.itemsCount > 0
+        && (request.resource.data.total is int || request.resource.data.total is float)
+        && request.resource.data.total > 0
+        && request.resource.data.note is string && request.resource.data.note.size() <= 300
+        && request.resource.data.statusHistory is list
+        && request.resource.data.statusHistory.size() == 1
+        && request.resource.data.statusHistory[0].status == 'pending'
+        && request.resource.data.statusHistory[0].by == request.auth.uid
+        && request.resource.data.createdAt == request.time;
 
       allow update: if isActiveAdmin()
         && changed().hasOnly(['status', 'statusHistory', 'cancelReason', 'updatedAt', 'updatedBy'])

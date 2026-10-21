@@ -6,6 +6,28 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-034 — 2026-10-21 — Orders rules tightened + cart cap (T3.8) — Phase 3 code complete, deploy pending
+
+**Request:** Implement T3.8 (orders rules create/read + product `validOrderDelta`; orders indexes).
+
+**Decision / done:**
+- **orders create** now matches `OrderModel.toCreateMap` exactly: keys limited to the 14 written fields; `customerId == auth.uid`; **`customerName` / `customerPhone` must equal the customer's profile** (`me()`), so a snapshot can't be forged (R9.6); `location` map; `status == 'pending'`; items list 1–50 and `productIds` the same size; `itemsCount` int > 0; `total` number > 0; `note` string ≤ 300; `statusHistory` exactly one `pending` entry `by` the customer; `createdAt == request.time`.
+- **orders read / update / delete:** unchanged (read: active admin or the order's own customer; the list query filters `customerId == uid` so it's allowed). Update is reviewed with the status change (T4.4/T4.5).
+- **products `validOrderDelta`:** unchanged and still correct for the place-order transaction (exactly `stock`, `activeQty`, `totalQty`; `d` in 1…99, matching the cart's per-product cap; product must be `isActive`). Limitation kept (CR-000): rules can't loop over the order's items, so they can't prove each product delta belongs to an order in the same transaction.
+- **Cart capped at 50 products** (`CartCubit.maxLines`, new `CartFullException` → «السلة ممتلئة (٥٠ منتجاً كحد أقصى للطلب الواحد)») so checkout can't hit the rules' 50-item limit; adding a 51st product shows the message on product details.
+- **Indexes:** none needed — my orders uses (customerId, createdAt↓) and (customerId, status, createdAt↓), both deployed.
+- **D§5 synced** (identical to repo `firestore.rules`, checked); `--dry-run` compiled successfully.
+- **Not deployed** (production deploys blocked for Claude Code). **One user command** deploys CR-019 + CR-025 + CR-034: `firebase deploy --only firestore:rules`.
+- **Tests:** +1 (51st product refused, existing lines still merge); 311 total pass. `flutter analyze` clean.
+- **Phase 3 status:** all code done. Open: rules deploy (user) and device / two-device QA (D§9) once accounts exist (T1.10).
+
+**Affected:**
+- Design: D§5 (orders create)
+- Tasks: T3.8 (rules written; ⏳ deploy by user)
+- STATUS.md
+
+---
+
 ## CR-033 — 2026-10-21 — Order details with status timeline (T3.7)
 
 **Request:** Implement T3.7.

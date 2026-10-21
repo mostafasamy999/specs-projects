@@ -49,7 +49,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 - [x] **3.5** Handle unavailable products in UI: show per-item message, remove them from cart. _(R9.5)_ — done 2026-10-21 (CR-031)
 - [x] **3.6** My orders screen (status tabs, pagination 20, real-time). _(R10.1, R10.2, R14.4)_ — done 2026-10-21 (CR-032)
 - [x] **3.7** Order details screen with status timeline + cancel reason, real-time. _(R10.3–10.5)_ — done 2026-10-21 (CR-033)
-- [ ] **3.8** Orders rules (create/read) + product `validOrderDelta`; indexes for orders. _(D§5, D§6, R13.4)_
+- [ ] **3.8** Orders rules (create/read) + product `validOrderDelta`; indexes for orders. _(D§5, D§6, R13.4)_ — rules written 2026-10-21 (CR-034), indexes unchanged; ⏳ **deploy pending (user, same command as T1.9 / T2.6)**
 
 ## Phase 4 — Admin operations
 
