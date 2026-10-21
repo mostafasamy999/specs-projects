@@ -6,6 +6,25 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-023 — 2026-10-21 — Admin products list (T2.4)
+
+**Request:** Implement T2.4.
+
+**Decision / done:**
+- **`AdminProductsScreen`** (R6.4, R6.5): live list of every product incl. hidden (`watchAll`, A→Z). Each row: image (dimmed when hidden), name, price, «المخزون: n», red «عجز n» when stock < 0 (stock 0 is not a shortage), grey «مخفي» badge, and a switch that shows / hides the product (`setActive`, SnackBar «المنتج معروض للعملاء الآن» / «تم إخفاء المنتج عن العملاء», error message on failure). Tap → edit form; FAB «إضافة منتج» → new form. Empty catalog → «لا توجد منتجات بعد» with an add button; no match → «لا توجد نتائج مطابقة»; stream error → retry.
+- **`ProductListCubit`** (shared with the customer grid, T2.5): subscribes to a product stream, `search(query)`, `retry()`.
+- **Search is on-device (design change from D§6):** `visible` = products whose `nameLower` *contains* `ArabicNormalizer.normalize(query)`. The single-merchant catalog is already in memory for the live list, so every keystroke is free (no reads, works offline), and "contains" finds «زيت» inside «عبوة زيت», which the Firestore prefix query couldn't. The `products (isActive, nameLower)` index is still used for the customer catalog's ordering. Revisit if the catalog grows to thousands of products.
+- **`ProductSearchField`** widget (clear button). Removed the `devEditProduct` placeholder string.
+- **Tests:** 10 new (cubit: live list, normalized contains, error + retry; screen: badges, live shortage update, search + no results, hide via switch, toggle error, edit / new navigation, empty catalog); 246 total pass. `flutter analyze` clean.
+- **Not checked on a device:** needs an active admin (T1.10).
+
+**Affected:**
+- Design: D§6 (search note)
+- Tasks: T2.4 ✅ (device check pending T1.10)
+- STATUS.md
+
+---
+
 ## CR-022 — 2026-10-21 — Admin product form (T2.3)
 
 **Request:** Implement T2.3.

@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-022)_
+_Last updated: 2026-10-21 (CR-023)_
 
 ## 1. Where things live
 
@@ -79,7 +79,8 @@ _Last updated: 2026-10-21 (CR-022)_
 | T2.1 `Product` / `ProductModel` / `ProductRepository` (batch create/update, receiveStock) | ✅ done 2026-10-21 (CR-020) |
 | T2.2 Image pick + `ProductImageCompressor` + `ProductImageCache` + `ProductImage` | ✅ done 2026-10-21 (CR-021) |
 | T2.3 Admin product form + `ProductFormCubit` (stock written only when corrected) | ✅ done 2026-10-21 (CR-022) — device check after T1.10 |
-| Everything from T2.4 onward | ⬜ not started |
+| T2.4 Admin products list + `ProductListCubit` (on-device search) | ✅ done 2026-10-21 (CR-023) — device check after T1.10 |
+| Everything from T2.5 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 
