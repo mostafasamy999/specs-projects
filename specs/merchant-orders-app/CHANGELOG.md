@@ -6,6 +6,24 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-040 — 2026-10-21 — Admin requests (T4.6)
+
+**Request:** Implement T4.6.
+
+**Decision / done:**
+- **`UsersRepository`** (`features/auth/`, in `get_it`; admin-only by the rules) for admin views of other users: `watchPendingAdmins()` (role admin + status pending, `createdAt`↓ — index exists), `decideAdmin(uid, approve:, byAdminUid:)`, `watchCustomers(limit:)` and `watchUser(uid)` (for T4.7). Malformed user docs are skipped in lists instead of failing them.
+  - `decideAdmin` writes exactly `status` (active / rejected), `approvedBy` (= the deciding admin, as the CR-019 rule requires for approval), `approvedAt`, `updatedAt` (server). The decider is recorded for rejections too (audit).
+- **`AdminRequestsScreen`** (R3.5–R3.7): live cards — name, phone, email, «تاريخ الطلب: …» — with «موافقة» (immediate) and «رفض» (confirmation «سيتم رفض طلب «…» …»). Buttons are disabled while that request is being decided; success / error SnackBars; empty → «لا توجد طلبات مسؤولين معلقة». The requester's app re-routes on its own (session listener, R3.8).
+- **More menu:** «طلبات المسؤولين» shows the live number of pending requests.
+- Test helper `useFakeUsers()`.
+- **Tests:** 9 new (list fields, approve + approver uid, reject confirm / cancel, error, empty, More count; repo approve / reject fields, offline); 343 total pass. `flutter analyze` clean.
+
+**Affected:**
+- Tasks: T4.6 ✅
+- STATUS.md
+
+---
+
 ## CR-039 — 2026-10-21 — Orders update rule tightened (T4.5) — deploy pending
 
 **Request:** Implement T4.5 (orders update rule `validTransition`; deploy).

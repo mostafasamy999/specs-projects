@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-039)_
+_Last updated: 2026-10-21 (CR-040)_
 
 ## 1. Where things live
 
@@ -96,7 +96,8 @@ _Last updated: 2026-10-21 (CR-039)_
 | T4.3 Admin order details (call, navigation) | ✅ done 2026-10-21 (CR-037) |
 | T4.4 `changeStatus` transaction + status actions + cancel dialog | ✅ done 2026-10-21 (CR-038) |
 | T4.5 Orders update rule tightened | 🟡 written + compiled 2026-10-21 (CR-039) — ⏳ **user must deploy** |
-| Everything from T4.6 onward | ⬜ not started |
+| T4.6 Admin requests + `UsersRepository` (+ More count) | ✅ done 2026-10-21 (CR-040) |
+| Everything from T4.7 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 
