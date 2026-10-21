@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-021)_
+_Last updated: 2026-10-21 (CR-022)_
 
 ## 1. Where things live
 
@@ -78,7 +78,8 @@ _Last updated: 2026-10-21 (CR-021)_
 | T1.10 Bootstrap first admin + verify routing for all states | ⏳ **user** — checklist in §5a (after deploying the CR-019 rules) |
 | T2.1 `Product` / `ProductModel` / `ProductRepository` (batch create/update, receiveStock) | ✅ done 2026-10-21 (CR-020) |
 | T2.2 Image pick + `ProductImageCompressor` + `ProductImageCache` + `ProductImage` | ✅ done 2026-10-21 (CR-021) |
-| Everything from T2.3 onward | ⬜ not started |
+| T2.3 Admin product form + `ProductFormCubit` (stock written only when corrected) | ✅ done 2026-10-21 (CR-022) — device check after T1.10 |
+| Everything from T2.4 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 

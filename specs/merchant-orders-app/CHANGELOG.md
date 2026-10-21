@@ -6,6 +6,29 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-022 — 2026-10-21 — Admin product form (T2.3)
+
+**Request:** Implement T2.3.
+
+**Decision / done:**
+- **`ProductFormScreen`** (`/admin/products/new`, `/admin/products/:id/edit`) + **`ProductFormCubit`**:
+  - Image (required, R6.1): 200 px preview; tap or «إضافة صورة / تغيير الصورة» → bottom sheet «التقاط صورة» / «اختيار من المعرض» → `ProductImagePicker` (compressed, CR-021). Picking errors (too large, access denied) show as SnackBar.
+  - Name (required ≤ 80), description (optional ≤ 500), price (> 0, 2 decimals, Arabic digits accepted), stock, «معروض للعملاء» switch (default on; off → hint «المنتج المخفي لا يظهر للعملاء ولا يمكن طلبه»).
+  - Stock: «الكمية المتاحة» (integer ≥ 0) when creating; «المخزون الحالي» (any integer, negative = shortage) when editing — this is the manual correction of R6.9.
+  - Save: loading + disabled while saving (R6.6); one batch for product + image (R6.7); failure → message, form keeps its values; success → «تم حفظ المنتج» + back. The saved image is put in `ProductImageCache` (new product v1, replaced image v+1) so the list shows it without a fetch.
+  - Edit loads the product once (`get`); not found → «المنتج غير موجود»; load error → retry.
+- **Stock is written only when the admin changed it (design decision):** orders change `stock` while the form is open; writing back the loaded value would erase them. `ProductRepository.update(..., updateStock:)` / `ProductModel.toUpdateMap(includeStock:)` leave `stock` out otherwise. A real correction still overwrites concurrent order deltas between loading and saving — accepted (R6.9 is a deliberate override; "receive stock" in T2.7 uses an atomic increment instead).
+- `Validators.parsePrice` / `parseInteger` for values that passed validation.
+- Test helper `useFakeProducts()` (`test/helpers/fake_repos.dart`); route tests use it (the admin screens now read real data) and the path-parameter test moved to a placeholder screen.
+- **Tests:** 12 new (new: required errors incl. image, price/stock rules, save with Arabic digits + cache seed + back, save failure keeps form, image too large; edit: prefill, stock untouched → not written, stock corrected → written, new image v+1, hide → hint + isActive false, not found) + 1 model test; 236 total pass. `flutter analyze` clean.
+- **Not checked on a device:** reaching the form needs an active admin, which comes from T1.10 (user). Camera / gallery / compression are therefore still unverified on a device.
+
+**Affected:**
+- Tasks: T2.3 ✅ (device check pending T1.10)
+- STATUS.md
+
+---
+
 ## CR-021 — 2026-10-21 — Product image pick, compression, cache + widget (T2.2)
 
 **Request:** Implement T2.2.
