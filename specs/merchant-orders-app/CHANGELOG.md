@@ -6,6 +6,23 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-028 — 2026-10-21 — Order entity + model (T3.3)
+
+**Request:** Implement T3.3. (Done before T3.2: checkout's «تأكيد الطلب» needs the order model and the place-order transaction, so the order is T3.3 → T3.4 → T3.2 → T3.5.)
+
+**Decision / done:**
+- **`OrderEntity`** (`features/orders/domain/entities/order.dart`, every D§3.3 field) with `OrderItem` (productId, name, price, quantity, lineTotal — snapshots, R9.6) and `StatusChange` (status, at, by — timeline, R10.3). Derived `shortCode` (first 6 chars upper-case), `itemsCount`, `productIds`.
+  - Named `OrderEntity` because `cloud_firestore` exports an `Order` class (index definitions) that clashes.
+- **`OrderModel`:** `fromSnapshot` / `fromMap` (whole numbers read as double; pending server timestamps → null), `toCreateMap(order, now:)` → `shortCode`, customer + location snapshots, `items` (stored key `qty`), `productIds`, `itemsCount`, `total`, `note`, `status: pending`, `statusHistory: [{pending, at: now, by: customerId}]` (client time — `serverTimestamp()` isn't allowed in arrays), server `createdAt` / `updatedAt`. `itemToMap` / `changeToMap` for the status change (T4.4).
+- `FirestorePaths.orders`.
+- **Tests:** 4 new (derived fields, create map, round-trip, cancelled + reason + int total); 276 total pass. `flutter analyze` clean.
+
+**Affected:**
+- Tasks: T3.3 ✅
+- STATUS.md
+
+---
+
 ## CR-027 — 2026-10-21 — Cart (T3.1)
 
 **Request:** Start Phase 3; implement T3.1.
