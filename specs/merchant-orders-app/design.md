@@ -218,6 +218,8 @@ await firestore.runTransaction((tx) async {
 });
 ```
 
+> **Pre-check (CR-029):** customers can't read hidden products at all (D§5), so a hidden item would fail the transaction with `permission-denied` without saying which one. Before the transaction each product is read from the server on its own; denied / missing / not offered → `ProductUnavailableException` naming them, nothing written. If the transaction itself is denied (hidden in between), the pre-check runs again to name the item. Order name / price come from the transaction's reads.
+>
 > Note: the same product must appear only once in the cart (merge quantities) so the rules' delta check sees one update per product.
 >
 > **Concurrency:** two customers ordering the same product at once both succeed — the second transaction is retried automatically by Firestore with fresh values, so the counters stay exact (e.g. stock 0 → −2 → −5). The transaction (not a plain batch) is still needed for the `isActive` re-check.

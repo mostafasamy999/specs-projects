@@ -6,6 +6,27 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-029 — 2026-10-21 — Place-order transaction (T3.4)
+
+**Request:** Implement T3.4.
+
+**Decision / done:**
+- **`OrderRepository.placeOrder(customer, items, note)`** (`OrderRepositoryImpl`, in `get_it`), per D§4.3:
+  1. guards: non-empty cart; customer has a saved location (new `MissingLocationException` → «حدد موقع المنزل من الملف الشخصي قبل الطلب»); online check.
+  2. **Pre-check (design addition):** each product is read from the server on its own. A hidden product is *not readable* by customers (D§5), so inside the transaction a hidden item would fail the whole transaction with `permission-denied` without saying which one. Denied, missing or `isActive != true` → `ProductUnavailableException(names, productIds:)`, nothing written.
+  3. **Transaction:** re-read every product; validate only "still offered" (stock never blocks, R8.2); for each item `stock: increment(-q)` (may go negative), `activeQty: increment(q)`, `totalQty: increment(q)` — exactly the three fields `validOrderDelta` allows; create the order (`pending`, snapshots, first timeline entry). **Name and price come from the transaction's reads**, not the cart (R9.6). Firestore retries the transaction on contention, so concurrent orders keep counters exact.
+  4. If the transaction is denied (product hidden between 2 and 3), the pre-check runs again to name the item.
+- `ProductUnavailableException` gains `productIds` (for removing them from the cart, T3.5).
+- **Tests:** 10 new (fresh prices + totals + note trim + snapshots; exact counter fields; negative stock allowed; hidden / deleted / inactive named with no writes; hidden mid-checkout still named; inactive inside the transaction aborts before writes; offline; missing location; empty cart); 286 total pass. `flutter analyze` clean.
+- Live check (two devices, concurrent orders) is in the D§9 manual QA list — needs accounts (T1.10) and the deployed rules.
+
+**Affected:**
+- Design: D§4.3 (pre-check note)
+- Tasks: T3.4 ✅
+- STATUS.md
+
+---
+
 ## CR-028 — 2026-10-21 — Order entity + model (T3.3)
 
 **Request:** Implement T3.3. (Done before T3.2: checkout's «تأكيد الطلب» needs the order model and the place-order transaction, so the order is T3.3 → T3.4 → T3.2 → T3.5.)
