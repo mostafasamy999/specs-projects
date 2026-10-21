@@ -28,7 +28,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 - [x] **1.7** Customer registration screen (validation + required location). _(R1.2–1.6, R2.6)_ — done 2026-10-21 (CR-017)
 - [x] **1.8** Admin registration screen + Pending approval screen (Refresh / Logout) + rejected handling. _(R3.1–3.4, R3.8)_ — done 2026-10-21 (CR-018)
 - [x] **1.9** Write `firestore.rules` users section; deploy. _(D§5, R13.2)_ — rules written 2026-10-21 (CR-019); deployed 2026-10-21 (CR-045)
-- [ ] **1.10** Bootstrap first admin from Console and verify routing for all states. _(R3.10)_
+- [x] **1.10** Bootstrap first admin from Console and verify routing for all states. _(R3.10)_
 
 ## Phase 2 — Products
 
