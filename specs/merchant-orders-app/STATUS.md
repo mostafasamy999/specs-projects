@@ -75,6 +75,7 @@ _Last updated: 2026-10-21 (CR-020)_
 | T1.7 Customer registration + `RegistrationFields` (+ GPS-provider fallback, Android address fix) | ✅ done 2026-10-21 (CR-017) |
 | T1.8 Admin registration + Pending approval screen (server Refresh via `fetchProfile`) | ✅ done 2026-10-21 (CR-018) |
 | T1.9 Users rules tightened (`firestore.rules` + D§5) | 🟡 written + compiled (dry run) 2026-10-21 (CR-019) — ⏳ **user must deploy** |
+| T1.10 Bootstrap first admin + verify routing for all states | ⏳ **user** — checklist in §5a (after deploying the CR-019 rules) |
 | T2.1 `Product` / `ProductModel` / `ProductRepository` (batch create/update, receiveStock) | ✅ done 2026-10-21 (CR-020) |
 | Everything from T2.2 onward | ⬜ not started |
 
