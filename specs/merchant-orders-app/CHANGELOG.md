@@ -6,6 +6,30 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-017 — 2026-10-21 — Customer registration screen (T1.7) + location fixes found on device
+
+**Request:** Implement T1.7.
+
+**Decision / done:**
+- **`RegisterCustomerScreen`** (R1.2–R1.7, R2): "بيانات الحساب" (shared `RegistrationFields`: name 3–50, Egyptian phone, email, password ≥ 8, confirmation) + `LocationCaptureSection` + «إنشاء الحساب» + «لديك حساب بالفعل؟ تسجيل الدخول».
+  - `Form.validate()` covers every field and the GPS fix (R2.9); submit → `SubmitCubit` → `AuthRepository.registerCustomer`. Fields are disabled while submitting.
+  - Errors: email in use (R1.6), rolled-back profile (R1.7) and the rest show as a SnackBar; the form keeps its values for retry. On success the session turns `customer` and the redirect opens products (R1.5).
+- **`RegistrationFields` + `RegistrationControllers`** (`features/auth/presentation/widgets/`): reused by admin registration (T1.8).
+- **Found on the Android emulator, fixed in the T1.6 code:**
+  - **Google "Location Accuracy" consent:** geolocator's fused provider shows Google's consent dialog; declining it is reported as «location service off» although GPS is on, so the customer could never register. `PluginLocationPlatform.position` now retries once with the plain GPS provider (`AndroidSettings(forceLocationManager: true)`) when that happens and location services are on. Verified: declined → fix ± ٥ م.
+  - **Messy Android address:** Android's `Placemark.street` is the whole address line (with postal code and country). `formatPlacemark` now builds the street from `subThoroughfare` + `thoroughfare` (falls back to `street`, as on iOS) and skips a level already contained in an earlier part. Verified: «1 شارع محمد محمود، ميدان التحرير، قسم قصر النيل، محافظة القاهرة».
+  - The geocoder is created lazily (widget tests that use the real repository no longer touch the plugin).
+  - Fix card: accuracy moved under the title (the row overflowed on narrow screens); login / register "have account" rows are `Wrap`s for the same reason.
+- **Tests:** 9 new (empty form → 6 required errors + location error; R1.3 rules; no fix → not submitted; valid submit passes the captured `GeoLocation`; email-in-use and rollback messages keep the form; session → products) + 2 new placemark cases; 178 total pass. `flutter analyze` clean.
+- **Device (Android emulator):** form renders RTL; permission prompt → «Only this time» → Google consent → «No thanks» → fix ± ٥ م + Arabic address prefilled. **Not submitted** — that would create a real account in the live project; the live registration run is part of T1.10 (with the user).
+- Android permission dialog still shows the app as `merchant_orders` (label; final name is T7.5).
+
+**Affected:**
+- Tasks: T1.7 ✅
+- STATUS.md
+
+---
+
 ## CR-016 — 2026-10-21 — GPS location capture + AddressTile (T1.6)
 
 **Request:** Implement T1.6.
