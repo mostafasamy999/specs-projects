@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-020)_
+_Last updated: 2026-10-21 (CR-021)_
 
 ## 1. Where things live
 
@@ -77,7 +77,8 @@ _Last updated: 2026-10-21 (CR-020)_
 | T1.9 Users rules tightened (`firestore.rules` + D§5) | 🟡 written + compiled (dry run) 2026-10-21 (CR-019) — ⏳ **user must deploy** |
 | T1.10 Bootstrap first admin + verify routing for all states | ⏳ **user** — checklist in §5a (after deploying the CR-019 rules) |
 | T2.1 `Product` / `ProductModel` / `ProductRepository` (batch create/update, receiveStock) | ✅ done 2026-10-21 (CR-020) |
-| Everything from T2.2 onward | ⬜ not started |
+| T2.2 Image pick + `ProductImageCompressor` + `ProductImageCache` + `ProductImage` | ✅ done 2026-10-21 (CR-021) |
+| Everything from T2.3 onward | ⬜ not started |
 
 ## 5. Next session — exact order
 

@@ -6,6 +6,27 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-021 — 2026-10-21 — Product image pick, compression, cache + widget (T2.2)
+
+**Request:** Implement T2.2.
+
+**Decision / done:**
+- **`ProductImageCompressor`** (R6.2, D§4.5): JPEG ≤ 200 KB, longest side ≤ 600 px. Steps (longest side, quality): (600, 70) → (600, 50) → (480, 50) → (360, 40); none fits → new `ImageTooLargeException` («الصورة كبيرة جداً، اختر صورة أخرى»).
+  - `flutter_image_compress` scales so the **shorter** side reaches `min(minWidth, minHeight)` (checked in its Android source). The compressor reads the size first (`ui.ImageDescriptor`, no full decode) and passes the target short side for both, so the long side ends at the step's limit whatever the EXIF orientation. Never upscales.
+  - Design said "re-compress (q50, then 480px)"; one extra step (360, 40) was added before giving up.
+- **`ProductImagePicker` / `DeviceProductImagePicker`:** camera or gallery via `image_picker` (pre-shrunk to 1600 px, quality 95, no metadata), then the compressor. Cancel → null. `camera_access_denied` / `photo_access_denied` → new `ImageAccessDeniedException` («لا يمكن الوصول إلى الكاميرا أو الصور…»).
+- **`ProductImageCache`** (in `get_it`): in-memory LRU (120 entries) keyed `id:imageVersion`; one request per key even with many tiles; failures not cached; `put` seeds the cache right after saving. Misses use `ProductRepository.getImage` (Firestore's offline cache serves repeats).
+  - **Bug caught by the tests:** `whenComplete(() => _inFlight.remove(key))` returned the in-flight future itself, so the future waited on itself and never completed (every image would have spun forever). Fixed with a block body.
+- **`ProductImage` widget:** synchronous hit from the cache, otherwise loading icon → image; missing → «no image» icon; error → retry button.
+- **Tests:** 17 new (compressor steps / orientation / no upscale / too large; picker cancel / source + sizes / both access-denied codes; cache dedupe / version key / LRU / failure / put; widget load / missing / retry); 224 total pass. `flutter analyze` clean.
+- Device check with real photos happens in T2.3 (the form is the first screen that picks).
+
+**Affected:**
+- Tasks: T2.2 ✅
+- STATUS.md
+
+---
+
 ## CR-020 — 2026-10-21 — Product model + repository (T2.1)
 
 **Request:** Start Phase 2; implement T2.1.
