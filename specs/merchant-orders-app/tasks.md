@@ -78,7 +78,7 @@ Each task references requirements (`R<n>.<m>`) and design sections (`D§<n>`). C
 - [x] **7.2** Cubit tests (`bloc_test`, `mocktail`): Session, Cart, PlaceOrder, ChangeStatus. _(D§9)_ — done 2026-10-21 (CR-044): `CheckoutCubit` (PlaceOrder) tests added; ChangeStatus is repo + widget tested (no cubit of its own)
 - [x] **7.3** Security rules tests on Firebase Emulator (all allow/deny cases). _(D§9, R13)_ — done 2026-10-21 (CR-044): 57 cases in `rules_test/`, `cd rules_test && npm test`
 - [ ] **7.4** Manual QA checklist on two devices (live status, concurrent orders on stock-0 product → exact negative stock, cancel restores, receive stock, Console approve/delete). _(D§9)_
-- [ ] **7.5** App icon, Arabic app name, splash; release builds (Android AAB, iOS archive). _(R14.2)_
+- [ ] **7.5** App icon, Arabic app name, splash; release builds (Android AAB, iOS archive). _(R14.2)_ — 🟡 app icon done 2026-10-21 (CR-046); Arabic name, splash, release builds still open
 
 ## Optional / Phase 2 backlog
 

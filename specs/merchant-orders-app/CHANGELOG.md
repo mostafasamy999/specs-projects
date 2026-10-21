@@ -6,6 +6,26 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-046 — 2026-10-21 — App icon: market storefront (T7.5, part 1)
+
+**Request:** "Make the app icon, referring to a market." The user approved the design from a preview before it was installed.
+
+**Decision / done:**
+- **Design:** a shop front with a striped awning (the usual market / grocery sign) on the brand teal (`AppColors.seed` `#00695C`, light vertical gradient). The awning alternates amber (`#F59E0B`, the «قيد الانتظار» colour) and white; the shop front is cream with a teal door and windows. It stays readable at 48 px.
+- **Source:** drawn by `tool/app_icon/make_icon.py` (Pillow, 4× supersampled). It writes `assets/icon/icon.png` (1024, opaque), `foreground.png` (art at 44% of the canvas, so its corners stay inside the 66 dp adaptive safe circle) and `background.png` (gradient).
+- **Platforms:** new dev dependency `flutter_launcher_icons` ^0.14.4, configured in `pubspec.yaml`.
+  - Android: legacy `mipmap-*/ic_launcher.png` + adaptive icon (`mipmap-anydpi-v26`, gradient background + foreground drawables). `adaptive_icon_foreground_inset: 0` because the tool's default 16% inset would have shrunk the art to about 30%.
+  - iOS: every `AppIcon.appiconset` size regenerated with `remove_alpha_ios: true`. Checked: no icon has transparency.
+- **Tool glitch reverted:** the generator also changed `ios/Runner.xcodeproj/project.pbxproj` (`ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS` from `YES` to `AppIcon`, which is not a valid value). That file was restored; the icon set is already named `AppIcon`. STATUS §5 notes to revert it after every regeneration.
+- **Verified:** reinstalled on the Android emulator; the launcher shows the round adaptive icon, centred and uncropped. `flutter analyze` is clean and all 382 tests pass. **iOS not built** (7–10 min, per §6; checked by file only).
+- **Still open in T7.5:** the launcher label still shows `merchant_orders` (Arabic name «طلبات التاجر»), splash, release builds.
+
+**Affected:**
+- Tasks: T7.5 (icon ✅; rest open)
+- STATUS.md (progress, how to regenerate the icon)
+
+---
+
 ## CR-045 — 2026-10-21 — Security rules deployed (T1.9, T2.6, T3.8, T4.5)
 
 **Request:** "Start with T1.9 Firestore rules."

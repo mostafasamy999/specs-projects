@@ -2,7 +2,7 @@
 
 Read this first in any new session. Then read `requirements.md` → `design.md` → `tasks.md` → `CHANGELOG.md`.
 
-_Last updated: 2026-10-21 (CR-045)_
+_Last updated: 2026-10-21 (CR-046)_
 
 ## 1. Where things live
 
@@ -108,12 +108,12 @@ _Last updated: 2026-10-21 (CR-045)_
 | T7.2 Cubit tests (+ `CheckoutCubit`) | ✅ 2026-10-21 (CR-044) |
 | T7.3 Rules tests on the Firestore emulator (57 cases, `rules_test/`) | ✅ 2026-10-21 (CR-044) |
 | T7.4 Manual QA on two devices | ⏳ **user** (after T1.10) |
-| T7.5 Icon, Arabic name, splash, release builds | ⬜ not started — needs the user's icon |
+| T7.5 Icon, Arabic name, splash, release builds | 🟡 app icon ✅ 2026-10-21 (CR-046, market storefront, checked on the Android emulator); Arabic name (launcher still shows `merchant_orders`), splash, release builds ⬜ |
 
 ## 5. Next session — exact order
 
 1. **User action:** T1.10 (checklist §5a) — the rules are live since CR-045. After any future `firestore.rules` change: run the emulator tests, then `firebase deploy --only firestore:rules` only with the user's go-ahead. Phase 2–3 screens still need a device check once an admin and a customer exist (D§9 QA list: two devices, concurrent orders on a stock-0 product, hide while in cart).
-2. Then T7.5 (app icon, Arabic app name, splash, Android AAB + iOS archive) — ask the user for the icon artwork and signing details first. T7.4 is the user's manual QA (D§9 list). **Rules tests:** `cd rules_test && npm test` (Firestore emulator, project `demo-merchant-orders` — never the real one; the script picks a JDK 21+ via `/usr/libexec/java_home -v 21+` because firebase-tools 15 refuses Java 17, the default `java` here). Re-run them after any `firestore.rules` change, before asking the user to deploy.
+2. Then the rest of T7.5: Arabic app name «طلبات التاجر» (Android `android:label`, iOS `CFBundleDisplayName`), splash, Android AAB + iOS archive (ask the user for signing details first). **App icon (CR-046):** to change it, edit `tool/app_icon/make_icon.py`, run `python3 tool/app_icon/make_icon.py assets/icon`, then `dart run flutter_launcher_icons`, then **`git checkout -- ios/Runner.xcodeproj/project.pbxproj`** (flutter_launcher_icons 0.14.4 wrongly sets `ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = AppIcon`). T7.4 is the user's manual QA (D§9 list). **Rules tests:** `cd rules_test && npm test` (Firestore emulator, project `demo-merchant-orders` — never the real one; the script picks a JDK 21+ via `/usr/libexec/java_home -v 21+` because firebase-tools 15 refuses Java 17, the default `java` here). Re-run them after any `firestore.rules` change, before asking the user to deploy.
 3. Conventions from T1.3:
    - `sl<SessionCubit>()` is an app-wide lazy singleton — nothing creates it yet. T1.4 must read it (e.g. in `createRouter` and a `BlocProvider.value` in `app.dart`) so it starts at launch.
    - Route by `state.status` (`SessionStatus.unknown` → splash, `unauthenticated` → login, `customer`, `adminActive`, `adminPending`). There is no `rejected` status: those are signed out and arrive as `unauthenticated` with `state.message`.
