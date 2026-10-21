@@ -6,6 +6,23 @@ IDs: `R<n>.<m>` = requirement · `D§<n>` = design section · `T<n>.<m>` = task.
 
 ---
 
+## CR-038 — 2026-10-21 — Order status change transaction + actions (T4.4)
+
+**Request:** Implement T4.4.
+
+**Decision / done:**
+- **`OrderStatus.nextSteps` / `canMoveTo`** (R11.4): pending → inProgress | cancelled; inProgress → done | cancelled; done / cancelled final.
+- **`OrderRepository.changeStatus(orderId, from, to, adminUid, cancelReason)`** (D§4.4): invalid move or empty cancel reason → `ArgumentError` before any I/O; online check; **transaction**: read the order → missing → new `OrderNotFoundException` («الطلب غير موجود»); status ≠ `from` → `ConcurrentUpdateException` («تم تحديث الطلب بواسطة مسؤول آخر», R11.7); for each item of the **stored** order, `counterDeltas` (D§3.4) with `increment` — done: `activeQty −q`; cancelled: `activeQty −q`, `totalQty −q`, `stock +q`; inProgress: none; then the order: `status`, `statusHistory: arrayUnion({status, at (client), by})`, `cancelReason` (trimmed, cancel only), `updatedAt` (server), `updatedBy`. Exactly the fields the orders update rule allows.
+- **`OrderStatusActions`** on the admin order details (R11.4–R11.6): buttons for the allowed next steps — «بدء التحضير» (immediate), «تم التسليم» (confirmation, final), «إلغاء الطلب» (outlined) → **`CancelOrderDialog`**: explains stock is returned, requires a reason ≤ 200, «رجوع» / «إلغاء الطلب» (R11.5). Success → «تم تغيير حالة الطلب إلى «…»»; errors → SnackBar. Final orders show no actions. The screen updates from the live order.
+- **Tests:** 14 new (transitions, deltas, inProgress = order only, done deltas, cancel deltas + reason, concurrent update, missing order, pre-I/O guards; UI: start, done confirm, cancel requires reason + sends it, back out, concurrent message, final = no actions); 334 total pass. `flutter analyze` clean.
+- "Refresh dashboard status counts after a change" (D§4.4) comes with the dashboard (T5.2).
+
+**Affected:**
+- Tasks: T4.4 ✅
+- STATUS.md
+
+---
+
 ## CR-037 — 2026-10-21 — Admin order details (T4.3)
 
 **Request:** Implement T4.3.
