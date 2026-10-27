@@ -1,0 +1,23 @@
+# FLT-02 — Dismissing the filter sheet keeps the applied filters (P0)
+# Req: BR §5.5, §10. Expected: after changing the draft and dismissing, the
+# applied Type (Task) is unchanged.
+appId: ${APP_ID}
+tags: [FLT-02, P0, smoke, filter_sheet]
+---
+- runFlow: ../../subflows/open_list.yaml
+- runFlow:
+    file: ../../subflows/select_type.yaml
+    env:
+      TYPE: task
+- assertVisible: "Type · Task"
+- tapOn:
+    id: "activities_filter_button"
+- extendedWaitUntil:
+    visible:
+      id: "activities_filter_apply"
+    timeout: 10000
+- tapOn: "Visit"
+- back
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible: "Type · Task"
+- assertNotVisible: "Type · Visit"

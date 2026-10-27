@@ -1,0 +1,18 @@
+# CRT-22 — Save is disabled until something changes (supports G-36) (P1)
+# Req: BR §5.3. Expected: on an untouched form the save button is disabled,
+# so it can't be double-submitted empty. The double-tap itself needs a slow
+# network and the request log (manual).
+appId: ${APP_ID}
+tags: [CRT-22, P1, create]
+---
+- runFlow: ../../subflows/open_dashboard.yaml
+- tapOn:
+    id: "activities_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "activity_create_save_button"
+    timeout: 20000
+- assertVisible:
+    id: "activity_create_save_button"
+    enabled: false
+- back

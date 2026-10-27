@@ -1,0 +1,12 @@
+# Scrolls the quick-filter row until the chip shows, then taps it.
+# Param CHIP: current | previous | main | type | scope | status | priority | department
+appId: ${APP_ID}
+---
+- scrollUntilVisible:
+    element:
+      id: "activities_chip_${CHIP}"
+    direction: RIGHT
+    timeout: 10000
+    centerElement: true
+- tapOn:
+    id: "activities_chip_${CHIP}"

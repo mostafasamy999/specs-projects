@@ -1,0 +1,3 @@
+# Real test credentials and local run output stay on this machine.
+.env
+results/

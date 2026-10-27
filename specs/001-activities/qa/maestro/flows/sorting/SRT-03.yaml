@@ -1,0 +1,22 @@
+# SRT-03 — Sort is kept on refresh and filter change (P1)
+# Req: BR §6.7. Expected: "Oldest first" survives pull-to-refresh and a type
+# change.
+appId: ${APP_ID}
+tags: [SRT-03, P1, regression, sorting]
+---
+- runFlow: ../../subflows/open_list.yaml
+- tapOn:
+    id: "activities_sort_button"
+- tapOn:
+    id: "activities_sort_oldestFirst"
+- runFlow: ../../subflows/wait_for_results.yaml
+- swipe:
+    start: 50%, 45%
+    end: 50%, 85%
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible: "Oldest first"
+- runFlow:
+    file: ../../subflows/select_type.yaml
+    env:
+      TYPE: task
+- assertVisible: "Oldest first"

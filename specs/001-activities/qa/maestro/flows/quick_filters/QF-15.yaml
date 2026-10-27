@@ -1,0 +1,26 @@
+# QF-15 — Current and Previous are mutually exclusive (P2)
+# Req: G-12. Observed behavior: picking Previous unselects Current; tapping
+# the selected chip again clears it. Fails if both stay selected.
+appId: ${APP_ID}
+tags: [QF-15, P2, quick_filters, time_scope]
+---
+- runFlow: ../../subflows/open_list.yaml
+- runFlow:
+    file: ../../subflows/tap_chip.yaml
+    env:
+      CHIP: current
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible:
+    id: "activities_chip_current"
+    selected: true
+- runFlow:
+    file: ../../subflows/tap_chip.yaml
+    env:
+      CHIP: previous
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible:
+    id: "activities_chip_previous"
+    selected: true
+- assertVisible:
+    id: "activities_chip_current"
+    selected: false

@@ -1,0 +1,25 @@
+# DSH-01 — Dashboard is the entry screen and shows returned data (P0)
+# Req: BR §5.1, §10 Dashboard. Expected: dashboard opens first with Add and
+# Filter in the app bar, the overview chart and both summaries.
+appId: ${APP_ID}
+tags: [DSH-01, P0, smoke, dashboard]
+---
+- runFlow: ../../subflows/open_dashboard.yaml
+- assertVisible:
+    id: "activities_add_button"
+- assertVisible:
+    id: "activities_filter_button"
+- assertVisible:
+    id: "activities_dashboard_total"
+- scrollUntilVisible:
+    element:
+      id: "activities_tasks_summary"
+- assertVisible:
+    id: "activities_tasks_summary"
+- scrollUntilVisible:
+    element:
+      id: "activities_visits_summary"
+- assertVisible:
+    id: "activities_visits_summary"
+- assertVisible:
+    id: "activities_view_toggle"

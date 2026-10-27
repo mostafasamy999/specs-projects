@@ -1,0 +1,29 @@
+# FLT-03 — Reset in the filter sheet (P1)
+# Req: BR §5.5. Spec: Reset clears the draft only. Observed in code: Reset
+# also applies and closes the sheet (onReset → resetFilter + pop). This flow
+# checks the spec; a failure here means Reset changed the applied filters.
+appId: ${APP_ID}
+tags: [FLT-03, P1, filter_sheet]
+---
+- runFlow: ../../subflows/open_list.yaml
+- runFlow:
+    file: ../../subflows/select_type.yaml
+    env:
+      TYPE: task
+- tapOn:
+    id: "activities_filter_button"
+- extendedWaitUntil:
+    visible:
+      id: "activities_filter_reset"
+    timeout: 10000
+- tapOn:
+    id: "activities_filter_reset"
+- runFlow:
+    when:
+      visible:
+        id: "activities_filter_cancel"
+    commands:
+      - tapOn:
+          id: "activities_filter_cancel"
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible: "Type · Task"

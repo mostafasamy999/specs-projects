@@ -1,0 +1,11 @@
+# Opens the Scope chip and picks a scope.
+# Param SCOPE: all | myTeam | myActivities | private
+appId: ${APP_ID}
+---
+- runFlow:
+    file: tap_chip.yaml
+    env:
+      CHIP: scope
+- tapOn:
+    id: "activities_scope_${SCOPE}"
+- runFlow: wait_for_results.yaml

@@ -1,0 +1,14 @@
+# Declines system prompts that can cover the app (location accuracy,
+# notifications). Always picks the option that changes nothing.
+appId: ${APP_ID}
+---
+- runFlow:
+    when:
+      visible: "No thanks"
+    commands:
+      - tapOn: "No thanks"
+- runFlow:
+    when:
+      visible: "Don.t allow"
+    commands:
+      - tapOn: "Don.t allow"

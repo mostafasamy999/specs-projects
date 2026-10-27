@@ -1,0 +1,21 @@
+# SRC-05 — Clearing the search restores the full list (P1)
+# Req: API §3.2. Expected: after clearing, cards are listed again.
+appId: ${APP_ID}
+tags: [SRC-05, P1, search]
+---
+- runFlow: ../../subflows/open_list.yaml
+- tapOn:
+    id: "activities_search_field"
+- inputText: "zzqq-no-match"
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: "activities_message"
+    timeout: 15000
+- tapOn:
+    id: "activities_search_field"
+- eraseText: 30
+- hideKeyboard
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible:
+    id: "activities_card"

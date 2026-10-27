@@ -1,0 +1,22 @@
+# QF-03 — Main chip switches to master activities (P1)
+# Req: API §3.3. Expected: Main is selected and the list reloads; Main cards
+# show the edit icon (only the Main list has it).
+appId: ${APP_ID}
+tags: [QF-03, P1, quick_filters]
+---
+- runFlow: ../../subflows/open_list.yaml
+- runFlow:
+    file: ../../subflows/tap_chip.yaml
+    env:
+      CHIP: main
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible:
+    id: "activities_chip_main"
+    selected: true
+- runFlow:
+    when:
+      visible:
+        id: "activities_card"
+    commands:
+      - assertVisible:
+          id: "activities_card_edit"

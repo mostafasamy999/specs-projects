@@ -1,0 +1,11 @@
+# Opens the Type chip and picks a type.
+# Param TYPE: all | task | visit
+appId: ${APP_ID}
+---
+- runFlow:
+    file: tap_chip.yaml
+    env:
+      CHIP: type
+- tapOn:
+    id: "activities_type_${TYPE}"
+- runFlow: wait_for_results.yaml

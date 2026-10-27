@@ -1,0 +1,19 @@
+# Launches the app (keeping the session), logs in if needed and opens the
+# Activities dashboard.
+appId: ${APP_ID}
+---
+- launchApp:
+    stopApp: true
+- runFlow: dismiss_system_dialogs.yaml
+- runFlow: login.yaml
+- runFlow: dismiss_system_dialogs.yaml
+- extendedWaitUntil:
+    visible:
+      id: "bottom_nav_activities_tab"
+    timeout: 30000
+- tapOn:
+    id: "bottom_nav_activities_tab"
+- extendedWaitUntil:
+    visible:
+      id: "activities_dashboard_total"
+    timeout: 20000

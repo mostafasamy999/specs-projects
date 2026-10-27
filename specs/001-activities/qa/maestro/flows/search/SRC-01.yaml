@@ -1,0 +1,13 @@
+# SRC-01 — Search by title (P0)
+# Req: BR §6.6, §10. Expected: the activity titled SEARCH_TITLE is listed.
+# Which fields search matches is Q19.
+appId: ${APP_ID}
+tags: [SRC-01, P0, smoke, search]
+---
+- runFlow: ../../subflows/open_list.yaml
+- tapOn:
+    id: "activities_search_field"
+- inputText: ${SEARCH_TITLE}
+- hideKeyboard
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible: ${SEARCH_TITLE}

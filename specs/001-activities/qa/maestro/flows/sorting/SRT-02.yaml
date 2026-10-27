@@ -1,0 +1,12 @@
+# SRT-02 — Oldest first (P1)
+# Req: BR §6.7, §8.1. Expected: the sort control shows "Oldest first".
+appId: ${APP_ID}
+tags: [SRT-02, P1, sorting]
+---
+- runFlow: ../../subflows/open_list.yaml
+- tapOn:
+    id: "activities_sort_button"
+- tapOn:
+    id: "activities_sort_oldestFirst"
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible: "Oldest first"

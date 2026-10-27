@@ -1,0 +1,17 @@
+# DSH-10 — Tasks summary opens the list restricted to Tasks (P0)
+# Req: BR §10 Dashboard. Expected: the list shows only Tasks and the Type
+# chip shows Task. Whether the donut also refreshes is G-11 (not checked).
+appId: ${APP_ID}
+tags: [DSH-10, P0, smoke, dashboard]
+---
+- runFlow: ../../subflows/open_dashboard.yaml
+- scrollUntilVisible:
+    element:
+      id: "activities_tasks_summary"
+- tapOn:
+    id: "activities_tasks_summary"
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible:
+    id: "activities_chip_type"
+    selected: true
+- assertNotVisible: "VISIT"

@@ -1,0 +1,14 @@
+# QF-02 — Tasks chip shows only Tasks (P0)
+# Req: BR §6.1, §10. Expected: every card is a Task.
+appId: ${APP_ID}
+tags: [QF-02, P0, smoke, quick_filters]
+---
+- runFlow: ../../subflows/open_list.yaml
+- runFlow:
+    file: ../../subflows/select_type.yaml
+    env:
+      TYPE: task
+- assertVisible:
+    id: "activities_chip_type"
+    selected: true
+- assertNotVisible: "VISIT"

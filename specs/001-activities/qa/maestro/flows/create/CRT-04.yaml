@@ -1,0 +1,28 @@
+# CRT-04 — Switching the type starts a clean form (P1)
+# Req: BR §5.3. Expected: text typed as a Visit is gone after Task → Visit.
+# Needs TITLE_HINT (the title field's hint); default "Title".
+appId: ${APP_ID}
+tags: [CRT-04, P1, create]
+env:
+  TITLE_HINT: Title
+---
+- runFlow: ../../subflows/open_dashboard.yaml
+- tapOn:
+    id: "activities_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "activity_create_type_visit"
+    timeout: 20000
+- tapOn:
+    text: ".*${TITLE_HINT}.*"
+    index: 0
+- inputText: "maestro-crt-04"
+- hideKeyboard
+- assertVisible: "maestro-crt-04"
+- tapOn:
+    id: "activity_create_type_task"
+- assertNotVisible: "maestro-crt-04"
+- tapOn:
+    id: "activity_create_type_visit"
+- assertNotVisible: "maestro-crt-04"
+- back

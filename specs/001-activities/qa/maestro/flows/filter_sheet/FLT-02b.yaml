@@ -1,0 +1,21 @@
+# FLT-02 (Cancel variant) — Cancel keeps the applied filters (P0)
+# Req: BR §5.5. Same as FLT-02, closing with the Cancel button.
+appId: ${APP_ID}
+tags: [FLT-02, P0, filter_sheet]
+---
+- runFlow: ../../subflows/open_list.yaml
+- runFlow:
+    file: ../../subflows/select_type.yaml
+    env:
+      TYPE: task
+- tapOn:
+    id: "activities_filter_button"
+- extendedWaitUntil:
+    visible:
+      id: "activities_filter_cancel"
+    timeout: 10000
+- tapOn: "Visit"
+- tapOn:
+    id: "activities_filter_cancel"
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible: "Type · Task"

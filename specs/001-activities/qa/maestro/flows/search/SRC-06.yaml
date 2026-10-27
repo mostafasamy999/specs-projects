@@ -1,0 +1,16 @@
+# SRC-06 — Search with no match shows the empty state (P1)
+# Req: BR §10 List. Also covers LST-06 (empty results).
+appId: ${APP_ID}
+tags: [SRC-06, LST-06, P1, search, list]
+---
+- runFlow: ../../subflows/open_list.yaml
+- tapOn:
+    id: "activities_search_field"
+- inputText: "zzqq-no-match"
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: "activities_message"
+    timeout: 15000
+- assertNotVisible:
+    id: "activities_card"

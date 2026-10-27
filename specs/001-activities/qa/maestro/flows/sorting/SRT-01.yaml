@@ -1,0 +1,10 @@
+# SRT-01 — Default sort is newest first (P0)
+# Req: BR §6.7. UI part: the sort control shows "Newest first". Card order
+# by scheduled start is checked manually (dates in the cards).
+appId: ${APP_ID}
+tags: [SRT-01, P0, smoke, sorting]
+---
+- runFlow: ../../subflows/open_list.yaml
+- assertVisible:
+    id: "activities_sort_button"
+- assertVisible: "Newest first"

@@ -1,0 +1,10 @@
+# PAG-11 — Pull to refresh reloads the list (P1)
+# Req: BR §8.2. Expected: the list reloads and still shows a count or message.
+appId: ${APP_ID}
+tags: [PAG-11, P1, pagination]
+---
+- runFlow: ../../subflows/open_list.yaml
+- swipe:
+    start: 50%, 45%
+    end: 50%, 85%
+- runFlow: ../../subflows/wait_for_results.yaml

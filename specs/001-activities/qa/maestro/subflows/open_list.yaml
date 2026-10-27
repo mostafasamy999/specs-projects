@@ -1,0 +1,11 @@
+# Opens the Activities list from a fresh launch (dashboard → view toggle).
+appId: ${APP_ID}
+---
+- runFlow: open_dashboard.yaml
+- tapOn:
+    id: "activities_view_toggle"
+- extendedWaitUntil:
+    visible:
+      id: "activities_search_field"
+    timeout: 20000
+- runFlow: wait_for_results.yaml

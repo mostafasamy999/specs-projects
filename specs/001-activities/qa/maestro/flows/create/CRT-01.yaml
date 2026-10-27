@@ -1,0 +1,19 @@
+# CRT-01 — A new activity starts as a Visit (P0)
+# Req: BR §5.3 v1.2, T10.3. Expected: Visit is selected and enabled.
+appId: ${APP_ID}
+tags: [CRT-01, P0, smoke, create]
+---
+- runFlow: ../../subflows/open_dashboard.yaml
+- tapOn:
+    id: "activities_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "activity_create_type_visit"
+    timeout: 20000
+- assertVisible:
+    id: "activity_create_type_visit"
+    selected: true
+- assertVisible:
+    id: "activity_create_type_task"
+    selected: false
+- back

@@ -1,0 +1,17 @@
+# CRT-02 — Toggle order in English: Visit at the start (left) (P1)
+# Req: BR §5.3. Run with the app in English.
+appId: ${APP_ID}
+tags: [CRT-02, P1, create, l10n]
+---
+- runFlow: ../../subflows/open_dashboard.yaml
+- tapOn:
+    id: "activities_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "activity_create_type_visit"
+    timeout: 20000
+- assertVisible:
+    id: "activity_create_type_visit"
+    leftOf:
+      id: "activity_create_type_task"
+- back

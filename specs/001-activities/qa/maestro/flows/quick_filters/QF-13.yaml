@@ -1,0 +1,23 @@
+# QF-13 — Chip and filter sheet stay in sync (P1)
+# Req: BR §6.1. Expected: after picking Tasks on the chip, the sheet opens
+# with Tasks; changing it in the sheet and applying updates the chip.
+appId: ${APP_ID}
+tags: [QF-13, P1, quick_filters, filter_sheet]
+---
+- runFlow: ../../subflows/open_list.yaml
+- runFlow:
+    file: ../../subflows/select_type.yaml
+    env:
+      TYPE: task
+- assertVisible: "Type · Task"
+- tapOn:
+    id: "activities_filter_button"
+- extendedWaitUntil:
+    visible:
+      id: "activities_filter_apply"
+    timeout: 10000
+- tapOn: "Visit"
+- tapOn:
+    id: "activities_filter_apply"
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible: "Type · Visit"

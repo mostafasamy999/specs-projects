@@ -1,0 +1,15 @@
+# DET-01 — Opening an activity from the list (P0)
+# Req: API §3.7. UI part: tapping the first card opens its details and back
+# returns to the list. (The request id is checked from the app log.)
+appId: ${APP_ID}
+tags: [DET-01, P0, smoke, details]
+---
+- runFlow: ../../subflows/open_list.yaml
+- tapOn:
+    id: "activities_card"
+    index: 0
+- waitForAnimationToEnd
+- assertNotVisible:
+    id: "activities_search_field"
+- back
+- runFlow: ../../subflows/wait_for_results.yaml

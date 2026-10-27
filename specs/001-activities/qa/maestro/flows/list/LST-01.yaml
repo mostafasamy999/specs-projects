@@ -1,0 +1,20 @@
+# LST-01 — A card shows type, status, title, people and dates (P1)
+# Req: BR §5.2. UI part: the first card has a type tag and "To"/"By" lines.
+appId: ${APP_ID}
+tags: [LST-01, P1, list]
+---
+- runFlow: ../../subflows/open_list.yaml
+- assertVisible:
+    id: "activities_card"
+- assertVisible:
+    text: "TASK|VISIT"
+    childOf:
+      id: "activities_card"
+- assertVisible:
+    text: "To"
+    childOf:
+      id: "activities_card"
+- assertVisible:
+    text: "By"
+    childOf:
+      id: "activities_card"

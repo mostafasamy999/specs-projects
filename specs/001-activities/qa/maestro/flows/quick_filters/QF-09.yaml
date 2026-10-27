@@ -1,0 +1,26 @@
+# QF-09 — Scope Private only shows only private activities (P1)
+# Req: BR §6.1, §5.2, G-02. Expected: every card shows the privacy indicator.
+# Known defect DEF-01 (R1): public activities are returned.
+# Needs PRIVATE_LABEL (the indicator's visible text); default "Private".
+appId: ${APP_ID}
+tags: [QF-09, P1, quick_filters, scope, known-defect]
+env:
+  PRIVATE_LABEL: Private
+---
+- runFlow: ../../subflows/open_list.yaml
+- runFlow:
+    file: ../../subflows/select_scope.yaml
+    env:
+      SCOPE: private
+- assertVisible:
+    id: "activities_chip_scope"
+    selected: true
+- runFlow:
+    when:
+      visible:
+        id: "activities_card"
+    commands:
+      - assertVisible:
+          text: ${PRIVATE_LABEL}
+          childOf:
+            id: "activities_card"

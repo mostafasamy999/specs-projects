@@ -1,0 +1,23 @@
+# FLT-05 — Switching Visits → Tasks hides the Visit-only filters (P0)
+# Req: BR §7.4, §10. Expected: category and execution type disappear when
+# the type is Task. Needs CATEGORY_LABEL (the sheet's category row title).
+appId: ${APP_ID}
+tags: [FLT-05, P0, smoke, filter_sheet]
+env:
+  CATEGORY_LABEL: Category
+---
+- runFlow: ../../subflows/open_list.yaml
+- tapOn:
+    id: "activities_filter_button"
+- extendedWaitUntil:
+    visible:
+      id: "activities_filter_apply"
+    timeout: 10000
+- tapOn: "Visit"
+- assertVisible: ${CATEGORY_LABEL}
+- tapOn: "Task"
+- assertNotVisible: ${CATEGORY_LABEL}
+- tapOn:
+    id: "activities_filter_apply"
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible: "Type · Task"

@@ -1,0 +1,26 @@
+# QF-16 — List → Main → dashboard → list (P1)
+# Req: BR §6.1, G-50. Expected (pending Q25): the chip state shown always
+# matches the data shown. This flow records the behavior: Main must still be
+# selected when the list is opened again.
+appId: ${APP_ID}
+tags: [QF-16, P1, quick_filters, cross_screen]
+---
+- runFlow: ../../subflows/open_list.yaml
+- runFlow:
+    file: ../../subflows/tap_chip.yaml
+    env:
+      CHIP: main
+- runFlow: ../../subflows/wait_for_results.yaml
+- tapOn:
+    id: "activities_view_toggle"
+- extendedWaitUntil:
+    visible:
+      id: "activities_dashboard_total"
+    timeout: 20000
+- takeScreenshot: results/QF-16-dashboard-after-main
+- tapOn:
+    id: "activities_view_toggle"
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible:
+    id: "activities_chip_main"
+    selected: true

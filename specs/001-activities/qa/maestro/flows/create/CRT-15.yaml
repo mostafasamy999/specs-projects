@@ -1,0 +1,26 @@
+# CRT-15 / CRT-16 — Edit from Main shows the saved type, locked (P0)
+# Req: BR §5.3. Expected: the toggle is disabled (enabled: false) and the
+# selected side matches the card's type. Needs an editable activity in Main.
+appId: ${APP_ID}
+tags: [CRT-15, CRT-16, P0, regression, create]
+---
+- runFlow: ../../subflows/open_list.yaml
+- runFlow:
+    file: ../../subflows/tap_chip.yaml
+    env:
+      CHIP: main
+- runFlow: ../../subflows/wait_for_results.yaml
+- tapOn:
+    id: "activities_card_edit"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "activity_create_type_visit"
+    timeout: 20000
+- assertVisible:
+    id: "activity_create_type_visit"
+    enabled: false
+- assertVisible:
+    id: "activity_create_type_task"
+    enabled: false
+- back

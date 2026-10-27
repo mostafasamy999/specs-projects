@@ -1,0 +1,5 @@
+# Maestro workspace for 001 New Activities. Run with ./run.sh (loads .env).
+flows:
+  - "flows/**"
+executionOrder:
+  continueOnFailure: true

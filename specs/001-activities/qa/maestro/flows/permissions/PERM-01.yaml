@@ -1,0 +1,27 @@
+# PERM-01 — Scopes offered to the role (P0)
+# Req: BR §3, G-09. Records which scopes the account gets: a manager with a
+# team must see My team; an employee only All / My activities / Private.
+# Set EXPECT_TEAM=true for a manager account with a team.
+appId: ${APP_ID}
+tags: [PERM-01, P0, permissions]
+env:
+  EXPECT_TEAM: "false"
+---
+- runFlow: ../../subflows/open_list.yaml
+- runFlow:
+    file: ../../subflows/tap_chip.yaml
+    env:
+      CHIP: scope
+- assertVisible:
+    id: "activities_scope_all"
+- assertVisible:
+    id: "activities_scope_myActivities"
+- assertVisible:
+    id: "activities_scope_private"
+- runFlow:
+    when:
+      true: ${EXPECT_TEAM == "true"}
+    commands:
+      - assertVisible:
+          id: "activities_scope_myTeam"
+- back

@@ -1,0 +1,33 @@
+# Logs in with the Phone Number tab and "Remember me", only when the login
+# screen shows. Already logged in (remembered session): does nothing.
+appId: ${APP_ID}
+---
+# The splash can take ~20 s; wait for either the login form or the home tabs.
+- extendedWaitUntil:
+    visible:
+      id: "login_email_field|bottom_nav_activities_tab"
+    timeout: 45000
+- runFlow:
+    when:
+      visible:
+        id: "login_email_field"
+    commands:
+      - tapOn: "Phone Number"
+      - tapOn:
+          id: "login_email_field"
+      - inputText: ${LOGIN_PHONE}
+      - tapOn:
+          id: "login_password_field"
+      - inputText: ${LOGIN_PASSWORD}
+      - tapOn:
+          id: "login_company_key_field"
+      - inputText: ${LOGIN_COMPANY_CODE}
+      - hideKeyboard
+      - tapOn:
+          id: "login_remember_me"
+      - tapOn:
+          id: "login_submit_button"
+      - extendedWaitUntil:
+          visible:
+            id: "bottom_nav_activities_tab"
+          timeout: 30000

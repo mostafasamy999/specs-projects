@@ -1,0 +1,28 @@
+# TS-11 — Previous chip stays highlighted after opening a detail (P1)
+# Req: T1.2. Expected: Previous is still selected after back.
+appId: ${APP_ID}
+tags: [TS-11, P1, regression, time_scope]
+---
+- runFlow: ../../subflows/open_list.yaml
+- runFlow:
+    file: ../../subflows/tap_chip.yaml
+    env:
+      CHIP: previous
+- runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible:
+    id: "activities_chip_previous"
+    selected: true
+- runFlow:
+    when:
+      visible:
+        id: "activities_card"
+    commands:
+      - tapOn:
+          id: "activities_card"
+          index: 0
+      - waitForAnimationToEnd
+      - back
+      - runFlow: ../../subflows/wait_for_results.yaml
+- assertVisible:
+    id: "activities_chip_previous"
+    selected: true
