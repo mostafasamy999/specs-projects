@@ -2,7 +2,7 @@
 # Req: BR §6.1, G-50. Expected (pending Q25): the chip state shown always
 # matches the data shown. This flow records the behavior: Main must still be
 # selected when the list is opened again.
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [QF-16, P1, quick_filters, cross_screen]
 ---

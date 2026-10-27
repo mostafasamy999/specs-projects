@@ -1,7 +1,7 @@
 # DSH-10 — Tasks summary opens the list restricted to Tasks (P0)
 # Req: BR §10 Dashboard. Expected: the list shows only Tasks and the Type
 # chip shows Task. Whether the donut also refreshes is G-11 (not checked).
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [DSH-10, P0, smoke, dashboard]
 ---

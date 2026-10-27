@@ -1,6 +1,6 @@
 # Launches the app (keeping the session), logs in if needed and opens the
 # Activities dashboard.
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 ---
 - launchApp:
@@ -11,10 +11,12 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible:
       id: "bottom_nav_activities_tab"
-    timeout: 30000
+    timeout: 90000
 - tapOn:
     id: "bottom_nav_activities_tab"
 - extendedWaitUntil:
     visible:
       id: "activities_dashboard_total"
-    timeout: 20000
+    # First load chains ~10 lookups behind the home screen's calls; the test
+    # server can take minutes on a cold start.
+    timeout: 180000

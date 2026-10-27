@@ -2,7 +2,7 @@
 # Req: BR §5.5. Spec: Reset clears the draft only. Observed in code: Reset
 # also applies and closes the sheet (onReset → resetFilter + pop). This flow
 # checks the spec; a failure here means Reset changed the applied filters.
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [FLT-03, P1, filter_sheet]
 ---

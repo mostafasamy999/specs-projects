@@ -1,7 +1,7 @@
 # CRT-03 — Toggle order in Arabic: Visit at the start (right) (P1)
 # Req: BR §5.3. Run with the app in Arabic (switch the language on the login
 # screen first, then log in).
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [CRT-03, P1, create, l10n, arabic]
 ---

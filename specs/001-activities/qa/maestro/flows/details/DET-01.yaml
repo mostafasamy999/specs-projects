@@ -1,7 +1,7 @@
 # DET-01 — Opening an activity from the list (P0)
 # Req: API §3.7. UI part: tapping the first card opens its details and back
 # returns to the list. (The request id is checked from the app log.)
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [DET-01, P0, smoke, details]
 ---

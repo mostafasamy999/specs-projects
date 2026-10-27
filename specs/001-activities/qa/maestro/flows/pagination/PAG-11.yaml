@@ -1,6 +1,6 @@
 # PAG-11 — Pull to refresh reloads the list (P1)
 # Req: BR §8.2. Expected: the list reloads and still shows a count or message.
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [PAG-11, P1, pagination]
 ---

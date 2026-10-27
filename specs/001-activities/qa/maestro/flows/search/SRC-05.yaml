@@ -1,6 +1,6 @@
 # SRC-05 — Clearing the search restores the full list (P1)
 # Req: API §3.2. Expected: after clearing, cards are listed again.
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [SRC-05, P1, search]
 ---

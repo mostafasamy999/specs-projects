@@ -1,7 +1,7 @@
 # SRT-03 — Sort is kept on refresh and filter change (P1)
 # Req: BR §6.7. Expected: "Oldest first" survives pull-to-refresh and a type
 # change.
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [SRT-03, P1, regression, sorting]
 ---

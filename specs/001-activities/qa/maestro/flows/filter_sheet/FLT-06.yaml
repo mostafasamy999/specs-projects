@@ -1,6 +1,6 @@
 # FLT-06 — Visit-only filters are hidden when the type is All (P1)
 # Req: BR §6.2. Whether earlier values are cleared is G-21 (not checked).
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [FLT-06, P1, filter_sheet]
 env:

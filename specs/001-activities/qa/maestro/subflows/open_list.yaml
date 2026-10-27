@@ -1,5 +1,5 @@
 # Opens the Activities list from a fresh launch (dashboard → view toggle).
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 ---
 - runFlow: open_dashboard.yaml

@@ -1,6 +1,6 @@
 # Opens the Scope chip and picks a scope.
 # Param SCOPE: all | myTeam | myActivities | private
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 ---
 - runFlow:

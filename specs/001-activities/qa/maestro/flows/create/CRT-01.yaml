@@ -1,6 +1,6 @@
 # CRT-01 — A new activity starts as a Visit (P0)
 # Req: BR §5.3 v1.2, T10.3. Expected: Visit is selected and enabled.
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [CRT-01, P0, smoke, create]
 ---

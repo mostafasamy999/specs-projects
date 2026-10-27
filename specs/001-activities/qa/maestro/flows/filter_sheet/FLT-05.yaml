@@ -1,7 +1,7 @@
 # FLT-05 — Switching Visits → Tasks hides the Visit-only filters (P0)
 # Req: BR §7.4, §10. Expected: category and execution type disappear when
 # the type is Task. Needs CATEGORY_LABEL (the sheet's category row title).
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [FLT-05, P0, smoke, filter_sheet]
 env:

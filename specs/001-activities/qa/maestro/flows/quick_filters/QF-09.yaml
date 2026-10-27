@@ -2,7 +2,7 @@
 # Req: BR §6.1, §5.2, G-02. Expected: every card shows the privacy indicator.
 # Known defect DEF-01 (R1): public activities are returned.
 # Needs PRIVATE_LABEL (the indicator's visible text); default "Private".
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [QF-09, P1, quick_filters, scope, known-defect]
 env:

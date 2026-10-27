@@ -1,6 +1,6 @@
 # QF-02 — Tasks chip shows only Tasks (P0)
 # Req: BR §6.1, §10. Expected: every card is a Task.
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [QF-02, P0, smoke, quick_filters]
 ---

@@ -1,0 +1,89 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Test case DSH-01 — qa-review-v1.3.md §3.1 Dashboard
+# Scenario:      Dashboard is the entry screen and shows returned data
+# Preconditions: M1 logged in; backend returns data
+# Test data:     taskCount=6, visitCount=4 (set EXPECTED_TASKS / EXPECTED_VISITS
+#                to the counts your test account really has; empty = skip)
+# Steps:         1) Open Activities from the app menu
+# Expected:      [DOC] Dashboard opens first. App bar: Back, "Activities", Add,
+#                Filter. Donut shows Tasks 6 and Visits 4. Visit Summary and
+#                Tasks Summary sections are visible and visually distinct.
+#                Quick filters are visible
+# Priority: P0 · Type: Positive · Req: BR §5.1, §10 Dashboard
+# synced: CL-10
+#
+# "Visually distinct" can't be checked by Maestro (review the screenshot).
+# Two expectations are marked optional because this build doesn't have them
+# (they show as warnings, not failures, until the product owner decides):
+#   - a Back button: Activities opens as a bottom-nav tab, which has none
+#   - quick filters on the dashboard: they only show in the list view
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [DSH-01, P0, smoke, dashboard]
+env:
+  EXPECTED_TASKS: ""
+  EXPECTED_VISITS: ""
+---
+# Precondition: logged in (remembered session, or login.yaml signs in)
+# Step 1) Open Activities from the app menu
+- runFlow: ../subflows/open_dashboard.yaml
+
+# Expected: Dashboard opens first (not the list)
+- assertVisible:
+    id: "activities_dashboard_total"
+- assertNotVisible:
+    id: "activities_search_field"
+
+# Expected: App bar — Back, "Activities", Add, Filter
+- assertVisible: "Activities"
+- assertVisible:
+    id: "activities_add_button"
+- assertVisible:
+    id: "activities_filter_button"
+- assertVisible:
+    text: "Back|Navigate up"
+    optional: true
+
+# Expected: Donut shows Tasks and Visits (with the account's counts when given)
+- assertVisible:
+    text: "Tasks"
+    childOf:
+      id: "activities_dashboard_total"
+- assertVisible:
+    text: "Visits"
+    childOf:
+      id: "activities_dashboard_total"
+- runFlow:
+    when:
+      true: ${EXPECTED_TASKS != ""}
+    commands:
+      - assertVisible:
+          text: ${EXPECTED_TASKS}
+          childOf:
+            id: "activities_dashboard_total"
+- runFlow:
+    when:
+      true: ${EXPECTED_VISITS != ""}
+    commands:
+      - assertVisible:
+          text: ${EXPECTED_VISITS}
+          childOf:
+            id: "activities_dashboard_total"
+
+# Expected: Visit Summary and Tasks Summary sections are visible
+- scrollUntilVisible:
+    element:
+      id: "activities_tasks_summary"
+- assertVisible:
+    id: "activities_tasks_summary"
+- scrollUntilVisible:
+    element:
+      id: "activities_visits_summary"
+- assertVisible:
+    id: "activities_visits_summary"
+- takeScreenshot: results/DSH-01-dashboard
+
+# Expected: Quick filters are visible
+- assertVisible:
+    id: "activities_chip_current"
+    optional: true

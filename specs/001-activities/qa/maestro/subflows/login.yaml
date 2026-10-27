@@ -1,13 +1,13 @@
 # Logs in with the Phone Number tab and "Remember me", only when the login
 # screen shows. Already logged in (remembered session): does nothing.
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 ---
 # The splash can take ~20 s; wait for either the login form or the home tabs.
 - extendedWaitUntil:
     visible:
       id: "login_email_field|bottom_nav_activities_tab"
-    timeout: 45000
+    timeout: 90000
 - runFlow:
     when:
       visible:

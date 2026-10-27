@@ -1,7 +1,7 @@
 # QF-03 — Main chip switches to master activities (P1)
 # Req: API §3.3. Expected: Main is selected and the list reloads; Main cards
 # show the edit icon (only the Main list has it).
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [QF-03, P1, quick_filters]
 ---

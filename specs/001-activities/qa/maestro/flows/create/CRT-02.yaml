@@ -1,6 +1,6 @@
 # CRT-02 — Toggle order in English: Visit at the start (left) (P1)
 # Req: BR §5.3. Run with the app in English.
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [CRT-02, P1, create, l10n]
 ---

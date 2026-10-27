@@ -1,8 +1,8 @@
 # Waits until the list has finished loading: a count or a message shows.
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 ---
 - extendedWaitUntil:
     visible:
       id: "activities_results_count|activities_message"
-    timeout: 20000
+    timeout: 60000

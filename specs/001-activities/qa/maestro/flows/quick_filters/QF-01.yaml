@@ -1,7 +1,7 @@
 # QF-01 — Visits chip shows only Visits (P0)
 # Req: BR §6.1. Expected: every card is a Visit. (The request typeId=2 is
 # checked from the app log, not here.)
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [QF-01, P0, smoke, quick_filters]
 ---

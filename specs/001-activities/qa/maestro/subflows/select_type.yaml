@@ -1,6 +1,6 @@
 # Opens the Type chip and picks a type.
 # Param TYPE: all | task | visit
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 ---
 - runFlow:

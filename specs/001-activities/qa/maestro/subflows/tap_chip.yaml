@@ -1,6 +1,6 @@
 # Scrolls the quick-filter row until the chip shows, then taps it.
 # Param CHIP: current | previous | main | type | scope | status | priority | department
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 ---
 - scrollUntilVisible:

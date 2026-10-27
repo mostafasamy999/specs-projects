@@ -15,6 +15,21 @@ For a new entry, copy this template:
 
 ---
 
+## CL-10 · 2026-10-27 — QA review v1.3 (no requirement change) — Keep only Maestro-testable cases in §3
+
+- **Change:** removed 87 test cases from QA review §3, which now holds 149 cases that can each be written as a Maestro flow. The removed cases' expected results:
+  - are only in the request body (for example TS-06, QF-06, FLT-16, PAG-01, CRT-05, DET-06, API-01–09)
+  - need a forced server response (DSH-06, LST-07, PAG-06, PRG-08, ASG-06)
+  - need slow or dropped network (SRC-13, PAG-13, DET-29)
+  - need a different device clock or time zone (TS-09, TS-10)
+  - or cover a feature that isn't built or documented yet (Q12, Q13, Q19, G-14).
+
+  §3.14 "API and error handling" had no cases left and was removed, so the later subsections are renumbered (Arabic/English is now §3.14, Regression §3.15). Added `qa/maestro/testcases/DSH-01-maestro.yaml`, the first test case written step by step from §3.
+- **Reason:** the QA review's §3 is now the list to automate with Maestro, one `testcases/<ID>-maestro.yaml` per case.
+- **Affected area:** `qa/qa-review-v1.3.md` §3 only. §1, §2 and §4–§7 are unchanged, so they still mention removed IDs and the old totals. The full list is in commit `1db1005`.
+- **QA impact:** none for existing flows (no flow covered a removed case). The removed cases now need manual checks from the app log.
+- **Decisions:** removed cases stay testable by hand. A removed case can come back to §3 once Maestro can check it (for example when Q12 or Q13 is answered).
+
 ## CL-9 · 2026-10-27 — QA review v1.3 (no requirement change) — Maestro UI tests and change tracking
 
 - **Change:**

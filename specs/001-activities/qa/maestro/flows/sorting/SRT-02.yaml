@@ -1,6 +1,6 @@
 # SRT-02 — Oldest first (P1)
 # Req: BR §6.7, §8.1. Expected: the sort control shows "Oldest first".
-# synced: CL-9
+# synced: CL-10
 appId: ${APP_ID}
 tags: [SRT-02, P1, sorting]
 ---
