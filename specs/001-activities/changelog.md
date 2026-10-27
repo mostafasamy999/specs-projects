@@ -1,5 +1,20 @@
 # 001 New Activities: Changelog
 
+## Latest status (2026-10-27)
+
+| | |
+|---|---|
+| Spec version | **v1.2** (Approved). No requirement change since CL-7 |
+| Latest entry | **CL-10**: QA review v1.3, §3 trimmed to 149 Maestro-testable cases |
+| App code | Built end to end on `enhance/activities`. 5 gaps open: Previous range, workload levels, dead `fake/` data, permission flags, tests |
+| Blocked on backend | Q12 (workload status), Q13 (permission flags). Q14 has a fallback |
+| QA | Review and all Maestro flows synced to CL-10. 34 of 149 cases automated. DEF-01–09 open |
+| Docs | Being restructured into 7 files (doc v2.0). Start at [feature-overview.md](feature-overview.md) |
+
+The entries below aren't changed by this summary. Update the table whenever a new entry is added.
+
+---
+
 Newest first. Every entry has a change number (**CL-n**, counting up from CL-1). The QA review and every Maestro flow record the last change they were checked against (`Synced to changelog: CL-n` / `# synced: CL-n`), so `python3 -I qa/sync_check.py` shows what is out of date. Each entry gives the date, what changed, why, the affected area and the decisions made. Entries before 2026-10-21 come from the specs repo's git history (branch `talentlink`). Only what the commits show is recorded.
 
 For a new entry, copy this template:
