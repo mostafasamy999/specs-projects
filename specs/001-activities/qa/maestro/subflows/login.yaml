@@ -1,5 +1,6 @@
 # Logs in with the Phone Number tab and "Remember me", only when the login
 # screen shows. Already logged in (remembered session): does nothing.
+# synced: CL-9
 appId: ${APP_ID}
 ---
 # The splash can take ~20 s; wait for either the login form or the home tabs.

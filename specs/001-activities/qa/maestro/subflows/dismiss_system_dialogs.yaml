@@ -1,5 +1,6 @@
 # Declines system prompts that can cover the app (location accuracy,
 # notifications). Always picks the option that changes nothing.
+# synced: CL-9
 appId: ${APP_ID}
 ---
 - runFlow:

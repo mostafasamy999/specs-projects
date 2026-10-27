@@ -1,6 +1,7 @@
 # CRT-04 — Switching the type starts a clean form (P1)
 # Req: BR §5.3. Expected: text typed as a Visit is gone after Task → Visit.
 # Needs TITLE_HINT (the title field's hint); default "Title".
+# synced: CL-9
 appId: ${APP_ID}
 tags: [CRT-04, P1, create]
 env:

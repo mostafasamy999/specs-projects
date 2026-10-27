@@ -1,20 +1,33 @@
 # 001 New Activities: Changelog
 
-Newest first. Each entry gives the date, what changed, why, the affected area and the decisions made. Entries before 2026-10-21 come from the specs repo's git history (branch `talentlink`). Only what the commits show is recorded.
+Newest first. Every entry has a change number (**CL-n**, counting up from CL-1). The QA review and every Maestro flow record the last change they were checked against (`Synced to changelog: CL-n` / `# synced: CL-n`), so `python3 -I qa/sync_check.py` shows what is out of date. Each entry gives the date, what changed, why, the affected area and the decisions made. Entries before 2026-10-21 come from the specs repo's git history (branch `talentlink`). Only what the commits show is recorded.
 
 For a new entry, copy this template:
 
 ```
-## YYYY-MM-DD — vX.Y — <short title>
+## CL-<next number> · YYYY-MM-DD — vX.Y — <short title>
 - **Change:** …
 - **Reason:** …
 - **Affected area:** business-requirements §… / api-contracts §… / open-questions Q…
+- **QA impact:** test cases to add or change in the QA review, and Maestro flows to add or change (IDs), or "none"
 - **Decisions:** …
 ```
 
 ---
 
-## 2026-10-27 — QA review v1.3 (no requirement change) — More gaps and test cases
+## CL-9 · 2026-10-27 — QA review v1.3 (no requirement change) — Maestro UI tests and change tracking
+
+- **Change:**
+  - Added `qa/maestro/`: one Maestro flow per automatable test case (32 flows covering 33 cases), shared subflows, `run.sh`, `.env.example` and the generated `COVERAGE.md`.
+  - Added `qa/maestro-guide.md`, which explains how to write new flows.
+  - Numbered the changelog entries CL-1 to CL-9. The QA review and every flow now record the last change they were checked against, and `qa/sync_check.py` writes `qa/sync-status.md`, which lists anything behind.
+  - App repo `talentlink` (branch `enhance/activities`): added Maestro selectors (`SemanticsIds`) to the Activities, create and login widgets. No behavior change.
+- **Reason:** run the QA review's UI test cases the same way every time, and see at a glance when a spec change hasn't reached the test cases or the flows yet.
+- **Affected area:** `qa/` only. No requirement, API contract or open question changed.
+- **QA impact:** none beyond this entry. Everything is synced to CL-9.
+- **Decisions:** request-body checks stay manual (from the app log), because Maestro only sees the screen. Credentials live in `qa/maestro/.env`, which isn't committed.
+
+## CL-8 · 2026-10-27 — QA review v1.3 (no requirement change) — More gaps and test cases
 
 - **Change:** updated the QA review and renamed it from `qa/qa-review-v1.2.md` to `qa/qa-review-v1.3.md`.
   - Corrected QF-09, FLT-04, FLT-21 and the smoke-suite count.
@@ -43,14 +56,14 @@ For a new entry, copy this template:
   - The other new gaps aren't numbered questions yet. If the product owner or backend confirms them, they move to `open-questions.md` as Q29+.
   - The most urgent new gap is G-35: edit always sends `attachments = []`, `null` address and contact, and the logged-in `companyId`, so editing an activity may delete or move its data.
 
-## 2026-10-21 — v1.2 — Visit is the default type on Add Activity
+## CL-7 · 2026-10-21 — v1.2 — Visit is the default type on Add Activity
 
 - **Change:** a new activity now starts as a Visit (it used to start as a Task). The Add Activity toggle shows Visit at the start and Task at the end.
 - **Reason:** requested by the user, to make Visit the default on the Add Activity screen.
 - **Affected area:** business-requirements §5.3 and §12.3 (T10.1–T10.3). App code: `new_activity_selection.dart` (default type) and `new_activity_type_switch_widget.dart` (toggle order).
 - **Decisions:** only the toggle's order changed. The `NewActivityType` enum order is unchanged, so the list's type filter and `fromId` are unaffected. Editing still shows the saved type, locked. No API change.
 
-## 2026-10-21 — v1.1 (no requirement change) — Consolidate the spec files
+## CL-6 · 2026-10-21 — v1.1 (no requirement change) — Consolidate the spec files
 
 - **Change:** merged six files into four:
 
@@ -73,7 +86,7 @@ For a new entry, copy this template:
   - Rechecked on 2026-10-21: the v1.1 gaps are still open in code. The Previous range still ends at yesterday, `fake/` still exists, the DI comment is stale, and there is no `test/` folder.
   - Plan identifiers B1 and B2 (backend dependencies) were replaced by their question numbers, Q12 and Q13.
 
-## 2026-10-18 — v1.1 — Track backend questions and add a start guide
+## CL-5 · 2026-10-18 — v1.1 — Track backend questions and add a start guide
 
 - **Change:** added `NEXT.md` (where to resume and a session prompt). Recorded the three backend questions Q12–Q14 as sent. Ticked T0.1–T0.3. The spec status now names the pending backend questions.
 - **Reason:** the plan's backend dependencies (B1 workload status, B2 permission flags) and the `endDateTime` bound had been sent to the backend and were waiting for answers.
@@ -81,7 +94,7 @@ For a new entry, copy this template:
 - **Decisions:** WP2 is blocked on Q12 and WP4 on Q13. T1.1 can proceed with the fallback "assume inclusive, send today 00:00 − 1s" if Q14 isn't answered.
 - Commit: `aa26060`.
 
-## 2026-10-18 — v1.1 — Plan and tasks for the v1.1 gaps
+## CL-4 · 2026-10-18 — v1.1 — Plan and tasks for the v1.1 gaps
 
 - **Change:** added `plan.md` (WP1–WP5, constraints, backend dependencies B1/B2) and `tasks.md` (T0.1–T9.2).
 - **Reason:** most of the feature already existed, so the plan covers only the gaps against v1.1.
@@ -92,14 +105,14 @@ For a new entry, copy this template:
   - Always run the full `build_runner` (no `--build-filter`) after changing DTOs.
 - Commit: `a4e2ab1`.
 
-## 2026-10-18 — v1.1 — Clarify the privacy default
+## CL-3 · 2026-10-18 — v1.1 — Clarify the privacy default
 
 - **Change:** `isPrivate = true` as the default means private activities are **included along with** public ones, not shown on their own. This closed the follow-up "Needs clarification" note on Q5.
 - **Reason:** the Q5 answer was ambiguous.
 - **Affected area:** filter validation (now business-requirements §7.3), Q5.
 - Commit: `365e980`.
 
-## 2026-10-18 — v1.0 → v1.1 (Draft → Approved) — Resolve the product questions
+## CL-2 · 2026-10-18 — v1.0 → v1.1 (Draft → Approved) — Resolve the product questions
 
 - **Change:** the product owner answered Q1–Q11, and the answers were folded into the spec:
   - Permissions use both role and backend flags.
@@ -131,7 +144,7 @@ For a new entry, copy this template:
 
 The first `open-questions.md` also had Q11 (extra quick-filter chips `main`, `scope`, `status`, `priority`), because the code had more chips than the spec listed.
 
-## 2026-10-18 — v1.0 (Draft) — Initial spec
+## CL-1 · 2026-10-18 — v1.0 (Draft) — Initial spec
 
 - **Change:** created the specs repo with `spec.md` (v1.0 draft), `current-state.md` (a code snapshot at `testflight` @ `da099fd5`) and `open-questions.md`. The usage guidelines (`how to use`) were added the same day.
 - **Reason:** to start spec-driven development for the New Activities module.

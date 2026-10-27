@@ -1,6 +1,7 @@
 # QF-13 — Chip and filter sheet stay in sync (P1)
 # Req: BR §6.1. Expected: after picking Tasks on the chip, the sheet opens
 # with Tasks; changing it in the sheet and applying updates the chip.
+# synced: CL-9
 appId: ${APP_ID}
 tags: [QF-13, P1, quick_filters, filter_sheet]
 ---

@@ -1,6 +1,7 @@
 # QF-08 — Scope My activities (P1)
 # Req: API §1.7, T5.3, G-01. UI part only: the chip shows My Activity and the
 # list reloads. The request IDs (own vs allowed) are checked from the app log.
+# synced: CL-9
 appId: ${APP_ID}
 tags: [QF-08, P1, quick_filters, scope]
 ---

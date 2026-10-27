@@ -1,6 +1,7 @@
 # FLT-02 — Dismissing the filter sheet keeps the applied filters (P0)
 # Req: BR §5.5, §10. Expected: after changing the draft and dismissing, the
 # applied Type (Task) is unchanged.
+# synced: CL-9
 appId: ${APP_ID}
 tags: [FLT-02, P0, smoke, filter_sheet]
 ---

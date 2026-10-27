@@ -1,5 +1,6 @@
 # FLT-02 (Cancel variant) — Cancel keeps the applied filters (P0)
 # Req: BR §5.5. Same as FLT-02, closing with the Cancel button.
+# synced: CL-9
 appId: ${APP_ID}
 tags: [FLT-02, P0, filter_sheet]
 ---

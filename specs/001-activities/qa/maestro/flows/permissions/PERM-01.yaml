@@ -2,6 +2,7 @@
 # Req: BR §3, G-09. Records which scopes the account gets: a manager with a
 # team must see My team; an employee only All / My activities / Private.
 # Set EXPECT_TEAM=true for a manager account with a team.
+# synced: CL-9
 appId: ${APP_ID}
 tags: [PERM-01, P0, permissions]
 env:

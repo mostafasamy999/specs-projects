@@ -1,5 +1,6 @@
 # Launches the app (keeping the session), logs in if needed and opens the
 # Activities dashboard.
+# synced: CL-9
 appId: ${APP_ID}
 ---
 - launchApp:

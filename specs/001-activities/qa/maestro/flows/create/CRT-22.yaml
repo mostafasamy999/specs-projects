@@ -2,6 +2,7 @@
 # Req: BR §5.3. Expected: on an untouched form the save button is disabled,
 # so it can't be double-submitted empty. The double-tap itself needs a slow
 # network and the request log (manual).
+# synced: CL-9
 appId: ${APP_ID}
 tags: [CRT-22, P1, create]
 ---

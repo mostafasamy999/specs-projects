@@ -1,6 +1,7 @@
 # QA Review — 001 New Activities (Visits & Tasks)
 
 **Review version:** 1.3
+**Synced to changelog:** CL-9 (update this after checking the review against a newer changelog entry; see `qa/sync-status.md`)
 **Reviewer role:** Senior QA Analyst (requirements review + test design only; no code read, no code changed)
 **Review date:** 2026-10-21 (v1.2), updated 2026-10-27 (v1.3)
 **Spec baseline:** `specs/001-activities/` v1.2 (Approved, last updated 2026-10-21). The spec itself hasn't changed since v1.2.

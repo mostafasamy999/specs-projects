@@ -1,5 +1,6 @@
 # LST-01 — A card shows type, status, title, people and dates (P1)
 # Req: BR §5.2. UI part: the first card has a type tag and "To"/"By" lines.
+# synced: CL-9
 appId: ${APP_ID}
 tags: [LST-01, P1, list]
 ---

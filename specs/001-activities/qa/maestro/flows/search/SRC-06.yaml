@@ -1,5 +1,6 @@
 # SRC-06 — Search with no match shows the empty state (P1)
 # Req: BR §10 List. Also covers LST-06 (empty results).
+# synced: CL-9
 appId: ${APP_ID}
 tags: [SRC-06, LST-06, P1, search, list]
 ---

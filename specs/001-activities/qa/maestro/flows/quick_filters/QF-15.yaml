@@ -1,6 +1,7 @@
 # QF-15 — Current and Previous are mutually exclusive (P2)
 # Req: G-12. Observed behavior: picking Previous unselects Current; tapping
 # the selected chip again clears it. Fails if both stay selected.
+# synced: CL-9
 appId: ${APP_ID}
 tags: [QF-15, P2, quick_filters, time_scope]
 ---

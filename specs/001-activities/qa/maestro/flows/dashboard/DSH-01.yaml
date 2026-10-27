@@ -1,6 +1,7 @@
 # DSH-01 — Dashboard is the entry screen and shows returned data (P0)
 # Req: BR §5.1, §10 Dashboard. Expected: dashboard opens first with Add and
 # Filter in the app bar, the overview chart and both summaries.
+# synced: CL-9
 appId: ${APP_ID}
 tags: [DSH-01, P0, smoke, dashboard]
 ---

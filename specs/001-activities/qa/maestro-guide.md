@@ -13,6 +13,7 @@ Read this before writing or changing a Maestro flow in `qa/maestro/`. It is writ
 | Element ids in the app | `lib/src/core/utils/semantics_ids.dart` in the app repo `~/StudioProjects/talentlink` |
 | Credentials and device | `qa/maestro/.env` (local only, never committed). Template: `.env.example` |
 | Runner | `qa/maestro/run.sh` |
+| What is out of date | `qa/sync-status.md`, written by `python3 -I qa/sync_check.py` (see §9) |
 
 App package: `com.ilead.talent.link.talent_link.dev` (development flavor). Flows use `${APP_ID}`.
 
@@ -35,6 +36,7 @@ App package: `com.ilead.talent.link.talent_link.dev` (development flavor). Flows
 # Req: <Req column>. Expected: <expected result, in one or two lines>.
 # Not checked here: <anything Maestro can't see, e.g. request bodies>.
 # Known defect: <DEF-nn>, if any.
+# synced: CL-<newest changelog number>
 appId: ${APP_ID}
 tags: [<ID>, <P0|P1|P2|P3>, <area>, <smoke|regression if in those suites>]
 env:                       # only for values a tester may need to change
@@ -138,13 +140,31 @@ After adding or changing flows, regenerate the coverage index:
 cd qa && python3 -I maestro/coverage.py
 ```
 
-## 9. After a run
+## 9. Keeping flows in step with the changelog
+
+Every changelog entry has a number: `## CL-n · date — version — title`, with a **QA impact** line. Every flow and subflow has a `# synced: CL-n` line just above `appId:`, and the QA review has `**Synced to changelog:** CL-n` in its header. That number is the last change the file was checked against.
+
+```bash
+python3 -I qa/sync_check.py      # prints the summary, writes qa/sync-status.md, exits 1 if anything is behind
+```
+
+When a new changelog entry (say CL-12) is added:
+1. Run `sync_check.py`. Everything synced to CL-11 now shows as behind, and the "Changes to apply" list shows CL-12 with its QA impact.
+2. Update the QA review first (test cases added or changed), then set its marker to `CL-12`.
+3. For each flow named in the QA impact: change it to match the new expected result, run it, then set `# synced: CL-12`.
+4. For the other flows: check that CL-12 doesn't affect them, and set `# synced: CL-12` without other changes.
+5. Run `sync_check.py` again until it reports everything up to date.
+
+New flows start with the newest CL. Never bump a marker without checking the file against the missing changes: the marker means "reviewed against", not "touched".
+
+## 10. After a run
 
 Update the **Status** column in the QA review §3 for each case run: `[✓]` passed, `[✗]` failed (raise or reference a `DEF-nn` in §7), `[ ]` not run or waiting for a product answer. Add the run to §7 (build, device, account, results).
 
-## 10. Checklist for a new flow
+## 11. Checklist for a new flow
 
 - [ ] File is `flows/<area>/<ID>.yaml` and the header quotes the case, Req and expected result
+- [ ] Has `# synced: CL-<newest>` above `appId:`
 - [ ] `tags` has the ID, priority and area (plus `smoke` / `regression` / `known-defect` where they apply)
 - [ ] Starts with `open_dashboard.yaml` or `open_list.yaml`
 - [ ] Uses ids; any text selector is stable English UI text

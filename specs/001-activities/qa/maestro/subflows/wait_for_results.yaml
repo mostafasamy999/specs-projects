@@ -1,4 +1,5 @@
 # Waits until the list has finished loading: a count or a message shows.
+# synced: CL-9
 appId: ${APP_ID}
 ---
 - extendedWaitUntil:

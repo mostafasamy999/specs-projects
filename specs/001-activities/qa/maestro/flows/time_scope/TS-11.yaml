@@ -1,5 +1,6 @@
 # TS-11 — Previous chip stays highlighted after opening a detail (P1)
 # Req: T1.2. Expected: Previous is still selected after back.
+# synced: CL-9
 appId: ${APP_ID}
 tags: [TS-11, P1, regression, time_scope]
 ---
