@@ -588,5 +588,6 @@ Every question, with its status, answer and code impact, lives in [open-question
 - **Q1–Q11 (product):** all resolved on 2026-10-18 and folded into this file.
 - **Q12–Q14 (backend, sent 2026-10-18):** waiting. Q12 blocks WP2, Q13 blocks WP4, and Q14 affects T1.1 (which has a fallback).
 - **Q15–Q24 (found while consolidating, 2026-10-21):** places where the docs and the code disagree, or where the code works from an undocumented contract. None of them is confirmed, and none changes a requirement in this file.
+- **Q25–Q28 (found in QA review v1.3, 2026-10-27):** the same filter can mean different things on different screens, which conflicts with §6.1 ("quick filters must stay consistent with … the dashboard state"). The dashboard request can't carry Main, Priority or Search (Q25, Q26). The Main list can't carry execution type (Q27). The list endpoint may return only the logged-in user's activities under team scopes (Q28). Waiting for product and backend answers.
 
 Until a question is resolved, the sections above keep the confirmed rule and mark the open part. Never treat an assumed answer as confirmed.

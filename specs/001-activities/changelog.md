@@ -18,14 +18,22 @@ For a new entry, copy this template:
 
 - **Change:** updated the QA review and renamed it from `qa/qa-review-v1.2.md` to `qa/qa-review-v1.3.md`.
   - Corrected QF-09, FLT-04, FLT-21 and the smoke-suite count.
-  - Added gaps G-32 to G-49 (49 in total, still 9 critical).
-  - Added 32 test cases (223 in total, 46 P0).
-  - Added the matching coverage rows, questions 31–48 and the v1.3 regression passes and test data.
+  - Added gaps G-32 to G-57 (57 in total, 11 critical).
+  - Added 45 test cases (236 in total, 46 P0).
+  - Added the matching coverage rows, questions 31–56 and the v1.3 regression passes (including a cross-screen pass) and test data.
+- **Added Q25** to `open-questions.md` (also noted in business-requirements §13): when the user selects Main in the list and goes to the dashboard, the dashboard counts can't match the Main list. Main uses `GetVisitAndTaskList` (master activities), and the dashboard request has no Main field. This is QA gap G-50, marked Critical. The team flagged it as a business issue.
+- **Added Q26–Q28** from a cross-screen pass that walked each filter through the list, Main, dashboard, picker and details:
+  - Q26 (G-51, Critical): the dashboard can't follow Priority or Search.
+  - Q27 (G-52): the Main list can't filter by execution type.
+  - Q28 (G-55): the list endpoint may return only the logged-in user's activities under My team and All.
+  - The same pass also produced G-53, G-54, G-56 and G-57 (QA only, no numbered question yet).
 - **Reason:** a second review against business-requirements v1.2 and api-contracts v1.2 found scenarios the first review missed.
-- **Affected area:** `qa/qa-review-v1.3.md`. No change to business-requirements, api-contracts or open-questions.
+- **Affected area:** `qa/qa-review-v1.3.md`, `open-questions.md` (Q25–Q28), business-requirements §13 (summary line only). No requirement and no API contract changed.
 - **Decisions:**
   - The spec stays at v1.2, because no requirement changed.
-  - The new gaps aren't numbered questions yet. If the product owner or backend confirms them, they move to `open-questions.md` as Q25+.
+  - Q25 is recorded as Open, waiting for a product decision. The options are: the backend adds a Main flag or master-level counts to the dashboard; the dashboard ignores Main and says what it counts; or Main is cleared on return to the dashboard.
+  - Q26–Q28 are recorded as Open the same way.
+  - The other new gaps aren't numbered questions yet. If the product owner or backend confirms them, they move to `open-questions.md` as Q29+.
   - The most urgent new gap is G-35: edit always sends `attachments = []`, `null` address and contact, and the logged-in `companyId`, so editing an activity may delete or move its data.
 
 ## 2026-10-21 — v1.2 — Visit is the default type on Add Activity

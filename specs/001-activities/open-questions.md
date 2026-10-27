@@ -8,7 +8,7 @@ Status values:
 - **Waiting on backend:** the question was sent, and the answer will unblock tasks.
 - **Resolved:** the answer is confirmed and folded into `business-requirements.md` (or `api-contracts.md` for a contract detail).
 
-The product questions (Q1–Q11) were answered by the product owner on 2026-10-18 and folded into spec v1.1. The backend questions (Q12–Q14) were sent on 2026-10-18 and are still waiting for answers. Q15–Q24 were found on 2026-10-21 while consolidating the specs, by comparing the docs with the app code at `testflight` @ `a01b46459`. None of them has been sent yet.
+The product questions (Q1–Q11) were answered by the product owner on 2026-10-18 and folded into spec v1.1. The backend questions (Q12–Q14) were sent on 2026-10-18 and are still waiting for answers. Q15–Q24 were found on 2026-10-21 while consolidating the specs, by comparing the docs with the app code at `testflight` @ `a01b46459`. None of them has been sent yet. Q25–Q28 were found on 2026-10-27 during QA review v1.3 and haven't been sent yet either.
 
 ## Product questions (answered 2026-10-18)
 
@@ -50,6 +50,15 @@ The product questions (Q1–Q11) were answered by the product owner on 2026-10-1
 | 22 | What is the real path prefix? The docs say `v2/Mobile/VisitAndTask/…`. Is the Main list v1 or v2? | Open | Every endpoint, including the Main list, uses `Mobile/VisitAndTask/<Name>` relative to the flavor's base URL. The commented-out base URLs end in `api/v2/`. The old current-state doc called the Main list "v1"; its request DTO calls it "v2". | API documentation only |
 | 23 | Which date format do the filter requests expect: `yyyy-MM-dd` or `yyyy-MM-ddTHH:mm:ss`? | Assumed in code | The DTO comments say `yyyy-MM-dd` for the dashboard and workload requests, but the repository sends `yyyy-MM-ddTHH:mm:ss` for the list, Main list, dashboard and workload. | Q14, WP1 |
 | 24 | Which `statusCode` values and `error` contents does the backend return on failure? | Open | Any response without `success == true` and `statusCode == 200` fails with `responseMessage`. Dio errors fail with the exception's message. | Error states |
+
+## Found in QA review v1.3 (2026-10-27, not sent yet)
+
+| # | Question | Status | What the code does now | Affects |
+|---|---|---|---|---|
+| 25 | When the user selects the Main chip in the list and goes to the dashboard, must the dashboard counts match the Main list? Today they can't: Main shows master activities from `GetVisitAndTaskList`, while the dashboard always calls `GetTaskAndVisitDashboard`, which has no Main (`isMain`) field and likely counts occurrences. This contradicts BR §6.1 ("quick filters must stay consistent with … the dashboard state"). Options: (a) the backend adds a Main flag or master-level counts to the dashboard, (b) the dashboard ignores Main and says what it counts, (c) Main is cleared when the user returns to the dashboard. | Open (product, then backend if (a)) | Per [api-contracts.md](api-contracts.md) §3.1 and §3.3: Main switches only the list endpoint. The dashboard request has no Main field, so its numbers don't change. | Dashboard (BR §5.1, §6.1), Main quick filter, QA G-50, DSH-15, QF-16 |
+| 26 | Same as Q25 for Priority and Search: must the dashboard counts follow them? The list request has `priorityId` and `searchValue`; the dashboard request has neither, so the dashboard keeps counting every priority and title while the list is filtered. | Open (product, then backend) | Per api-contracts §3.1 and §3.2: Priority and Search are sent only to the list and Main list. | Dashboard, Priority chip, search, QA G-51, DSH-16, DSH-17 |
+| 27 | Must the Main list filter by Visit execution type? `GetVisitAndTaskList` has no `executionTypeId`, so Main ignores that filter while the sheet still shows it as applied. | Open (product, then backend) | Per api-contracts §3.3: the Main request has no execution-type field. | Main quick filter, Visit filters, QA G-52, QF-17 |
+| 28 | Does `GetVisitAndTaskAssignedToLoggedInUser` return other employees' activities when the app sends the team's `employeeId` list (All and My team scopes), or only the logged-in user's, as its name says? | Open (backend) | Per api-contracts §1.7 and §3.2: the app uses this endpoint for every scope and sends the team's IDs. | Scope chip, list vs dashboard totals, QA G-55, QF-18 |
 
 ## When an answer arrives
 

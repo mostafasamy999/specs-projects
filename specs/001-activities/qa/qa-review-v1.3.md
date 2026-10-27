@@ -7,8 +7,9 @@
 
 **What changed in v1.3**
 - Corrected QF-09 (it marked a request as confirmed that G-01 says is contradictory), FLT-04 and FLT-21 (they expected an `isPrivate` field the requests don't have) and the smoke-suite count.
-- Added gaps G-32 to G-49: privacy control, edit data loss, double submission, out-of-order responses, multi-assignee and recurring behavior, private assignment, session/company switch, deep links, cross-company assignment, weekday mapping, Arabic-Indic digits, reschedule validation, upload limits, and dashboard vs list counts.
-- Added 32 test cases (DSH-13–14, FLT-25–26, SRC-13–14, SRT-05, PAG-13–14, CRT-19–26, DET-21–29, PRG-13–15, PERM-08–10), the matching coverage rows, and questions 31–48.
+- Added gaps G-32 to G-50: privacy control, edit data loss, double submission, out-of-order responses, multi-assignee and recurring behavior, private assignment, session/company switch, deep links, cross-company assignment, weekday mapping, Arabic-Indic digits, reschedule validation, upload limits, dashboard vs list counts, and (critical) dashboard vs Main list counts.
+- Added gaps G-51 to G-57 from a cross-screen pass (each filter walked through the list, Main, dashboard, picker and details): the dashboard can't follow Priority or Search (critical), Main can't filter by execution type, type and time chips empty parts of the dashboard, the list endpoint may ignore team scope, the picker and list count differently, and the timeline depends on the entry point.
+- Added 45 test cases (DSH-13–19, QF-16–18, FLT-25–26, SRC-13–14, SRT-05, PAG-13–14, LST-10, CRT-19–26, DET-21–31, PRG-13–16, ASG-13, PERM-08–10), the matching coverage rows, and questions 31–56.
 
 | File reviewed | Lines | Status |
 |---|---|---|
@@ -35,7 +36,7 @@
 
 | Area | Readiness | Why |
 |---|---|---|
-| Dashboard | 🟡 Partial | Metrics approved (Q10), but status-list field names unconfirmed (Q20), "late" undefined, Visit summary counts parsed but not mapped, and no rule on whether the dashboard follows the filters |
+| Dashboard | 🔴 Not ready | Metrics approved (Q10), but status-list field names unconfirmed (Q20), "late" undefined, Visit summary counts parsed but not mapped, and no rule on whether the dashboard follows the filters. Its counts can't match the Main list, because the dashboard has no Main field (G-50) |
 | Current / Previous | 🟡 Partial | Business rule clear (Q2). The boundary depends on Q14 (inclusive `endDateTime`) and Q23 (date format). Time zone and recurring-occurrence start are undefined |
 | Quick filters / Scope | 🔴 Not ready | The scope → `onlyMe` mapping contradicts itself between files and with the business meaning (Q16). Chip combination rules are undefined |
 | Filter sheet | 🟢 Mostly ready | Apply / Reset / Dismiss, date validation and dependent-clear rules are defined. Missing: category → execution type clear, defaults for Reset, chip-vs-sheet date conflict |
@@ -50,9 +51,10 @@
 | Arabic / English | 🟡 Partial | Toggle direction defined. Whether backend names are localized is TBD |
 | Regression (old module) | 🟢 Ready | Isolation rules and shared classes clearly listed |
 | Concurrency / double submit | 🟡 Partial | Only concurrent page loads are covered. No rules for double submission, late responses or stale details (G-36–G-38) |
+| Cross-screen consistency | 🔴 Not ready | The same filter means different things on the list, Main and the dashboard: the dashboard can't carry Main, Priority or Search, and Main can't carry execution type or Current/Previous (G-13, G-50–G-55) |
 | Multi-assignee / recurring | 🔴 Not ready | One card or one per assignee, count and progress semantics, and occurrence vs series actions are undefined (G-39, G-40) |
 
-**Numbers:** 223 test cases written (46 P0). 111 have fully documented expected results, 95 have at least one [PO-CONFIRM] or [ASSUMED-IN-CODE] part, and 17 are blocked (Q12, Q13, Q14, Q19 or the undocumented create baseline). 49 specification gaps found, 9 of them critical.
+**Numbers:** 236 test cases written (46 P0). 111 have fully documented expected results, 108 have at least one [PO-CONFIRM] or [ASSUMED-IN-CODE] part, and 17 are blocked (Q12, Q13, Q14, Q19 or the undocumented create baseline). 57 specification gaps found, 11 of them critical.
 
 **Process observations**
 - The spec is marked **Approved** while three backend questions (Q12–Q14) block core behavior and ten more (Q15–Q24) aren't sent yet. QA recommends "Approved with open items" until at least Q14, Q16 and Q19 are answered.
@@ -117,6 +119,14 @@ Severity: **Critical** = a test cannot have a defined expected result, or the sp
 | G-47 | Missing validation | Medium | Reschedule sends one `newDate` with `newFromTime` / `newToTime`, plus `startDateTime` / `endDateTime`. Undefined: an end before the start, an activity that crosses midnight, and which pair the backend trusts. | API §3.16 | Invalid schedules saved, or the two pairs disagree. | What are the reschedule validation rules? Which fields are authoritative? |
 | G-48 | Missing rule | Medium | No limits for attachments and step files (size, count, types), and no rule for a failed or partial multipart upload. | API §1.3, §3.10, §3.12–3.14 | Large uploads time out; a step saved without its files, or files without the step. | Maximum file size, count and types? Is a step saved when a file upload fails? |
 | G-49 | Contradiction | Medium | The dashboard's `totalTasksCurrent` / `totalTasksPrevious` (and the Visit equivalents) are computed by the backend with its own split. The list uses the app's split at today 00:00 (Q2). | BR §7.2; API §3.1 | The dashboard and the list can show different Current/Previous counts. | Does the backend use the same today-00:00 split, and the same time zone, as Q2? |
+| G-50 | Contradiction | **Critical** | The dashboard and the Main list count different things, so their numbers can't match. The Main chip switches the list to `GetVisitAndTaskList`, which returns master activities (one per activity). The dashboard always calls `GetTaskAndVisitDashboard`, whose request has no Main (`isMain`) field and which likely counts occurrences (one per assignee and date, see G-39). After selecting Main and going to the dashboard, the user sees a total that differs from the Main list. BR §6.1 requires the quick filters to stay consistent with the dashboard state. | BR §5.1, §6.1; API §3.1, §3.3 | Users read the dashboard as wrong; managers can't reconcile the dashboard with the Main list. | Must the dashboard follow the Main chip? If yes, the backend needs a Main flag (or master-level counts) on `GetTaskAndVisitDashboard`. If no, must the dashboard say what it counts, or must Main be cleared when the user returns to the dashboard? |
+| G-51 | Contradiction | **Critical** | Same problem as G-50 for **Priority** and **Search**. The list request carries `priorityId` and `searchValue`, but the dashboard request has neither. After filtering by Priority High or searching "Audit" and going to the dashboard, the dashboard still counts every priority and every title, while the chip or search box shows a filter is active. | BR §5.1, §6.1; API §3.1, §3.2 | The dashboard and the list disagree whenever Priority or Search is used. | Must the dashboard follow Priority and Search? If yes, the backend must add `priorityId` and `searchValue` to `GetTaskAndVisitDashboard`. If no, must the dashboard show that these filters don't apply to it? |
+| G-52 | Contradiction | High | The Main list can't filter by **Visit execution type**: `GetVisitAndTaskList` has no `executionTypeId` field (it also ignores Current/Previous, G-13). With Visits + a category + an execution type applied, the regular list is filtered by execution type but Main isn't, and the filter sheet still shows it as applied. | API §3.2, §3.3; BR §6.2 | Main shows Visits of every execution type under an active execution-type filter. | Must the backend add `executionTypeId` to `GetVisitAndTaskList`? If not, must the app hide or disable the execution-type filter while Main is selected? |
+| G-53 | Ambiguous | Medium | The dashboard request carries `typeId`. After the Tasks (or Visits) chip, the Visits-vs-Tasks donut becomes 100 % / 0 % and the other type's summary shows 0. The approved metrics (Q10) assume both types. | BR §5.1 Q10; API §3.1 | The donut and one summary look broken or empty while a type chip is active. | Must the dashboard ignore the type chip, or show only the selected type's summary and hide the donut? |
+| G-54 | Contradiction | Medium | The dashboard request carries `fromDateTime` / `endDateTime`, and its summary has its own Today / Current / Previous counts. With the Previous chip applied, the dashboard's Current and Today counts can only be 0; with Current, Previous is 0. | BR §5.1, §7.2; API §3.1 | The summary shows zeros that look like missing data. | Must the dashboard ignore the Current/Previous chip, since its summary already splits by time? |
+| G-55 | Ambiguous | High | The list endpoint is named `GetVisitAndTaskAssignedToLoggedInUser`, but the app uses it for the All and My team scopes with the whole team's `employeeId` list. If the backend only returns activities assigned to the logged-in user, the list shows only the manager's own activities while the dashboard (which takes the same IDs) counts the team's. | API §3.2, §1.7; BR §6.1 | Under My team, the list and the dashboard show different totals; a manager can't see the team's activities. | Does `GetVisitAndTaskAssignedToLoggedInUser` honor `employeeId` for other employees, or only return the logged-in user's activities? |
+| G-56 | Ambiguous | Medium | The workload chip in the picker counts an employee's activities for the current instant (G-10) with no scope, while the list filtered to that employee for today uses the scope, Current/Previous and the other filters. The two numbers for the same employee differ. | BR §6.5; API §3.6, §3.2 | A manager sees "3 activities" in the picker and 5 in the list for the same employee and day. | Which window and filters define the workload count, and must it match the list for that employee? |
+| G-57 | Ambiguous | Medium | The timeline opens with whatever ID the screen has: an occurrence ID from the regular list, a master ID from Main (API §3.9 TBD). The same activity may show a different history depending on where the user opened it. | API §3.9; BR §5.4 | Missing or extra history entries depending on the entry point. | Is `GetTaskHistoryTimeline` keyed by master or occurrence ID, and must both entry points show the same history? |
 
 ---
 
@@ -143,6 +153,11 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | DSH-12 | Dashboard follows filter sheet | Dashboard loaded | Filter: Status=Pending, Priority=High | 1) Apply filter 2) Observe dashboard | [PO-CONFIRM G-11] Dashboard request carries `statusId`=1. Priority cannot be sent (no field) | P2 | Integration | BR §6.1, API §3.1 |
 | DSH-13 | Dashboard and list Current/Previous counts match | Activities on both sides of today 00:00 | TS-08 dataset (10 activities) | 1) Read the dashboard Current/Previous summary counts 2) Count list items under Current and under Previous | [PO-CONFIRM G-49] The counts match (backend uses the Q2 split) | P2 | Integration | BR §7.2, API §3.1, G-49 |
 | DSH-14 | Multi-assignee activity in the counts | One Task assigned to E1 and E2 | — | 1) Open dashboard as M1 | [PO-CONFIRM G-39] `taskCount` counts it once or twice; record which | P1 | Boundary | API §3.1, G-39 |
+| DSH-15 | Dashboard counts vs Main list | 3 master Tasks: one weekly with 4 occurrences, one assigned to E1 and E2, one single | — | 1) Tap Main and count the Tasks in the list (scroll to the end) 2) Go to the dashboard and read `taskCount` | [PO-CONFIRM G-50] The counts match, or the dashboard clearly says what it counts. Record both numbers | P1 | Integration | BR §5.1, §6.1; API §3.1, §3.3; G-50 |
+| DSH-16 | Priority chip → dashboard | 4 Tasks: 1 High, 3 Low | Priority High | 1) In the list, select Priority High (1 Task listed) 2) Go to the dashboard 3) Capture the dashboard request | [PO-CONFIRM G-51] Dashboard shows 1 Task, or clearly says Priority doesn't apply. Request has no `priorityId` today | P1 | Integration | BR §6.1; API §3.1; G-51 |
+| DSH-17 | Search → dashboard | "Audit" matches 1 of 4 Tasks | "Audit" | 1) Search "Audit" in the list 2) Go to the dashboard | [PO-CONFIRM G-51] Dashboard shows 1 Task, or clearly says search doesn't apply. Request has no `searchValue` today | P1 | Integration | BR §6.1; API §3.1; G-51 |
+| DSH-18 | Type chip → donut and summaries | 3 Visits, 4 Tasks | Tasks chip | 1) Select Tasks 2) Go to the dashboard | [PO-CONFIRM G-53] Donut and Visit Summary: unchanged, hidden, or 0 / 100 %. Nothing renders as broken | P2 | Boundary | BR §5.1 Q10; G-53 |
+| DSH-19 | Previous chip → dashboard summary | Activities today, in the future and in the past | Previous chip | 1) Select Previous 2) Go to the dashboard | [PO-CONFIRM G-54] Today/Current counts aren't shown as 0 when such activities exist, or the dashboard says the time filter applies | P2 | Boundary | BR §7.2; API §3.1; G-54 |
 
 ### 3.2 Current / Previous time scope (Module: Quick filters — time)
 
@@ -181,6 +196,9 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | QF-13 | Chip ↔ sheet consistency | — | — | 1) Tap Tasks 2) Open Filter 3) Change type to Visits 4) Apply | [DOC] Sheet opens with Tasks; after apply the Visits chip is selected | P1 | Integration | BR §6.1 |
 | QF-14 | Default chip on first open | Fresh install | — | 1) Open Activities | [PO-CONFIRM G-12] Default time scope and scope chip | P2 | Positive | G-12 |
 | QF-15 | Current and Previous together | — | — | 1) Tap Current 2) Tap Previous | [PO-CONFIRM G-12] Single-select (Previous replaces Current) or toggle off | P2 | Boundary | G-12 |
+| QF-16 | List → Main → dashboard | Mixed data; dashboard loaded | — | 1) Open the list 2) Tap Main 3) Go back to the dashboard 4) Open the list again | [PO-CONFIRM G-50, G-12] Whether Main stays selected on the dashboard and in the list. The chip state shown always matches the data shown | P1 | Integration | BR §6.1, G-50 |
+| QF-17 | Main + execution type | Visits of category A with execution types X and Y | Type Visits, category A, execution X | 1) Apply the filter in the regular list 2) Tap Main 3) Capture the Main request | [PO-CONFIRM G-52] Main shows only execution X, or the execution-type filter is hidden/disabled on Main. Request has no `executionTypeId` today | P1 | Integration | API §3.3; G-52 |
+| QF-18 | My team: list vs dashboard totals | M1's team: E1 has 3 Tasks, E2 has 2, M1 has 1 | Scope My team | 1) Select My team 2) Count Tasks in the list 3) Go to the dashboard and read `taskCount` | [PO-CONFIRM G-55] Both show the team's Tasks (6, or 5 if M1's own are excluded), not only M1's 1 | P1 | Integration | API §1.7, §3.2; G-55 |
 
 ### 3.4 Filter sheet (Module: Filter Sheet)
 
@@ -274,6 +292,7 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | LST-07 | Initial load error | — | 500 | 1) Open list | [DOC] Initial-load error state; no spinner left | P0 | Negative | BR §8.2 |
 | LST-08 | Backend spellings | — | `longtitude`, `addressTest`, `detailsid` populated | 1) View card / open item | [DOC] Values displayed and used (details opens with `detailsid`) | P1 | Integration | API §1.6 |
 | LST-09 | Disabled activity | — | `isEnabled`=false | 1) Open list | [PO-CONFIRM G-31] Shown or hidden; indicator | P2 | Boundary | API §3.18 |
+| LST-10 | Recurring card date vs details date | Weekly Task: master starts 2026-09-01; occurrence 2026-10-23 | — | 1) Find the 10-23 occurrence in the list 2) Open it | [PO-CONFIRM G-05] The card and the details show the same date (10-23), not the master start on the card | P1 | Integration | API §4.1, §4.3; G-05 |
 
 ### 3.9 Create / Edit (Module: Add Activity)
 
@@ -339,6 +358,8 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | DET-27 | Reschedule one occurrence of a recurring activity | Weekly Task | Move the 10-23 occurrence to 10-24 | 1) Reschedule 2) Check the other occurrences | [PO-CONFIRM G-40] Only the 10-23 occurrence moves | P1 | Boundary | API §3.16, G-40 |
 | DET-28 | Open details that are gone or not accessible | Notification or deep link to an activity that was deleted, disabled, or made private by another user | — | 1) Open the link | [PO-CONFIRM G-43] Error or "not available" message; no crash; no private data shown | P1 | Negative | BR §5.4, G-43 |
 | DET-29 | Step upload fails partway | Complete step with 2 files; connection drops during upload | — | 1) Submit 2) Restore the network 3) Reopen | [PO-CONFIRM G-48] The step is saved with both files or not at all; the user can retry | P2 | Negative | API §3.14, G-48 |
+| DET-30 | Timeline from list vs from Main | Activity with check-in and start done | — | 1) Open the timeline from the regular list 2) Open it from Main | [PO-CONFIRM G-57] Both show the same history | P2 | Integration | API §3.9; G-57 |
+| DET-31 | Status change → list and dashboard | Pending Task listed; dashboard Pending = 2 | Change to Cancelled | 1) Open the Task 2) Change status 3) Go back to the list 4) Go to the dashboard | [PO-CONFIRM G-27] The card shows Cancelled and the dashboard Pending = 1, without a manual refresh | P1 | Integration | BR §8.1; G-27 |
 
 ### 3.11 Progress (Module: Activity Progress)
 
@@ -359,6 +380,7 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | PRG-13 | Arabic-Indic digits | App in Arabic | "٥٠" | 1) Enter progress 2) Save | [PO-CONFIRM G-46] Saved as 50, or input blocked; never saved as 0 | P2 | Boundary | BR §7.5, G-46 |
 | PRG-14 | Progress with several assignees | Task assigned to E1 and E2 | E1 sets 80 | 1) As E1, save 80 2) As E2, open the Task 3) As M1, open the master | [PO-CONFIRM G-39] E2's progress unchanged; record what M1 sees (per assignee or rolled up) | P1 | Boundary | BR §7.5, G-39 |
 | PRG-15 | Double tap Save on progress | Slow network | 60 | 1) Tap Save twice | [PO-CONFIRM G-36] One request | P2 | Negative | API §3.19, G-36 |
+| PRG-16 | Progress update → list card | Card shows 30 % | Save 60 | 1) Open details 2) Save 60 3) Go back to the list | [PO-CONFIRM G-27] The card shows 60 % without a manual refresh | P2 | Integration | BR §5.2, §7.5; G-27 |
 
 ### 3.12 Assignment and workload (Module: Assigned-to picker)
 
@@ -376,6 +398,7 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | ASG-10 | Employee search | — | "Ahmed", "أحمد" | 1) Search in picker | [DOC] Matching employees listed. [PO-CONFIRM] matched fields | P2 | Positive | BR §6.5 |
 | ASG-11 | Picker states | — | Slow / empty / error responses | 1) Open picker for each | [DOC] Loading, empty and error states; loader stops on error | P1 | Negative | BR §6.5, §8.2 |
 | ASG-12 | Group without employeeId | — | One group missing `employeeId` | 1) Open picker | [DOC] Group skipped; no crash | P2 | Negative | API §3.6 |
+| ASG-13 | Workload count vs list for one employee | E1 has 5 activities today | — | 1) In the picker, read E1's workload 2) In the list, filter to E1 and Current, count today's items | [PO-CONFIRM G-56] Both show the same count for today, or the picker says what period it covers | P2 | Integration | BR §6.5; API §3.6; G-56 |
 
 ### 3.13 Permissions and privacy (Module: Permissions)
 
@@ -482,6 +505,11 @@ Status: ✅ covered with defined expected results · 🟡 covered, part of the e
 | Step and reschedule edge cases, uploads (v1.3) | API §1.3, §3.12–3.16 | DET-23–DET-26, DET-29, CRT-26 | 🟡 (G-17, G-47, G-48) |
 | Arabic-Indic digits (v1.3) | BR §6.6, §7.5 | SRC-14, PRG-13 | 🟡 (G-46) |
 | Dashboard vs list counts (v1.3) | BR §7.2, API §3.1 | DSH-13 | 🟡 (G-49) |
+| Dashboard vs Main list, Main chip across screens (v1.3) | BR §5.1, §6.1; API §3.1, §3.3 | DSH-15, QF-16 | 🟡 (G-50) |
+| Filters carried to the dashboard (v1.3) | BR §5.1, §6.1; API §3.1 | DSH-16–DSH-19 | 🟡 (G-51, G-53, G-54) |
+| Filters carried to Main, team scope on the list (v1.3) | API §1.7, §3.2, §3.3 | QF-17, QF-18 | 🟡 (G-52, G-55) |
+| Same activity on different screens (v1.3) | BR §5.2, §6.5; API §3.6, §3.9, §4.3 | LST-10, DET-30, ASG-13 | 🟡 (G-05, G-56, G-57) |
+| Screens refresh after an action (v1.3) | BR §8.1 | DET-31, PRG-16 | 🟡 (G-27) |
 
 ---
 
@@ -532,36 +560,47 @@ Grouped by who answers. Order = what to ask first.
 
 Must answer before testing sign-off:
 
-31. **(G-35)** On update, does `InsertVisitOrTask` replace every field or only the ones sent? Are existing attachments, address and contact kept? Which `companyId` must an update send?
-32. **(G-39)** For a multi-assignee activity: one card or one per assignee? Do dashboard counts count activities or occurrences? Is progress per assignee?
-33. **(G-41)** Can an assignee see a private activity assigned to them? Can a private activity be assigned to someone else at all?
-34. **(G-32)** Is the Privacy filter separate from the Scope chip? Which request field carries it, and what does `isPrivate = false` do?
+31. **(G-50, Q25)** Must the dashboard follow the Main chip? If yes, the backend needs a Main flag or master-level counts on `GetTaskAndVisitDashboard`. If no, how does the user know what the dashboard counts, and is Main cleared on return to the dashboard?
+32. **(G-35)** On update, does `InsertVisitOrTask` replace every field or only the ones sent? Are existing attachments, address and contact kept? Which `companyId` must an update send?
+33. **(G-39)** For a multi-assignee activity: one card or one per assignee? Do dashboard counts count activities or occurrences? Is progress per assignee?
+34. **(G-41)** Can an assignee see a private activity assigned to them? Can a private activity be assigned to someone else at all?
+35. **(G-32)** Is the Privacy filter separate from the Scope chip? Which request field carries it, and what does `isPrivate = false` do?
 
 Should answer before release:
 
-35. **(G-36)** Must actions be disabled while their request is in flight? Does the backend reject duplicates?
-36. **(G-37)** Must the app ignore responses for anything but the latest query?
-37. **(G-38)** What does the backend return for an action the current status no longer allows?
-38. **(G-40)** Which actions apply to one occurrence and which to the series? How does editing a master affect completed occurrences?
-39. **(G-42)** Are filters persisted? Must they reset on logout and on company switch?
-40. **(G-43)** What do details return for a deleted, disabled or inaccessible activity?
-41. **(G-44)** Can an activity be assigned across companies, and which `companyId` is sent?
-42. **(G-47)** Reschedule validation rules, and which date/time fields are authoritative?
-43. **(G-48)** File size, count and type limits; is a step saved when an upload fails?
-44. **(G-49)** Does the dashboard's Current/Previous split match Q2?
+36. **(G-36)** Must actions be disabled while their request is in flight? Does the backend reject duplicates?
+37. **(G-37)** Must the app ignore responses for anything but the latest query?
+38. **(G-38)** What does the backend return for an action the current status no longer allows?
+39. **(G-40)** Which actions apply to one occurrence and which to the series? How does editing a master affect completed occurrences?
+40. **(G-42)** Are filters persisted? Must they reset on logout and on company switch?
+41. **(G-43)** What do details return for a deleted, disabled or inaccessible activity?
+42. **(G-44)** Can an activity be assigned across companies, and which `companyId` is sent?
+43. **(G-47)** Reschedule validation rules, and which date/time fields are authoritative?
+44. **(G-48)** File size, count and type limits; is a step saved when an upload fails?
+45. **(G-49)** Does the dashboard's Current/Previous split match Q2?
 
 Nice to answer:
 
-45. **(G-46)** Must numeric inputs accept Arabic-Indic digits?
-46. **(G-33)** Remove or rename "workload classification" in BR §11.
-47. **(G-34, G-45)** QA actions only, no question: SRT-05 and CRT-24 cover them.
-48. Send Q15–Q24 to the backend now (see the process observations in §1).
+46. **(G-46)** Must numeric inputs accept Arabic-Indic digits?
+47. **(G-33)** Remove or rename "workload classification" in BR §11.
+48. **(G-34, G-45)** QA actions only, no question: SRT-05 and CRT-24 cover them.
+49. Send Q15–Q24 to the backend now (see the process observations in §1).
+
+Cross-screen consistency (must answer before testing sign-off):
+
+50. **(G-51, Q26)** Must the dashboard follow Priority and Search? If yes, the backend must add `priorityId` and `searchValue` to the dashboard request.
+51. **(G-55, Q28)** Does `GetVisitAndTaskAssignedToLoggedInUser` return other employees' activities for My team and All, or only the logged-in user's?
+52. **(G-52, Q27)** Must Main filter by execution type? If not, is the filter hidden while Main is selected?
+53. **(G-53, G-54)** Must the dashboard ignore the type and Current/Previous chips, since its donut and summary already split by type and time?
+54. **(G-56)** Must the picker's workload count match the list for that employee and day?
+55. **(G-57)** Is the timeline keyed by master or occurrence ID?
+56. **(General)** For every quick filter, list which screens it applies to (list, Main, dashboard, picker). QA suggests adding this table to BR §6.1.
 
 ---
 
 ## 6. Recommended minimum suites
 
-### 6.1 Smoke suite (22 rows, 24 cases, run on every build)
+### 6.1 Smoke suite (23 rows, 25 cases, run on every build)
 
 | # | Case | Why |
 |---|---|---|
@@ -587,6 +626,7 @@ Nice to answer:
 | 20 | PRG-01, PRG-08 | Progress success and failure |
 | 21 | REG-01 | Old module unaffected |
 | 22 | CRT-19 | Edit doesn't drop attachments (v1.3) |
+| 23 | DSH-15 | Dashboard vs Main list counts (v1.3) |
 
 Add **ASG-04, ASG-06** once Q12 is answered and **PERM-02** once Q13 is answered.
 
@@ -596,5 +636,6 @@ Add **ASG-04, ASG-06** once Q12 is answered and **PERM-02** once Q13 is answered
 - Always include the regression-type cases: TS-02, TS-11, TS-12, SRT-03, PAG-05, FLT-24, CRT-15, CRT-16, REG-01–REG-07, API-04.
 - Run the localization pass (L10N-01, L10N-02, CRT-03) in Arabic and repeat the smoke suite once in Arabic.
 - Run the error pass (DSH-06–DSH-08, LST-07, PAG-06, API-03, API-05, ASG-06, PRG-08) with a proxy or mock that forces `success=false`, HTTP 500, timeout and offline.
+- (v1.3) Run the cross-screen pass: for each chip and filter, apply it in the list, then open Main, the dashboard and details, and compare counts and chip state (QF-16–QF-18, DSH-15–DSH-19, LST-10, DET-30, DET-31, PRG-16, ASG-13).
 - (v1.3) Run the concurrency pass (CRT-22, DET-21, PRG-15, PAG-13, SRC-13, DET-22) on a throttled network, and the edit data pass (CRT-19–CRT-21) on activities with attachments, an address and a contact.
 - **Test data set to keep stable:** activities at 2026-10-20 23:59:59, 2026-10-21 00:00:00, yesterday 10:00, far past, far future, one recurring weekly activity, one private, one disabled, one in each status 1/2/3/4/5/7, 25+ items for paging. Added in v1.3: one activity assigned to two employees, one private activity assigned to someone else, one activity in another company, one activity with attachments, an address and a contact, and three activities whose creation order differs from their scheduled order.
