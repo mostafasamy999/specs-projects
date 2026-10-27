@@ -1,0 +1,37 @@
+# Filters the list to Tasks with one status, reads the results count into
+# output.<OUT>, then clears the status filter again.
+# Params: STATUS (exact status name as shown in the sheet: Pending, Progress, Completed, ...), OUT (name)
+# Expects the list view with Type = Task already selected.
+# synced: CL-10
+appId: ${APP_ID}
+---
+- runFlow:
+    file: tap_chip.yaml
+    env:
+      CHIP: status
+- tapOn:
+    text: ${STATUS}
+    index: 0
+- runFlow: wait_for_results.yaml
+- runFlow:
+    when:
+      visible:
+        id: "activities_message"
+    commands:
+      - evalScript: ${output[OUT] = '0'}
+- runFlow:
+    when:
+      visible:
+        id: "activities_results_count"
+    commands:
+      - copyTextFrom:
+          id: "activities_results_count"
+      - evalScript: ${output[OUT] = (maestro.copiedText.match(/\d+/) || ['0'])[0]}
+- runFlow:
+    file: tap_chip.yaml
+    env:
+      CHIP: status
+- tapOn:
+    text: "All"
+    index: 0
+- runFlow: wait_for_results.yaml

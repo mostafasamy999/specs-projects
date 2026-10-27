@@ -1,13 +1,30 @@
-# Scrolls the quick-filter row until the chip shows, then taps it.
-# Param CHIP: current | previous | main | type | scope | status | priority | department
+# Swipes the quick-filter row (not the page) until the chip shows, then taps
+# it. Param CHIP: current | previous | main | type | scope | status | priority | department
 # synced: CL-10
 appId: ${APP_ID}
 ---
-- scrollUntilVisible:
-    element:
-      id: "activities_chip_${CHIP}"
-    direction: RIGHT
-    timeout: 10000
-    centerElement: true
+- runFlow: assert_not_offline.yaml
+# Chips further along the row: swipe the row towards the start.
+- repeat:
+    while:
+      notVisible:
+        id: "activities_chip_${CHIP}"
+    times: 4
+    commands:
+      - swipe:
+          start: 85%, 20%
+          end: 25%, 20%
+          duration: 400
+# Chips back at the start of the row (after an earlier swipe).
+- repeat:
+    while:
+      notVisible:
+        id: "activities_chip_${CHIP}"
+    times: 4
+    commands:
+      - swipe:
+          start: 15%, 20%
+          end: 85%, 20%
+          duration: 400
 - tapOn:
     id: "activities_chip_${CHIP}"

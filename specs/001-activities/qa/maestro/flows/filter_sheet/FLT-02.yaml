@@ -10,7 +10,7 @@ tags: [FLT-02, P0, smoke, filter_sheet]
     file: ../../subflows/select_type.yaml
     env:
       TYPE: task
-- assertVisible: "Type · Task"
+- assertVisible: "Type · Tasks"
 - tapOn:
     id: "activities_filter_button"
 - extendedWaitUntil:
@@ -20,5 +20,5 @@ tags: [FLT-02, P0, smoke, filter_sheet]
 - tapOn: "Visit"
 - back
 - runFlow: ../../subflows/wait_for_results.yaml
-- assertVisible: "Type · Task"
-- assertNotVisible: "Type · Visit"
+- assertVisible: "Type · Tasks"
+- assertNotVisible: "Type · Visits"

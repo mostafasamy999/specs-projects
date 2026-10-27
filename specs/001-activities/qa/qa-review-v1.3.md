@@ -143,8 +143,8 @@ Status (latest run, see §7): **[✓]** = passed · **[✗]** = failed (see the 
 
 | Status | ID | Scenario | Preconditions | Test data | Steps | Expected result | P | Type | Req |
 |---|---|---|---|---|---|---|---|---|---|
-| [ ] | DSH-01 | Dashboard is the entry screen and shows returned data | M1 logged in; backend returns data | `taskCount`=6, `visitCount`=4 | 1) Open Activities from the app menu | [DOC] Dashboard opens first. App bar: Back, "Activities", Add, Filter. Donut shows Tasks 6 and Visits 4. Visit Summary and Tasks Summary sections are visible and visually distinct. Quick filters are visible | P0 | Positive | BR §5.1, §10 Dashboard |
-| [ ] | DSH-02 | Status counts map by status ID | As DSH-01 | `taskStatusList`: {1:2},{2:1},{4:3} | 1) Open dashboard 2) Read task status bar and rows | [DOC] Pending 2, In Progress 1, Completed 3 for Tasks | P1 | Positive | API §3.1 mapping, Q10 |
+| [✗] | DSH-01 | Dashboard is the entry screen and shows returned data | M1 logged in; backend returns data | `taskCount`=6, `visitCount`=4 | 1) Open Activities from the app menu | [DOC] Dashboard opens first. App bar: Back, "Activities", Add, Filter. Donut shows Tasks 6 and Visits 4. Visit Summary and Tasks Summary sections are visible and visually distinct. Quick filters are visible | P0 | Positive | BR §5.1, §10 Dashboard |
+| [✗] | DSH-02 | Status counts map by status ID | As DSH-01 | `taskStatusList`: {1:2},{2:1},{4:3} | 1) Open dashboard 2) Read task status bar and rows | [DOC] Pending 2, In Progress 1, Completed 3 for Tasks | P1 | Positive | API §3.1 mapping, Q10 |
 | [ ] | DSH-03 | Statuses 3, 5, 7 in the status list | As DSH-01 | `taskStatusList`: {3:1},{5:1},{7:2},{4:1} | 1) Open dashboard | [PO-CONFIRM G-23] Mapping sums only 1, 2, 4. Whether Cancelled, Rejected and Partially Completed are shown is undefined. Record what is displayed | P2 | Boundary | API §3.1, G-23 |
 | [ ] | DSH-05 | Empty summary | M1 has no activities | `taskCount`=0, `visitCount`=0, empty lists | 1) Open dashboard | [DOC] Empty-summary state is shown (BR §8.2). Donut doesn't render broken/NaN. [PO-CONFIRM] exact empty UI | P1 | Boundary | BR §8.2 |
 | [ ] | DSH-08 | Network timeout / offline | Airplane mode on | — | 1) Open dashboard | [DOC] Error state, loader stops. [PO-CONFIRM G-26] Retry control and message text | P0 | Negative | BR §8.2 |
@@ -602,3 +602,23 @@ Add **ASG-04, ASG-06** once Q12 is answered and **PERM-02** once Q13 is answered
 | ID | Type | Severity | Finding | Where | Impact | Question for the product owner |
 |---|---|---|---|---|---|---|
 | G-58 | Undocumented behavior | Medium | The list and dashboard open on a fixed 7-day range (21 Oct 00:00 → 27 Oct 23:59:00) with neither Current nor Previous selected. The spec defines only Current and Previous. | BR §6.1, §7.2 | Activities older than 7 days or in the future are hidden on first open; counts differ from Current/Previous. | What is the default view on first open: Current, Previous, or a date range? If a range, which one? |
+
+### Run R2 — 2026-10-27 (Maestro)
+
+| Item | Value |
+|---|---|
+| Build | `talentlink` `enhance/activities` @ `425fc38f` + Maestro selectors (uncommitted), flavor `development`, **profile** build |
+| Device / backend / account | As R1 (emulator `Medium_Phone_API_36.0`, `test.talentlink360.com`, Team Leader employee 317) |
+| How | `qa/maestro/run.sh testcases/<ID>-maestro.yaml` |
+
+| Case | Maestro file | Result | Evidence |
+|---|---|---|---|
+| DSH-01 | `testcases/DSH-01-maestro.yaml` | **Fail → DEF-08.** Dashboard opens first; title, Add, Filter, overview (Tasks/Visits) and both summaries show. But there's no Back button (Activities is a bottom-nav tab) and no quick filters on the dashboard (they only show in the list), and BR §5.1 requires both. | Flow passed with 2 warnings (optional checks) |
+| DSH-02 | `testcases/DSH-02-maestro.yaml` | **Fail → DEF-09.** The list shows 1 Task with status Pending (#2780), but the dashboard's Tasks row shows `0 pending · 1 late`. Visits show the same thing: 1 Pending visit (#2794), dashboard Pending 0. | `Assertion is false: "1 pending" is visible`; screenshot of the dashboard at 13:14 |
+
+| ID | Severity | Summary | Steps | Expected | Actual |
+|---|---|---|---|---|---|
+| DEF-08 | Medium (or spec change) | Dashboard has no Back button and no quick filters | Open Activities | App bar: Back, "Activities", Add, Filter; quick filters on the dashboard (BR §5.1) | No Back (tab screen) and no chips on the dashboard. Product owner to decide: fix the app or change BR §5.1 |
+| DEF-09 | High | Dashboard status counts don't map by status ID: overdue Pending items move to "late" | Have a Pending Task scheduled in the past within the range → open the dashboard | Pending = number of status-1 Tasks (API §3.1 mapping, Q10) | Pending 0, Late 1. "Late" is undefined in the spec (G-23), and it takes items out of their status count |
+| DEF-10 | Low | The list/dashboard toggle button covers the Visits summary's Late number | Open the dashboard, scroll to Visits summary | Every row's count is readable | The round button sits on top of the Late row's count |
+

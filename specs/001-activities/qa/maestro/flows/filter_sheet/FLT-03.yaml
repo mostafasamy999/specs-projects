@@ -27,4 +27,4 @@ tags: [FLT-03, P1, filter_sheet]
       - tapOn:
           id: "activities_filter_cancel"
 - runFlow: ../../subflows/wait_for_results.yaml
-- assertVisible: "Type · Task"
+- assertVisible: "Type · Tasks"

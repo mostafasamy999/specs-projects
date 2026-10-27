@@ -1,0 +1,72 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Test case DSH-02 — qa-review-v1.3.md §3.1 Dashboard
+# Scenario:      Status counts map by status ID
+# Preconditions: As DSH-01 (logged in; backend returns data)
+# Test data:     taskStatusList {1:2},{2:1},{4:3}
+# Steps:         1) Open dashboard 2) Read task status bar and rows
+# Expected:      [DOC] Pending 2, In Progress 1, Completed 3 for Tasks
+# Priority: P1 · Type: Positive · Req: API §3.1 mapping, Q10
+# synced: CL-10
+#
+# The test data is a backend fixture Maestro can't force, so this flow checks
+# the same rule against live data: for status 1 (Pending), 2 (In Progress) and
+# 4 (Completed), the dashboard's Tasks row must show the number of Tasks the
+# list shows for that status (same default date range and scope).
+# To check fixed numbers instead, set EXPECTED_PENDING / EXPECTED_IN_PROGRESS /
+# EXPECTED_COMPLETED (empty = use the list counts).
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [DSH-02, P1, dashboard]
+env:
+  EXPECTED_PENDING: ""
+  EXPECTED_IN_PROGRESS: ""
+  EXPECTED_COMPLETED: ""
+---
+# Reference counts: Tasks per status from the list
+- runFlow: ../subflows/open_list.yaml
+- runFlow:
+    file: ../subflows/select_type.yaml
+    env:
+      TYPE: task
+- runFlow:
+    file: ../subflows/count_tasks_with_status.yaml
+    env:
+      STATUS: "Pending"
+      OUT: pending
+- runFlow:
+    file: ../subflows/count_tasks_with_status.yaml
+    env:
+      STATUS: "Progress"
+      OUT: inProgress
+- runFlow:
+    file: ../subflows/count_tasks_with_status.yaml
+    env:
+      STATUS: "Completed"
+      OUT: completed
+- runFlow:
+    file: ../subflows/select_type.yaml
+    env:
+      TYPE: all
+- evalScript: ${output.pending = EXPECTED_PENDING || output.pending}
+- evalScript: ${output.inProgress = EXPECTED_IN_PROGRESS || output.inProgress}
+- evalScript: ${output.completed = EXPECTED_COMPLETED || output.completed}
+
+# Step 1) Open dashboard
+- tapOn:
+    id: "activities_view_toggle"
+- extendedWaitUntil:
+    visible:
+      id: "activities_dashboard_total"
+    timeout: 60000
+
+# Step 2) Read task status bar and rows
+- scrollUntilVisible:
+    element:
+      id: "activities_tasks_summary"
+    centerElement: true
+- takeScreenshot: results/DSH-02-tasks-summary
+
+# Expected: Pending / In Progress / Completed for Tasks match status IDs 1 / 2 / 4
+- assertVisible: "${output.pending} pending"
+- assertVisible: "${output.inProgress} in progress"
+- assertVisible: "${output.completed} completed"

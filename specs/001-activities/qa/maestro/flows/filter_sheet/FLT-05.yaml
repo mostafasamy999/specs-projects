@@ -21,4 +21,4 @@ env:
 - tapOn:
     id: "activities_filter_apply"
 - runFlow: ../../subflows/wait_for_results.yaml
-- assertVisible: "Type · Task"
+- assertVisible: "Type · Tasks"

@@ -1,0 +1,9 @@
+# Fails with a clear reason when the app has jumped to its offline /
+# attendance screen (the emulator's network dropped). That screen replaces
+# Activities, so the flow can't continue; rerun once the network is back.
+# synced: CL-10
+appId: ${APP_ID}
+---
+- assertNotVisible:
+    text: "Back Online - Continue|You are +in Offline mood"
+    label: "App is not on the offline screen (network dropped: rerun)"

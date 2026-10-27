@@ -10,7 +10,7 @@ tags: [QF-13, P1, quick_filters, filter_sheet]
     file: ../../subflows/select_type.yaml
     env:
       TYPE: task
-- assertVisible: "Type · Task"
+- assertVisible: "Type · Tasks"
 - tapOn:
     id: "activities_filter_button"
 - extendedWaitUntil:
@@ -21,4 +21,4 @@ tags: [QF-13, P1, quick_filters, filter_sheet]
 - tapOn:
     id: "activities_filter_apply"
 - runFlow: ../../subflows/wait_for_results.yaml
-- assertVisible: "Type · Visit"
+- assertVisible: "Type · Visits"

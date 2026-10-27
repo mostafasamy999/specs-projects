@@ -6,7 +6,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 review = sorted(glob.glob(os.path.join(here, '..', 'qa-review-v*.md')))[-1]
 
 flows = {}
-for path in sorted(glob.glob(os.path.join(here, 'flows', '**', '*.yaml'), recursive=True)):
+for path in sorted(glob.glob(os.path.join(here, 'flows', '**', '*.yaml'), recursive=True) + glob.glob(os.path.join(here, 'testcases', '*.yaml'))):
     m = re.search(r'^tags:\s*\[(.*)\]', open(path).read(), re.M)
     for tag in (m.group(1).split(',') if m else []):
         tag = tag.strip()

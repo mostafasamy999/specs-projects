@@ -6,3 +6,4 @@ appId: ${APP_ID}
     visible:
       id: "activities_results_count|activities_message"
     timeout: 60000
+- runFlow: assert_not_offline.yaml
