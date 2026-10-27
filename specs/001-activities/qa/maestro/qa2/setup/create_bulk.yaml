@@ -1,0 +1,20 @@
+# Test data for qa2 LST-06 / LST-07: creates BULK_COUNT private tasks titled
+# QA2-BULK-01 … QA2-BULK-21 for the logged-in user. Run once; skip if the
+# list already shows them. Creates real data on the test backend.
+# synced: CL-10
+appId: ${APP_ID}
+tags: [qa2, setup]
+env:
+  BULK_QUERY: "QA2-BULK"
+  BULK_COUNT: "21"
+---
+- runFlow: ../../subflows/open_dashboard.yaml
+- evalScript: ${output.i = 0}
+- repeat:
+    times: ${BULK_COUNT}
+    commands:
+      - evalScript: ${output.i = output.i + 1; output.title = BULK_QUERY + '-' + (output.i < 10 ? '0' : '') + output.i}
+      - runFlow:
+          file: ../../subflows/create_private_task.yaml
+          env:
+            TITLE: ${output.title}

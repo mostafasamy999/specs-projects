@@ -1,0 +1,60 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 DET-12 — qa2/04-test-scenarios.md
+# Scenario: Progress is saved and shown after reopening
+# Given:    a new task, started (In progress, 0%)
+# When:     the user taps the middle of the slider (50%), waits, leaves and reopens
+# Then:     progress shows 50%
+# Covers: REQ-64, INV-05 · P0 · Happy · Oracle: UI, Data
+# synced: CL-10
+#
+# Uses 50 (the slider's centre) instead of the scenario's 40: Maestro can tap
+# an element's centre but not a point inside it.
+# Creates one task each run.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, DET-12, P0, details]
+---
+- evalScript: ${output.title = 'QA2-DET-12-' + Date.now()}
+- runFlow: ../subflows/open_dashboard.yaml
+- runFlow:
+    file: ../subflows/create_private_task.yaml
+    env:
+      TITLE: ${output.title}
+- runFlow:
+    when:
+      visible:
+        id: "activities_dashboard_total"
+    commands:
+      - tapOn:
+          id: "activities_view_toggle"
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/open_activity.yaml
+    env:
+      TITLE: ${output.title}
+- tapOn:
+    id: "activity_detail_action_start"
+- extendedWaitUntil:
+    visible:
+      id: "activity_detail_action_end"
+      enabled: true
+    timeout: 60000
+- tapOn:
+    id: "activity_detail_progress_slider"
+- extendedWaitUntil:
+    visible: "50%"
+    timeout: 10000
+# Saved ~0.6 s after the drag; wait for the backend echo before leaving
+- extendedWaitUntil:
+    visible:
+      id: "activity_detail_action_end"
+      enabled: true
+    timeout: 30000
+- back
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/open_activity.yaml
+    env:
+      TITLE: ${output.title}
+- assertVisible: "50%"
+- takeScreenshot: results/qa2-DET-12

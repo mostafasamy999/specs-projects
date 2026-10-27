@@ -1,0 +1,11 @@
+# Types QUERY into the list's search box and waits for the results.
+# Start on the list view. QUERY: the text to search for.
+# synced: CL-10
+appId: ${APP_ID}
+---
+- tapOn:
+    id: "activities_search_field"
+- eraseText
+- inputText: ${QUERY}
+- hideKeyboard
+- runFlow: wait_for_results.yaml

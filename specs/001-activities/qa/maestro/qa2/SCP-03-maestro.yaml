@@ -1,0 +1,34 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 SCP-03 — qa2/04-test-scenarios.md
+# Scenario: My activities shows only the user's own
+# Given:    OTHER_TITLE: an activity assigned to a team member (optional)
+# When:     U-TEAM picks My activities
+# Then:     the chip shows My Activity; OTHER_TITLE isn't listed
+# Covers: REQ-31 · P0 · Access · Oracle: UI, Neg
+# synced: CL-10
+#
+# Partial without OTHER_TITLE (needs a team member's activity, D6).
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, SCP-03, P0, scope]
+env:
+  OTHER_TITLE: ""
+---
+- runFlow: ../subflows/open_list.yaml
+- runFlow:
+    file: ../subflows/select_scope.yaml
+    env:
+      SCOPE: myActivities
+- assertVisible: "Scope · My Activity"
+- runFlow:
+    when:
+      true: ${OTHER_TITLE != ""}
+    commands:
+      - runFlow:
+          file: ../subflows/search_list.yaml
+          env:
+            QUERY: ${OTHER_TITLE}
+      - assertNotVisible:
+          text: ${OTHER_TITLE}
+          childOf:
+            id: "activities_card"

@@ -1,0 +1,65 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 EDT-02 — qa2/04-test-scenarios.md
+# Scenario: Change the title and save → Main shows the new title
+# Given:    edit form open on the user's task
+# When:     they change the title and save
+# Then:     success, and Main shows the new title
+# Covers: REQ-53, REQ-42 · P0 · Happy · Oracle: UI, Data
+# synced: CL-10
+# Creates one task each run.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, EDT-02, P0, edit]
+---
+- evalScript: ${output.title = 'QA2-EDT-02-' + Date.now()}
+- runFlow: ../subflows/open_dashboard.yaml
+- runFlow:
+    file: ../subflows/create_private_task.yaml
+    env:
+      TITLE: ${output.title}
+- runFlow:
+    when:
+      visible:
+        id: "activities_dashboard_total"
+    commands:
+      - tapOn:
+          id: "activities_view_toggle"
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/tap_chip.yaml
+    env:
+      CHIP: main
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/search_list.yaml
+    env:
+      QUERY: ${output.title}
+- tapOn:
+    id: "activities_card_edit"
+    index: 0
+- extendedWaitUntil:
+    visible: "Save changes"
+    timeout: 60000
+# Save stays faded until something changes
+- assertVisible:
+    id: "activity_create_save_button"
+    enabled: false
+- tapOn: ${output.title}
+- eraseText: 60
+- inputText: ${output.title + '-new'}
+- hideKeyboard
+- tapOn:
+    id: "activity_create_save_button"
+- extendedWaitUntil:
+    visible: "Activity updated"
+    timeout: 60000
+- tapOn: "Ok"
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/search_list.yaml
+    env:
+      QUERY: ${output.title + '-new'}
+- assertVisible:
+    text: ${output.title + '-new'}
+    childOf:
+      id: "activities_card"

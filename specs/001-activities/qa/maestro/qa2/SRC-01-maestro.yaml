@@ -1,0 +1,23 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 SRC-01 — qa2/04-test-scenarios.md
+# Scenario: Search by title finds the activity
+# Given:    an activity titled SEARCH_TITLE exists (.env)
+# When:     the user types the title and stops
+# Then:     after about 0.4 s the list shows it
+# Covers: REQ-18, REQ-19 · P0 · Happy · Oracle: UI
+# synced: CL-10
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, SRC-01, P0, search]
+---
+- runFlow: ../subflows/open_list.yaml
+- runFlow:
+    file: ../subflows/search_list.yaml
+    env:
+      QUERY: ${SEARCH_TITLE}
+- assertVisible:
+    text: ".*${SEARCH_TITLE}.*"
+    childOf:
+      id: "activities_card"
+- assertNotVisible:
+    id: "activities_message"

@@ -1,0 +1,17 @@
+# Searches the list for TITLE and opens its card (detail, or master when the
+# Main chip is on). Start on the list view. Ends on the detail screen.
+# synced: CL-10
+appId: ${APP_ID}
+---
+- runFlow:
+    file: search_list.yaml
+    env:
+      QUERY: ${TITLE}
+- tapOn:
+    text: ${TITLE}
+    childOf:
+      id: "activities_card"
+- extendedWaitUntil:
+    visible:
+      id: "activity_detail_action_start|activity_detail_action_end|activity_detail_action_toggle_enabled"
+    timeout: 60000

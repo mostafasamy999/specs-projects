@@ -1,0 +1,44 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 SCP-05 — qa2/04-test-scenarios.md
+# Scenario: Another user's private activity never shows
+# Given:    OTHER_PRIVATE_TITLE: U-EMP's private task (D-PRIV)
+# When:     U-TEAM tries All, My activities, Private
+# Then:     it never shows
+# Covers: IMP-03, R-02 · P0 · Access · Oracle: Neg
+# synced: CL-10
+#
+# Needs data from a second account; fails with "needs test data" without it.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, SCP-05, P0, scope]
+env:
+  OTHER_PRIVATE_TITLE: ""
+---
+- assertTrue:
+    condition: ${OTHER_PRIVATE_TITLE != ""}
+    label: "Needs test data: set OTHER_PRIVATE_TITLE to another user's private task"
+- runFlow: ../subflows/open_list.yaml
+- runFlow:
+    file: ../subflows/search_list.yaml
+    env:
+      QUERY: ${OTHER_PRIVATE_TITLE}
+- assertNotVisible:
+    text: ${OTHER_PRIVATE_TITLE}
+    childOf:
+      id: "activities_card"
+- runFlow:
+    file: ../subflows/select_scope.yaml
+    env:
+      SCOPE: myActivities
+- assertNotVisible:
+    text: ${OTHER_PRIVATE_TITLE}
+    childOf:
+      id: "activities_card"
+- runFlow:
+    file: ../subflows/select_scope.yaml
+    env:
+      SCOPE: private
+- assertNotVisible:
+    text: ${OTHER_PRIVATE_TITLE}
+    childOf:
+      id: "activities_card"

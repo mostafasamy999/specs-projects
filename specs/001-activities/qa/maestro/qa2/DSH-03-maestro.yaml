@@ -1,0 +1,53 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 DSH-03 — qa2/04-test-scenarios.md
+# Scenario: Donut total = Visits + Tasks; status counts never exceed a type's total
+# Given:    default filter
+# When:     the dashboard loads
+# Then:     total = Visits + Tasks; for each type completed + in progress + pending + late ≤ total
+# Covers: INV-10 · P0 · Inv · Oracle: UI
+# synced: CL-10
+#
+# Reads the numbers off the screen and checks the sums with evalScript.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, DSH-03, P0, dashboard]
+---
+- runFlow: ../subflows/open_dashboard.yaml
+- copyTextFrom:
+    text: "\\d+"
+    leftOf: "Tasks"
+    childOf:
+      id: "activities_dashboard_total"
+- evalScript: ${output.total = parseInt(maestro.copiedText)}
+- copyTextFrom:
+    text: "\\d+"
+    rightOf: "Tasks"
+    childOf:
+      id: "activities_dashboard_total"
+- evalScript: ${output.tasks = parseInt(maestro.copiedText)}
+- copyTextFrom:
+    text: "\\d+"
+    rightOf: "Visits"
+    childOf:
+      id: "activities_dashboard_total"
+- evalScript: ${output.visits = parseInt(maestro.copiedText)}
+# Then: total = Visits + Tasks
+- assertTrue:
+    condition: ${output.total == output.tasks + output.visits}
+    label: "Donut total equals Tasks + Visits"
+# Tasks summary: "N completed / N in progress / N pending / N late"
+- copyTextFrom: "(?s).*\\d+ completed.*\\d+ late.*"
+- evalScript: ${output.taskRows = (maestro.copiedText.match(/\d+/g) || []).reduce((a, b) => a + parseInt(b), 0)}
+- assertTrue:
+    condition: ${output.taskRows <= output.tasks}
+    label: "Tasks: completed + in progress + pending + late <= Tasks total"
+# Visits summary: "Completed / N / In progress / N / Pending / N / Late / N"
+- scrollUntilVisible:
+    element:
+      id: "activities_visits_summary"
+- copyTextFrom: "(?s)Completed.*Late.*"
+- evalScript: ${output.visitRows = (maestro.copiedText.match(/\d+/g) || []).reduce((a, b) => a + parseInt(b), 0)}
+- assertTrue:
+    condition: ${output.visitRows <= output.visits}
+    label: "Visits: completed + in progress + pending + late <= Visits total"
+- takeScreenshot: results/qa2-DSH-03

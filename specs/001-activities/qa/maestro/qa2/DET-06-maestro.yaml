@@ -1,0 +1,51 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 DET-06 — qa2/04-test-scenarios.md
+# Scenario: End is enabled only In progress, and completes at 100
+# Given:    a new Pending task
+# When:     the user starts it, then taps End
+# Then:     no End while Pending; after End: Completed, 100%, End disabled
+# Covers: REQ-59, BR-6 · P0 · State · Oracle: UI
+# synced: CL-10
+# Creates one task each run.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, DET-06, P0, details]
+---
+- evalScript: ${output.title = 'QA2-DET-06-' + Date.now()}
+- runFlow: ../subflows/open_dashboard.yaml
+- runFlow:
+    file: ../subflows/create_private_task.yaml
+    env:
+      TITLE: ${output.title}
+- runFlow:
+    when:
+      visible:
+        id: "activities_dashboard_total"
+    commands:
+      - tapOn:
+          id: "activities_view_toggle"
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/open_activity.yaml
+    env:
+      TITLE: ${output.title}
+# Pending: Start, no End
+- assertNotVisible:
+    id: "activity_detail_action_end"
+- tapOn:
+    id: "activity_detail_action_start"
+- extendedWaitUntil:
+    visible:
+      id: "activity_detail_action_end"
+      enabled: true
+    timeout: 60000
+- tapOn:
+    id: "activity_detail_action_end"
+- extendedWaitUntil:
+    visible:
+      id: "activity_detail_action_end"
+      enabled: false
+    timeout: 60000
+- assertVisible: "Completed"
+- assertVisible: "100%"
+- takeScreenshot: results/qa2-DET-06

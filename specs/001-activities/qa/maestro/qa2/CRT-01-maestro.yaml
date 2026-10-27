@@ -1,0 +1,30 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 CRT-01 — qa2/04-test-scenarios.md
+# Scenario: Add opens with Visit selected on the start side
+# Given:    English UI
+# When:     the user taps Add
+# Then:     Visit is selected, Visit on the left, Task on the right
+# Covers: REQ-40 · P0 · Happy · Oracle: UI
+# synced: CL-10
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, CRT-01, P0, create]
+---
+- runFlow: ../subflows/open_dashboard.yaml
+- tapOn:
+    id: "activities_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "activity_create_save_button"
+    timeout: 30000
+- assertVisible:
+    id: "activity_create_type_visit"
+    selected: true
+- assertVisible:
+    id: "activity_create_type_task"
+    selected: false
+- assertVisible:
+    id: "activity_create_type_visit"
+    leftOf:
+      id: "activity_create_type_task"
+- back

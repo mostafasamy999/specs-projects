@@ -1,0 +1,53 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 LST-06 — qa2/04-test-scenarios.md
+# Scenario: 21 activities load as 10 + 10 + 1 and paging stops
+# Given:    21 activities titled QA2-BULK-01 … QA2-BULK-21 (setup/create_bulk.yaml)
+# When:     the user searches QA2-BULK and scrolls to the end
+# Then:     the count reads 21 and every title loads while scrolling
+# Covers: REQ-14 · P0 · Bnd · Oracle: UI, Req
+# synced: CL-10
+#
+# Not checked here: that no 4th page request is sent (request log only).
+# Run qa2/setup/create_bulk.yaml once first.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, LST-06, P0, list]
+env:
+  BULK_QUERY: "QA2-BULK"
+  BULK_COUNT: "21"
+---
+- runFlow: ../subflows/open_list.yaml
+- runFlow:
+    file: ../subflows/search_list.yaml
+    env:
+      QUERY: ${BULK_QUERY}
+- assertVisible:
+    id: "activities_results_count"
+    text: "${BULK_COUNT} activities"
+    label: "Needs ${BULK_COUNT} test activities (run qa2/setup/create_bulk.yaml)"
+# When: scroll through every page; Then: each title loads
+- evalScript: ${output.i = 0}
+- repeat:
+    times: ${BULK_COUNT}
+    commands:
+      - evalScript: ${output.i = output.i + 1; output.title = BULK_QUERY + '-' + (output.i < 10 ? '0' : '') + output.i}
+      - scrollUntilVisible:
+          element:
+            text: ${output.title}
+          direction: DOWN
+          timeout: 60000
+          optional: true
+      - runFlow:
+          when:
+            notVisible: ${output.title}
+          commands:
+            - scrollUntilVisible:
+                element:
+                  id: "activities_search_field"
+                direction: UP
+            - scrollUntilVisible:
+                element:
+                  text: ${output.title}
+                direction: DOWN
+                timeout: 60000
+- takeScreenshot: results/qa2-LST-06

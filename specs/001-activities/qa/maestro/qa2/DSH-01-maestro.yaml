@@ -1,0 +1,36 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 DSH-01 — qa2/04-test-scenarios.md
+# Scenario: Activities opens on the dashboard after a shimmer
+# Given:    U-TEAM is logged in
+# When:     they tap the Activities tab
+# Then:     the dashboard (not the list): donut, Visits summary, Tasks summary, date range
+# Covers: REQ-01, REQ-07 · P0 · Happy · Oracle: UI
+# synced: CL-10
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, DSH-01, P0, dashboard]
+---
+- runFlow: ../subflows/open_dashboard.yaml
+# Then: the dashboard, not the list
+- assertVisible:
+    id: "activities_dashboard_total"
+- assertNotVisible:
+    id: "activities_search_field"
+# Then: date range shown (today−6 → today)
+- assertVisible: "(?s)ACTIVITY OVERVIEW.*→.*"
+# Then: donut rows and both summaries
+- assertVisible:
+    text: "Tasks"
+    childOf:
+      id: "activities_dashboard_total"
+- assertVisible:
+    text: "Visits"
+    childOf:
+      id: "activities_dashboard_total"
+- scrollUntilVisible:
+    element:
+      id: "activities_tasks_summary"
+- scrollUntilVisible:
+    element:
+      id: "activities_visits_summary"
+- takeScreenshot: results/qa2-DSH-01

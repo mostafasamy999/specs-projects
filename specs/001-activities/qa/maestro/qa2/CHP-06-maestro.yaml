@@ -1,0 +1,40 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 CHP-06 — qa2/04-test-scenarios.md
+# Scenario: Main lists masters once each, with a pencil
+# Given:    MULTI_TITLE: an activity with 2+ occurrences (optional)
+# When:     the user taps Main
+# Then:     Main is selected, cards have a pencil, a repeating activity shows once
+# Covers: REQ-25 · P0 · Happy · Oracle: UI
+# synced: CL-10
+#
+# Partial without MULTI_TITLE: only the pencil and the chip are checked.
+# Note: the Main chip's label is "My Team" in English (newActivitiesMain).
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, CHP-06, P0, quick_filters]
+env:
+  MULTI_TITLE: ""
+---
+- runFlow: ../subflows/open_list.yaml
+- runFlow:
+    file: ../subflows/tap_chip.yaml
+    env:
+      CHIP: main
+- runFlow: ../subflows/wait_for_results.yaml
+- assertVisible:
+    id: "activities_chip_main"
+    selected: true
+- assertVisible:
+    id: "activities_card_edit"
+- runFlow:
+    when:
+      true: ${MULTI_TITLE != ""}
+    commands:
+      - runFlow:
+          file: ../subflows/search_list.yaml
+          env:
+            QUERY: ${MULTI_TITLE}
+      - assertVisible:
+          id: "activities_results_count"
+          text: "1 activities"
+          label: "${MULTI_TITLE} is listed once in Main"

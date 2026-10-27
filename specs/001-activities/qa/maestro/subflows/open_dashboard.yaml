@@ -34,3 +34,25 @@ appId: ${APP_ID}
     # First load chains ~10 lookups behind the home screen's calls; the test
     # server can take minutes on a cold start.
     timeout: 180000
+    optional: true
+# Debug builds can bring up Chucker (the HTTP inspector) over the app; leave
+# it and open Activities again.
+- runFlow:
+    when:
+      visible: "Copy cURL Command|Chucker.*"
+    commands:
+      - repeat:
+          while:
+            notVisible:
+              id: "bottom_nav_activities_tab"
+          times: 3
+          commands:
+            - back
+      - tapOn:
+          id: "bottom_nav_activities_tab"
+      - extendedWaitUntil:
+          visible:
+            id: "activities_dashboard_total"
+          timeout: 180000
+- assertVisible:
+    id: "activities_dashboard_total"

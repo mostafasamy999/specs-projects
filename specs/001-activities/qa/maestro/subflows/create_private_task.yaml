@@ -1,0 +1,35 @@
+# Creates a private Task titled TITLE, starting now (rounded up by the wheel
+# picker) and ending at the same time. Private fixes the people to the
+# logged-in user, so no people picker is needed.
+# Start on the Activities screen (dashboard or list). Ends back on it.
+# Creates real data on the test backend: TITLE must start with "QA2-".
+# synced: CL-10
+appId: ${APP_ID}
+---
+- tapOn:
+    id: "activities_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "activity_create_save_button"
+    timeout: 30000
+- tapOn:
+    id: "activity_create_type_task"
+- tapOn: "Enter a title"
+- inputText: ${TITLE}
+- hideKeyboard
+- tapOn:
+    id: "activity_create_private_toggle"
+- tapOn: "(?s)Start date and time.*"
+- tapOn: "Done"
+- tapOn: "(?s)End date and time.*"
+- tapOn: "Done"
+- tapOn:
+    id: "activity_create_save_button"
+- extendedWaitUntil:
+    visible: "Activity created"
+    timeout: 60000
+- tapOn: "Ok"
+- extendedWaitUntil:
+    visible:
+      id: "activities_dashboard_total|activities_search_field"
+    timeout: 60000

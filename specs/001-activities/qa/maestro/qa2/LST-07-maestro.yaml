@@ -1,0 +1,56 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 LST-07 — qa2/04-test-scenarios.md
+# Scenario: No card appears twice across pages
+# Given:    QA2-BULK-01 … 21 (setup/create_bulk.yaml)
+# When:     the user scrolls through all pages
+# Then:     each title appears exactly once
+# Covers: REQ-14, INV-02, R-07 · P0 · Inv · Oracle: UI
+# synced: CL-10
+#
+# Checks that no title shows a second copy on screen once its page is
+# loaded. A duplicate more than a screen apart wouldn't be seen; the count
+# check (21 cards for 21 results) is in the request log.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, LST-07, P0, list]
+env:
+  BULK_QUERY: "QA2-BULK"
+  BULK_COUNT: "21"
+---
+- runFlow: ../subflows/open_list.yaml
+- runFlow:
+    file: ../subflows/search_list.yaml
+    env:
+      QUERY: ${BULK_QUERY}
+- assertVisible:
+    id: "activities_results_count"
+    text: "${BULK_COUNT} activities"
+    label: "Needs ${BULK_COUNT} test activities (run qa2/setup/create_bulk.yaml)"
+- evalScript: ${output.i = 0}
+- repeat:
+    times: ${BULK_COUNT}
+    commands:
+      - evalScript: ${output.i = output.i + 1; output.title = BULK_QUERY + '-' + (output.i < 10 ? '0' : '') + output.i}
+      - scrollUntilVisible:
+          element:
+            text: ${output.title}
+          direction: DOWN
+          timeout: 60000
+          optional: true
+      - runFlow:
+          when:
+            notVisible: ${output.title}
+          commands:
+            - scrollUntilVisible:
+                element:
+                  id: "activities_search_field"
+                direction: UP
+            - scrollUntilVisible:
+                element:
+                  text: ${output.title}
+                direction: DOWN
+                timeout: 60000
+      - assertNotVisible:
+          text: ${output.title}
+          index: 1
+          label: "${output.title} shows only once"

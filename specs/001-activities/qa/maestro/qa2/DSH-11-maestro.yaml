@@ -1,0 +1,34 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 DSH-11 — qa2/04-test-scenarios.md
+# Scenario: Tap Tasks summary → list of Tasks only
+# Given:    dashboard shown
+# When:     the user taps the Tasks summary
+# Then:     the list opens with chip 'Type · Tasks' and every card is a Task
+# Covers: REQ-11 · P0 · Happy · Oracle: UI
+# synced: CL-10
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, DSH-11, P0, dashboard]
+---
+- runFlow: ../subflows/open_dashboard.yaml
+- scrollUntilVisible:
+    element:
+      id: "activities_tasks_summary"
+- tapOn:
+    id: "activities_tasks_summary"
+- extendedWaitUntil:
+    visible:
+      id: "activities_search_field"
+    timeout: 20000
+- runFlow: ../subflows/wait_for_results.yaml
+# Then: the type chip is set to Tasks
+- assertVisible:
+    id: "activities_chip_type"
+    selected: true
+- assertVisible: "Type · Tasks"
+# Then: no Visit card
+- assertNotVisible:
+    text: "VISIT"
+    childOf:
+      id: "activities_card"
+- takeScreenshot: results/qa2-DSH-11

@@ -1,0 +1,60 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 CHP-01 — qa2/04-test-scenarios.md
+# Scenario: Current includes today and excludes yesterday
+# Given:    a task created now (today); optionally YESTERDAY_TITLE, an activity from yesterday
+# When:     the user taps Current
+# Then:     today's task is listed; yesterday's isn't
+# Covers: REQ-21 · P0 · Bnd · Oracle: UI
+# synced: CL-10
+#
+# Partial: the exact 00:00 boundary needs an activity at today 00:00 and one
+# at yesterday 23:59 (D10, D13), which the form can't create here. Set
+# YESTERDAY_TITLE to check the "excludes yesterday" half.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, CHP-01, P0, quick_filters]
+env:
+  YESTERDAY_TITLE: ""
+---
+- evalScript: ${output.title = 'QA2-CHP-01-' + Date.now()}
+- runFlow: ../subflows/open_dashboard.yaml
+- runFlow:
+    file: ../subflows/create_private_task.yaml
+    env:
+      TITLE: ${output.title}
+- runFlow:
+    when:
+      visible:
+        id: "activities_dashboard_total"
+    commands:
+      - tapOn:
+          id: "activities_view_toggle"
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/tap_chip.yaml
+    env:
+      CHIP: current
+- runFlow: ../subflows/wait_for_results.yaml
+- assertVisible:
+    id: "activities_chip_current"
+    selected: true
+- runFlow:
+    file: ../subflows/search_list.yaml
+    env:
+      QUERY: ${output.title}
+- assertVisible:
+    text: ${output.title}
+    childOf:
+      id: "activities_card"
+- runFlow:
+    when:
+      true: ${YESTERDAY_TITLE != ""}
+    commands:
+      - runFlow:
+          file: ../subflows/search_list.yaml
+          env:
+            QUERY: ${YESTERDAY_TITLE}
+      - assertNotVisible:
+          text: ${YESTERDAY_TITLE}
+          childOf:
+            id: "activities_card"

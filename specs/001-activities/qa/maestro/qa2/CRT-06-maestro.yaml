@@ -1,0 +1,45 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 CRT-06 — qa2/04-test-scenarios.md
+# Scenario: Visit without category, exec type, location is outlined
+# Given:    Visit form with title, dates, people (private)
+# When:     the user taps Create
+# Then:     category, execution type and location are outlined; title isn't
+# Covers: REQ-44, R-13 · P0 · Neg · Oracle: UI
+# synced: CL-10
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, CRT-06, P0, create]
+---
+- runFlow: ../subflows/open_dashboard.yaml
+- tapOn:
+    id: "activities_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "activity_create_save_button"
+    timeout: 30000
+- tapOn: "Enter a title"
+- inputText: "QA2-CRT-06 not saved"
+- hideKeyboard
+- tapOn:
+    id: "activity_create_private_toggle"
+- tapOn: "(?s)Start date and time.*"
+- tapOn: "Done"
+- tapOn: "(?s)End date and time.*"
+- tapOn: "Done"
+- tapOn:
+    id: "activity_create_save_button"
+- assertNotVisible:
+    id: "activity_create_field_title_error"
+- scrollUntilVisible:
+    element:
+      id: "activity_create_field_category_error"
+- assertVisible:
+    id: "activity_create_field_executionType_error"
+- scrollUntilVisible:
+    element:
+      id: "activity_create_field_location_error"
+- assertNotVisible: "Activity created"
+- back
+- tapOn:
+    text: "Ok|Yes|Discard|Leave"
+    optional: true

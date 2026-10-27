@@ -1,0 +1,72 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 DET-10 — qa2/04-test-scenarios.md
+# Scenario: Change status to Cancelled with a reason → actions gone
+# Given:    a new task, started (In progress)
+# When:     the user changes the status to Cancelled with reason QA2
+# Then:     status Cancelled; no note, status change, reschedule, progress or End
+# Covers: REQ-62, INV-06 · P0 · State · Oracle: UI
+# synced: CL-10
+# Creates one task each run.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, DET-10, P0, details]
+---
+- evalScript: ${output.title = 'QA2-DET-10-' + Date.now()}
+- runFlow: ../subflows/open_dashboard.yaml
+- runFlow:
+    file: ../subflows/create_private_task.yaml
+    env:
+      TITLE: ${output.title}
+- runFlow:
+    when:
+      visible:
+        id: "activities_dashboard_total"
+    commands:
+      - tapOn:
+          id: "activities_view_toggle"
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/open_activity.yaml
+    env:
+      TITLE: ${output.title}
+- tapOn:
+    id: "activity_detail_action_start"
+- extendedWaitUntil:
+    visible:
+      id: "activity_detail_action_end"
+      enabled: true
+    timeout: 60000
+- tapOn:
+    id: "activity_detail_status_row"
+- extendedWaitUntil:
+    visible: "Update status"
+    timeout: 30000
+- tapOn:
+    text: "Cancelled"
+    index: 0
+- tapOn: "Add a short reason for the change"
+- inputText: "QA2"
+- hideKeyboard
+- tapOn: "Update status"
+- extendedWaitUntil:
+    notVisible: "Update status"
+    timeout: 60000
+- extendedWaitUntil:
+    visible: "Cancelled"
+    timeout: 60000
+# Then: no actions left
+- assertNotVisible:
+    id: "activity_detail_action_note"
+- assertNotVisible:
+    id: "activity_detail_status_row"
+    enabled: true
+- assertNotVisible:
+    id: "activity_detail_start_row"
+    enabled: true
+- assertVisible:
+    id: "activity_detail_progress_slider"
+    enabled: false
+- assertVisible:
+    id: "activity_detail_action_end"
+    enabled: false
+- takeScreenshot: results/qa2-DET-10

@@ -1,0 +1,42 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 FLT-06 — qa2/04-test-scenarios.md
+# Scenario: Show results applies and reloads list + dashboard
+# Given:    default filter
+# When:     the user picks Status · Completed and taps Show results
+# Then:     the sheet closes, the list shows Completed, the dashboard shows 0 pending and 0 in progress
+# Covers: REQ-38 · P0 · Happy · Oracle: UI
+# synced: CL-10
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, FLT-06, P0, filter_sheet]
+---
+- runFlow: ../subflows/open_list.yaml
+- tapOn:
+    id: "activities_filter_button"
+- extendedWaitUntil:
+    visible:
+      id: "activities_filter_apply"
+    timeout: 20000
+- tapOn:
+    text: "Completed"
+    index: 0
+- tapOn:
+    id: "activities_filter_apply"
+- runFlow: ../subflows/wait_for_results.yaml
+# Then: sheet closed, filter applied
+- assertNotVisible:
+    id: "activities_filter_apply"
+- assertVisible: "Status · Completed"
+- assertNotVisible:
+    text: "Pending|Progress"
+    childOf:
+      id: "activities_card"
+# Then: the dashboard follows the status (no pending or in-progress tasks)
+- tapOn:
+    id: "activities_view_toggle"
+- extendedWaitUntil:
+    visible:
+      id: "activities_dashboard_total"
+    timeout: 60000
+- assertVisible: "(?s)\\d+ completed.*0 in progress.*0 pending.*"
+- takeScreenshot: results/qa2-FLT-06

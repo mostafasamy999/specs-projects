@@ -1,0 +1,27 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 CHP-09 — qa2/04-test-scenarios.md
+# Scenario: Type · Tasks shows only tasks
+# Given:    default filter
+# When:     the user picks Type · Tasks
+# Then:     chip reads 'Type · Tasks', only Tasks are listed
+# Covers: REQ-26 · P0 · Happy · Oracle: UI
+# synced: CL-10
+#
+# Not checked here: that the dashboard request is sent again (request log).
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, CHP-09, P0, quick_filters]
+---
+- runFlow: ../subflows/open_list.yaml
+- runFlow:
+    file: ../subflows/select_type.yaml
+    env:
+      TYPE: task
+- assertVisible:
+    id: "activities_chip_type"
+    selected: true
+- assertVisible: "Type · Tasks"
+- assertNotVisible:
+    text: "VISIT"
+    childOf:
+      id: "activities_card"

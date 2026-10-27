@@ -1,0 +1,49 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 DET-03 — qa2/04-test-scenarios.md
+# Scenario: Start a Pending task → In progress
+# Given:    a new Pending task with no start form
+# When:     the user taps Start
+# Then:     status In progress, Start becomes End, the progress slider is enabled
+# Covers: REQ-56, BR-6 · P0 · State · Oracle: UI, Data
+# synced: CL-10
+# Creates one task each run.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, DET-03, P0, details]
+---
+- evalScript: ${output.title = 'QA2-DET-03-' + Date.now()}
+- runFlow: ../subflows/open_dashboard.yaml
+- runFlow:
+    file: ../subflows/create_private_task.yaml
+    env:
+      TITLE: ${output.title}
+- runFlow:
+    when:
+      visible:
+        id: "activities_dashboard_total"
+    commands:
+      - tapOn:
+          id: "activities_view_toggle"
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/open_activity.yaml
+    env:
+      TITLE: ${output.title}
+- assertVisible: "Pending"
+- assertVisible:
+    id: "activity_detail_progress_slider"
+    enabled: false
+- tapOn:
+    id: "activity_detail_action_start"
+- extendedWaitUntil:
+    visible:
+      id: "activity_detail_action_end"
+      enabled: true
+    timeout: 60000
+- assertVisible: "In progress|Progress"
+- assertNotVisible:
+    id: "activity_detail_action_start"
+- assertVisible:
+    id: "activity_detail_progress_slider"
+    enabled: true
+- takeScreenshot: results/qa2-DET-03

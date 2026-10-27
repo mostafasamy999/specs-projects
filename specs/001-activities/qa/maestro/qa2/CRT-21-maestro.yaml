@@ -1,0 +1,51 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 CRT-21 — qa2/04-test-scenarios.md, Create
+# Scenario: Create a Task → success → appears in Main
+# Given:    U-TEAM is logged in
+# When:     they create Task "QA2-CRT-21-<n>" for today, assigned to self
+# Then:     overlay, success dialog, back to Activities; Main lists the title
+# Covers: REQ-52, IMP-04 · P0 · Happy · Oracle: UI, Data
+# synced: CL-10
+#
+# Assigned to self through the Private toggle (fixes people to the creator).
+# Creates one activity on the test backend each run.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, CRT-21, P0, create]
+---
+- evalScript: ${output.title = 'QA2-CRT-21-' + Date.now()}
+- runFlow: ../subflows/open_dashboard.yaml
+
+# When: create the task (success dialog is checked inside the subflow)
+- runFlow:
+    file: ../subflows/create_private_task.yaml
+    env:
+      TITLE: ${output.title}
+
+# Then: Main lists it, as a Task
+- runFlow:
+    when:
+      visible:
+        id: "activities_dashboard_total"
+    commands:
+      - tapOn:
+          id: "activities_view_toggle"
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/tap_chip.yaml
+    env:
+      CHIP: main
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/search_list.yaml
+    env:
+      QUERY: ${output.title}
+- assertVisible:
+    text: ${output.title}
+    childOf:
+      id: "activities_card"
+- assertVisible:
+    text: "TASK"
+    childOf:
+      id: "activities_card"
+- takeScreenshot: results/qa2-CRT-21

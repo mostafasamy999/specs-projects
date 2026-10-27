@@ -1,0 +1,43 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 FLT-12 — qa2/04-test-scenarios.md
+# Scenario: Reset restores the default filter
+# Given:    Status · Pending and scope My activities applied
+# When:     the user taps Reset in the filter sheet
+# Then:     the sheet closes and the default filter is back (All, no status)
+# Covers: REQ-39 · P0 · Happy · Oracle: UI
+# synced: CL-10
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, FLT-12, P0, filter_sheet]
+---
+- runFlow: ../subflows/open_list.yaml
+- runFlow:
+    file: ../subflows/tap_chip.yaml
+    env:
+      CHIP: status
+- tapOn:
+    text: "Pending"
+    index: 0
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/select_scope.yaml
+    env:
+      SCOPE: myActivities
+- assertVisible: "Status · Pending"
+- assertVisible: "Scope · My Activity"
+- tapOn:
+    id: "activities_filter_button"
+- extendedWaitUntil:
+    visible:
+      id: "activities_filter_reset"
+    timeout: 20000
+- tapOn:
+    id: "activities_filter_reset"
+- runFlow: ../subflows/wait_for_results.yaml
+- assertNotVisible:
+    id: "activities_filter_reset"
+- assertNotVisible: "Status · Pending"
+- assertNotVisible: "Scope · My Activity"
+- assertVisible:
+    id: "activities_chip_status"
+    selected: false

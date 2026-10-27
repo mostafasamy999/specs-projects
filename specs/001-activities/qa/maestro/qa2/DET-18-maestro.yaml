@@ -1,0 +1,60 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 DET-18 — qa2/04-test-scenarios.md
+# Scenario: Closed occurrence offers no note, status, reschedule
+# Given:    a new task, started and ended (Completed)
+# When:     the user reopens it
+# Then:     no Add note, no status change, no reschedule
+# Covers: INV-06, R-11 · P0 · Inv · Oracle: Neg
+# synced: CL-10
+# Creates one task each run.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, DET-18, P0, details]
+---
+- evalScript: ${output.title = 'QA2-DET-18-' + Date.now()}
+- runFlow: ../subflows/open_dashboard.yaml
+- runFlow:
+    file: ../subflows/create_private_task.yaml
+    env:
+      TITLE: ${output.title}
+- runFlow:
+    when:
+      visible:
+        id: "activities_dashboard_total"
+    commands:
+      - tapOn:
+          id: "activities_view_toggle"
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/open_activity.yaml
+    env:
+      TITLE: ${output.title}
+- tapOn:
+    id: "activity_detail_action_start"
+- extendedWaitUntil:
+    visible:
+      id: "activity_detail_action_end"
+      enabled: true
+    timeout: 60000
+- tapOn:
+    id: "activity_detail_action_end"
+- extendedWaitUntil:
+    visible:
+      id: "activity_detail_action_end"
+      enabled: false
+    timeout: 60000
+- back
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/open_activity.yaml
+    env:
+      TITLE: ${output.title}
+- assertVisible: "Completed"
+- assertNotVisible:
+    id: "activity_detail_action_note"
+- assertNotVisible:
+    id: "activity_detail_status_row"
+    enabled: true
+- assertNotVisible:
+    id: "activity_detail_start_row"
+    enabled: true

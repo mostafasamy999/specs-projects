@@ -1,0 +1,94 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 CRT-22 — qa2/04-test-scenarios.md
+# Scenario: Create a weekly Visit with days and location
+# Given:    U-TEAM
+# When:     the user creates a weekly Visit (Sun, Tue) with category and location
+# Then:     success, and Main lists it as a Visit
+# Covers: REQ-52 · P0 · Happy · Oracle: UI, Data
+# synced: CL-10
+#
+# Partial: no contact (the account's saved contacts are unknown); the first
+# category that offers Weekly is used. Creates one visit each run.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, CRT-22, P0, create]
+---
+- evalScript: ${output.title = 'QA2-CRT-22-' + Date.now()}
+- runFlow: ../subflows/open_dashboard.yaml
+- tapOn:
+    id: "activities_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "activity_create_save_button"
+    timeout: 30000
+- tapOn: "Enter a title"
+- inputText: ${output.title}
+- hideKeyboard
+- tapOn:
+    id: "activity_create_private_toggle"
+- tapOn: "(?s)Start date and time.*"
+- tapOn: "Done"
+- tapOn: "(?s)End date and time.*"
+- tapOn: "Done"
+- scrollUntilVisible:
+    element:
+      id: "activity_create_field_category"
+- tapOn:
+    id: "activity_create_field_category"
+- tapOn:
+    id: "options_sheet_option"
+    index: 0
+- tapOn:
+    id: "activity_create_field_executionType"
+- tapOn: "Weekly"
+- scrollUntilVisible:
+    element: "Sun"
+- tapOn: "Sun"
+- tapOn: "Tue"
+- scrollUntilVisible:
+    element:
+      id: "activity_create_field_location"
+- tapOn:
+    id: "activity_create_field_location"
+- extendedWaitUntil:
+    visible: "Submit"
+    timeout: 30000
+- swipe:
+    start: 50%, 45%
+    end: 45%, 40%
+- tapOn: "Submit"
+- tapOn:
+    id: "activity_create_save_button"
+- extendedWaitUntil:
+    visible: "Activity created"
+    timeout: 60000
+- tapOn: "Ok"
+- extendedWaitUntil:
+    visible:
+      id: "activities_dashboard_total|activities_search_field"
+    timeout: 60000
+- runFlow:
+    when:
+      visible:
+        id: "activities_dashboard_total"
+    commands:
+      - tapOn:
+          id: "activities_view_toggle"
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/tap_chip.yaml
+    env:
+      CHIP: main
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/search_list.yaml
+    env:
+      QUERY: ${output.title}
+- assertVisible:
+    text: ${output.title}
+    childOf:
+      id: "activities_card"
+- assertVisible:
+    text: "VISIT"
+    childOf:
+      id: "activities_card"

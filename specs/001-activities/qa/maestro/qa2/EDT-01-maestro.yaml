@@ -1,0 +1,51 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 EDT-01 — qa2/04-test-scenarios.md
+# Scenario: Pencil on an open, editable master opens a filled form, type locked
+# Given:    an open private task the user created
+# When:     they tap its pencil in Main
+# Then:     the form is filled, the type is locked, the button reads Save changes
+# Covers: REQ-53, REQ-43 · P0 · Happy · Oracle: UI
+# synced: CL-10
+# Creates one task each run.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, EDT-01, P0, edit]
+---
+- evalScript: ${output.title = 'QA2-EDT-01-' + Date.now()}
+- runFlow: ../subflows/open_dashboard.yaml
+- runFlow:
+    file: ../subflows/create_private_task.yaml
+    env:
+      TITLE: ${output.title}
+- runFlow:
+    when:
+      visible:
+        id: "activities_dashboard_total"
+    commands:
+      - tapOn:
+          id: "activities_view_toggle"
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/tap_chip.yaml
+    env:
+      CHIP: main
+- runFlow: ../subflows/wait_for_results.yaml
+- runFlow:
+    file: ../subflows/search_list.yaml
+    env:
+      QUERY: ${output.title}
+- tapOn:
+    id: "activities_card_edit"
+    index: 0
+- extendedWaitUntil:
+    visible: "Save changes"
+    timeout: 60000
+- assertVisible: ${output.title}
+- assertVisible:
+    id: "activity_create_type_task"
+    selected: true
+- assertVisible:
+    id: "activity_create_type_visit"
+    enabled: false
+- assertVisible: "Save changes"
+- back

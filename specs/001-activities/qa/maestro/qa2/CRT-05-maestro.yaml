@@ -1,0 +1,43 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 CRT-05 — qa2/04-test-scenarios.md
+# Scenario: Empty Task submit outlines required fields, nothing sent
+# Given:    Task form, nothing entered
+# When:     the user taps Create
+# Then:     title, start/end and people are outlined, nothing is sent
+# Covers: REQ-44, REQ-52, R-13 · P0 · Neg · Oracle: UI, Neg
+# synced: CL-10
+#
+# People is checked only when the account can pick people; a user without a
+# team has them fixed to themselves (REQ-41), so that field can't be empty.
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, CRT-05, P0, create]
+---
+- runFlow: ../subflows/open_dashboard.yaml
+- tapOn:
+    id: "activities_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "activity_create_save_button"
+    timeout: 30000
+- tapOn:
+    id: "activity_create_type_task"
+- tapOn:
+    id: "activity_create_save_button"
+- assertVisible:
+    id: "activity_create_field_title_error"
+- scrollUntilVisible:
+    element:
+      id: "activity_create_field_dates_error"
+# Fixed people (no team) keep the id without "_error".
+- runFlow:
+    when:
+      notVisible:
+        id: "activity_create_field_people"
+    commands:
+      - assertVisible:
+          id: "activity_create_field_people_error"
+- assertNotVisible: "Activity created"
+- assertVisible:
+    id: "activity_create_save_button"
+- back

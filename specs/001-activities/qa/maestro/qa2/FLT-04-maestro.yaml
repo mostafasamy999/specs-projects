@@ -1,0 +1,36 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa2 FLT-04 — qa2/04-test-scenarios.md
+# Scenario: Cancel throws away the draft
+# Given:    Status · Pending applied
+# When:     the user opens the sheet, picks Completed, taps Cancel
+# Then:     the chip still reads Pending
+# Covers: REQ-33, INV-07, R-08 · P0 · Neg · Oracle: UI
+# synced: CL-10
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa2, FLT-04, P0, filter_sheet]
+---
+- runFlow: ../subflows/open_list.yaml
+- runFlow:
+    file: ../subflows/tap_chip.yaml
+    env:
+      CHIP: status
+- tapOn:
+    text: "Pending"
+    index: 0
+- runFlow: ../subflows/wait_for_results.yaml
+- assertVisible: "Status · Pending"
+- tapOn:
+    id: "activities_filter_button"
+- extendedWaitUntil:
+    visible:
+      id: "activities_filter_cancel"
+    timeout: 20000
+- tapOn:
+    text: "Completed"
+    index: 0
+- tapOn:
+    id: "activities_filter_cancel"
+- runFlow: ../subflows/wait_for_results.yaml
+- assertVisible: "Status · Pending"
+- assertNotVisible: "Status · Completed"
