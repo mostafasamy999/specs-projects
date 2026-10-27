@@ -9,6 +9,7 @@
 - Corrected QF-09 (it marked a request as confirmed that G-01 says is contradictory), FLT-04 and FLT-21 (they expected an `isPrivate` field the requests don't have) and the smoke-suite count.
 - Added gaps G-32 to G-50: privacy control, edit data loss, double submission, out-of-order responses, multi-assignee and recurring behavior, private assignment, session/company switch, deep links, cross-company assignment, weekday mapping, Arabic-Indic digits, reschedule validation, upload limits, dashboard vs list counts, and (critical) dashboard vs Main list counts.
 - Added gaps G-51 to G-57 from a cross-screen pass (each filter walked through the list, Main, dashboard, picker and details): the dashboard can't follow Priority or Search (critical), Main can't filter by execution type, type and time chips empty parts of the dashboard, the list endpoint may ignore team scope, the picker and list count differently, and the timeline depends on the entry point.
+- Added §7, the test execution log. Run R1 (2026-10-27, Android emulator) covered G-01 to G-04, raised defects DEF-01 to DEF-07 and gap G-58.
 - Added 45 test cases (DSH-13–19, QF-16–18, FLT-25–26, SRC-13–14, SRT-05, PAG-13–14, LST-10, CRT-19–26, DET-21–31, PRG-13–16, ASG-13, PERM-08–10), the matching coverage rows, and questions 31–56.
 
 | File reviewed | Lines | Status |
@@ -54,7 +55,7 @@
 | Cross-screen consistency | 🔴 Not ready | The same filter means different things on the list, Main and the dashboard: the dashboard can't carry Main, Priority or Search, and Main can't carry execution type or Current/Previous (G-13, G-50–G-55) |
 | Multi-assignee / recurring | 🔴 Not ready | One card or one per assignee, count and progress semantics, and occurrence vs series actions are undefined (G-39, G-40) |
 
-**Numbers:** 236 test cases written (46 P0). 111 have fully documented expected results, 108 have at least one [PO-CONFIRM] or [ASSUMED-IN-CODE] part, and 17 are blocked (Q12, Q13, Q14, Q19 or the undocumented create baseline). 57 specification gaps found, 11 of them critical.
+**Numbers:** 236 test cases written (46 P0). 111 have fully documented expected results, 108 have at least one [PO-CONFIRM] or [ASSUMED-IN-CODE] part, and 17 are blocked (Q12, Q13, Q14, Q19 or the undocumented create baseline). 58 specification gaps found, 11 of them critical. Run R1 (§7) raised 7 defects.
 
 **Process observations**
 - The spec is marked **Approved** while three backend questions (Q12–Q14) block core behavior and ten more (Q15–Q24) aren't sent yet. QA recommends "Approved with open items" until at least Q14, Q16 and Q19 are answered.
@@ -70,10 +71,10 @@ Severity: **Critical** = a test cannot have a defined expected result, or the sp
 
 | ID | Type | Severity | Finding | Where | Impact | Question for the product owner / backend |
 |---|---|---|---|---|---|---|
-| G-01 | Contradiction | **Critical** | Scope → request mapping contradicts itself. API §1.7 says **My activities** sends "the user's allowed companies and employees". BR §12.1 and T5.3 say Mine and Private send "the user's **own** IDs". | API §1.7, BR §12.1, T5.3 | "My activities" might return the whole team's activities. Test expected results differ depending on which file is right. | For "My activities", must the request contain only the logged-in user's own employee ID, or every employee they're allowed to see? |
-| G-02 | Contradiction | **Critical** | `onlyMe = true` is sent for both **All** (team + mine + private) and **Private only**, which have opposite meanings. The only difference is the ID list. On create, `onlyMe` means "only the creator sees it". The DTO says `null` = All scope, but the code never sends null. | API §1.7, §3.10, OQ Q16 | Private-only may show non-private items, or All may hide public ones. The scope filter can't be verified. | What does `onlyMe` mean on list/dashboard requests? What exact request represents "All", "My team", "My activities" and "Private only"? |
-| G-03 | Missing rule | **Critical** | No time zone rule. "Today 00:00" isn't defined as device local time, company time or server time. | BR §7.2, API §1.6 | Users in another time zone, or a device with the wrong clock, will see activities in the wrong bucket. Gap/overlap rule can break. | Which time zone defines "today 00:00" for Current/Previous, the dashboard and the workload? |
-| G-04 | Undefined API | **Critical** | Previous boundary depends on whether `endDateTime` is inclusive (Q14) and whether the backend reads `yyyy-MM-dd` or `yyyy-MM-ddTHH:mm:ss` (Q23). If the backend truncates to a date, "2026-10-20T23:59:59" and "2026-10-21T00:00:00" behave differently than the spec intends. | BR §7.2, API §1.6, Q14, Q23 | Activities at 00:00 today may appear in both lists, or yesterday's may still drop. The core WP1 fix can't be signed off. | Is `endDateTime` inclusive? Does the backend compare date-times or only dates? |
+| G-01 | Contradiction | **Critical** | **Tested R1 (§7): partly settled, My activities sends the user's own IDs, so API §1.7 is wrong. Not closed: no account with a team was available.** Scope → request mapping contradicts itself. API §1.7 says **My activities** sends "the user's allowed companies and employees". BR §12.1 and T5.3 say Mine and Private send "the user's **own** IDs". | API §1.7, BR §12.1, T5.3 | "My activities" might return the whole team's activities. Test expected results differ depending on which file is right. | For "My activities", must the request contain only the logged-in user's own employee ID, or every employee they're allowed to see? |
+| G-02 | Contradiction | **Critical** | **Tested R1 (§7): defect DEF-01, Private only returns public activities.** `onlyMe = true` is sent for both **All** (team + mine + private) and **Private only**, which have opposite meanings. The only difference is the ID list. On create, `onlyMe` means "only the creator sees it". The DTO says `null` = All scope, but the code never sends null. | API §1.7, §3.10, OQ Q16 | Private-only may show non-private items, or All may hide public ones. The scope filter can't be verified. | What does `onlyMe` mean on list/dashboard requests? What exact request represents "All", "My team", "My activities" and "Private only"? |
+| G-03 | Missing rule | **Critical** | **Tested R1 (§7): DEF-07, the buckets follow the device time zone.** No time zone rule. "Today 00:00" isn't defined as device local time, company time or server time. | BR §7.2, API §1.6 | Users in another time zone, or a device with the wrong clock, will see activities in the wrong bucket. Gap/overlap rule can break. | Which time zone defines "today 00:00" for Current/Previous, the dashboard and the workload? |
+| G-04 | Undefined API | **Critical** | **Tested R1 (§7): DEF-06, Previous still ends at yesterday 00:00; Q14 still open.** Previous boundary depends on whether `endDateTime` is inclusive (Q14) and whether the backend reads `yyyy-MM-dd` or `yyyy-MM-ddTHH:mm:ss` (Q23). If the backend truncates to a date, "2026-10-20T23:59:59" and "2026-10-21T00:00:00" behave differently than the spec intends. | BR §7.2, API §1.6, Q14, Q23 | Activities at 00:00 today may appear in both lists, or yesterday's may still drop. The core WP1 fix can't be signed off. | Is `endDateTime` inclusive? Does the backend compare date-times or only dates? |
 | G-05 | Missing rule | **Critical** | "Scheduled start" isn't defined for recurring (weekly/monthly) activities. A list item is one occurrence, but the card shows only `masterData.fromDateTime`/`endDateTime` (API §4.3). | BR §6.7, §7.2, API §4.1, §4.3 | Sorting and Current/Previous might use the master start, not the occurrence date. A recurring activity that started last month would sit in Previous forever. | For a recurring activity, are Current/Previous and sorting based on the occurrence date/time or the master's start? Which date must the card show? |
 | G-06 | Ambiguous | **Critical** | Search fields unknown (Q19). Debounce interval, minimum characters, trimming and case/diacritic sensitivity aren't defined. | BR §6.6, Q19 | The acceptance criterion "matching results are returned according to the agreed search contract" refers to a contract that doesn't exist. | Which fields does `searchValue` match? Debounce ms? Minimum length? Trimmed? Case-insensitive? Arabic diacritics/alef variants normalized? |
 | G-07 | Missing rule | **Critical** | Status **7 Partially Completed** is in neither the Open group {1,2} nor the Non-editable group {3,4,5}. | BR §4.2, §7.1 | Actions on a partially completed activity are undefined (edit, progress, reschedule, complete). | Which actions are allowed when the status is Partially Completed? How does an activity reach status 7? |
@@ -639,3 +640,51 @@ Add **ASG-04, ASG-06** once Q12 is answered and **PERM-02** once Q13 is answered
 - (v1.3) Run the cross-screen pass: for each chip and filter, apply it in the list, then open Main, the dashboard and details, and compare counts and chip state (QF-16–QF-18, DSH-15–DSH-19, LST-10, DET-30, DET-31, PRG-16, ASG-13).
 - (v1.3) Run the concurrency pass (CRT-22, DET-21, PRG-15, PAG-13, SRC-13, DET-22) on a throttled network, and the edit data pass (CRT-19–CRT-21) on activities with attachments, an address and a contact.
 - **Test data set to keep stable:** activities at 2026-10-20 23:59:59, 2026-10-21 00:00:00, yesterday 10:00, far past, far future, one recurring weekly activity, one private, one disabled, one in each status 1/2/3/4/5/7, 25+ items for paging. Added in v1.3: one activity assigned to two employees, one private activity assigned to someone else, one activity in another company, one activity with attachments, an address and a contact, and three activities whose creation order differs from their scheduled order.
+
+---
+
+## 7. Test execution log
+
+### Run R1 — 2026-10-27
+
+| Item | Value |
+|---|---|
+| Build | `talentlink` branch `enhance/activities` @ `425fc38f`, flavor `development`, debug, app 1.3.14 |
+| Device | Android emulator `Medium_Phone_API_36.0` (Android 16), time zone UTC+3 |
+| Backend | `test.talentlink360.com` (TalentLink_Dev) |
+| Account | "final test confirmation", role Team Leader, employee 317, company 6, subscriber 1 |
+| Evidence | Request and response bodies from the app's `PrettyDioLogger` output, plus screenshots |
+
+**Limitation:** `GetCompaniesAndEmployeesList` returned empty `allowedCompanies` and `allowedEmployees` for this Team Leader, so the app treated the account as having no team: the Scope chip offered only All, My Activity and Private. No account with a team was available, so every team-related expectation is still open.
+
+#### Results
+
+| Case / gap | Result | Evidence |
+|---|---|---|
+| G-01, QF-08 (My activities) | **Partly settled.** Sends the user's own IDs: `onlyMe`=false, `employeeId`=[317], `companyId`=[6]. This matches BR T5.3; API §1.7 ("allowed companies and employees") is wrong. Open: whether All and My activities return different results for a manager with a team. | List and dashboard requests identical in IDs; 2 activities returned |
+| G-02, QF-09 (Private only) | **Fail → DEF-01.** Sends `onlyMe`=true, `employeeId`=[317], `companyId`=[6], but both returned activities have `onlyMe`=false and no privacy indicator. | Response: masters 2794 and 2780, both `onlyMe`=false |
+| QF-06 (Scope All, default) | **Fail → DEF-02.** Sends `onlyMe`=true with `employeeId`=[] and `companyId`=[], not the allowed IDs (Q5) nor the user's own. Backend still returned the same 2 activities. | First list and dashboard requests after login |
+| PERM-01 (role screen access) | **Blocked → DEF-03.** A Team Leader gets no team, so team scopes can't be reached. | `GetCompaniesAndEmployeesList` result empty |
+| ASG-09 (workload window) | **Confirms G-10.** `fromDateTime` and `endDateTime` are both `2026-10-27T11:18:20`, a zero-length window. | `GetEmployeeTasksORVisits` request |
+| TS-06 (Current request) | **Pass.** `fromDateTime`=`2026-10-27T00:00:00`, `endDateTime`=null. 1 activity (27 Oct 10:00). | List and dashboard requests |
+| TS-07, G-04 (Previous request) | **Fail → DEF-06 (WP1 still open).** `fromDateTime`=null, `endDateTime`=`2026-10-26T00:00:00`, i.e. yesterday 00:00. 13 activities. This account has no activity on 26 Oct, so no item was visibly lost; Q14 (inclusive bound) still can't be checked. | List request |
+| TS-10, G-03 (device time zone) | **Fail → DEF-07.** With the emulator set to UTC−12 (device date Mon 26 Oct 20:24), Current sent `2026-10-26T00:00:00` and Previous sent `endDateTime`=`2026-10-25T00:00:00`. Task #2780 (25 Oct 10:56) was then in **neither** list (Previous 12, Current 1; it was in Previous at UTC+3). "Today" comes from the device clock and is sent without a time zone. | List requests and totals before and after the change |
+| QF-14 (default chips on first open) | **Observation → G-58.** Neither Current nor Previous is selected; the list and dashboard use 21 Oct 00:00 → 27 Oct 23:59:00. | First list request; dashboard header "21 Oct → 27 Oct" |
+
+#### Defects raised
+
+| ID | Severity | Summary | Steps | Expected | Actual |
+|---|---|---|---|---|---|
+| DEF-01 | High | Private only shows public activities | Activities → list → Scope → Private | Only private activities (BR §6.1) | 2 public activities (`onlyMe`=false), same as All |
+| DEF-02 | High | Scope All sends empty company and employee lists | Open Activities (All is the default) | Every allowed ID (Q5), including the user's own | `employeeId`=[], `companyId`=[]. If the backend treats [] as "no filter", users may see activities outside their scope |
+| DEF-03 | Medium (data or backend) | Team Leader has no team in the company/employee lookup | Log in as the Team Leader above → Activities | The Team Leader's team is returned and My team is offered | Empty `allowedCompanies` / `allowedEmployees`; My team hidden |
+| DEF-04 | Low | List default range ends at 23:59:00 | Open the list | Range covers the whole last day (to 23:59:59 or next day 00:00 exclusive) | Activities between 23:59:00 and 23:59:59 are excluded |
+| DEF-06 | High | Previous still ends at yesterday 00:00 (WP1 not fixed on `enhance/activities`) | List → Previous | `endDateTime` = today 00:00 (or 00:00 − 1s, Q14) | `endDateTime` = yesterday 00:00, so yesterday's activities are in neither Current nor Previous |
+| DEF-07 | High | Current/Previous depend on the device time zone | Set the device to UTC−12 while the company is on UTC+3 → List → Previous, then Current | The same activity stays in the same bucket regardless of the device clock (rule pending G-03) | The boundaries move with the device date; combined with DEF-06, an activity two days old fell out of both lists |
+| DEF-05 | Low (outside Activities) | Home week strip shows "THU 29" twice | Open Home | Mon 26 … Sun 1, one per day | MON 26, TUE 27, WED 28, THU 29, THU 29, FRI 30, SAT 31 |
+
+#### New gap from R1
+
+| ID | Type | Severity | Finding | Where | Impact | Question for the product owner |
+|---|---|---|---|---|---|---|
+| G-58 | Undocumented behavior | Medium | The list and dashboard open on a fixed 7-day range (21 Oct 00:00 → 27 Oct 23:59:00) with neither Current nor Previous selected. The spec defines only Current and Previous. | BR §6.1, §7.2 | Activities older than 7 days or in the future are hidden on first open; counts differ from Current/Previous. | What is the default view on first open: Current, Previous, or a date range? If a range, which one? |

@@ -27,6 +27,13 @@ For a new entry, copy this template:
   - Q27 (G-52): the Main list can't filter by execution type.
   - Q28 (G-55): the list endpoint may return only the logged-in user's activities under My team and All.
   - The same pass also produced G-53, G-54, G-56 and G-57 (QA only, no numbered question yet).
+- **Test run R1** (Android emulator, development build, Team Leader test account), recorded in QA review §7:
+  - G-01 is partly settled: My activities sends the user's own IDs, so api-contracts §1.7 is wrong. It isn't closed, because no account with a team was available.
+  - G-02 failed: Private only returns public activities (DEF-01).
+  - Also raised: All sends empty ID lists (DEF-02), the Team Leader gets no team (DEF-03), the default range ends at 23:59:00 (DEF-04), and the home week strip repeats Thursday (DEF-05).
+  - Previous still ends at yesterday 00:00, so WP1 isn't fixed on `enhance/activities` (DEF-06).
+  - Current/Previous follow the device time zone: at UTC−12, a 25 Oct task fell out of both lists (DEF-07, G-03).
+  - New gap G-58: the list opens on an undocumented 7-day range.
 - **Reason:** a second review against business-requirements v1.2 and api-contracts v1.2 found scenarios the first review missed.
 - **Affected area:** `qa/qa-review-v1.3.md`, `open-questions.md` (Q25–Q28), business-requirements §13 (summary line only). No requirement and no API contract changed.
 - **Decisions:**
