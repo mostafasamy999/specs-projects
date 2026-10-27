@@ -1,8 +1,14 @@
 # QA Review — 001 New Activities (Visits & Tasks)
 
+**Review version:** 1.3
 **Reviewer role:** Senior QA Analyst (requirements review + test design only; no code read, no code changed)
-**Review date:** 2026-10-21
-**Spec baseline:** `specs/001-activities/` v1.2 (Approved, last updated 2026-10-21)
+**Review date:** 2026-10-21 (v1.2), updated 2026-10-27 (v1.3)
+**Spec baseline:** `specs/001-activities/` v1.2 (Approved, last updated 2026-10-21). The spec itself hasn't changed since v1.2.
+
+**What changed in v1.3**
+- Corrected QF-09 (it marked a request as confirmed that G-01 says is contradictory), FLT-04 and FLT-21 (they expected an `isPrivate` field the requests don't have) and the smoke-suite count.
+- Added gaps G-32 to G-49: privacy control, edit data loss, double submission, out-of-order responses, multi-assignee and recurring behavior, private assignment, session/company switch, deep links, cross-company assignment, weekday mapping, Arabic-Indic digits, reschedule validation, upload limits, and dashboard vs list counts.
+- Added 32 test cases (DSH-13–14, FLT-25–26, SRC-13–14, SRT-05, PAG-13–14, CRT-19–26, DET-21–29, PRG-13–15, PERM-08–10), the matching coverage rows, and questions 31–48.
 
 | File reviewed | Lines | Status |
 |---|---|---|
@@ -36,20 +42,23 @@
 | Search | 🔴 Not ready | Matched fields unknown (Q19). Debounce interval, minimum length and trimming undefined |
 | Sorting | 🟢 Ready | Q8 confirmed. Tie-break undefined (minor) |
 | Pagination | 🟢 Mostly ready | Rules are clear. Page size, dedupe key and the `totalCount`-missing case are undefined |
-| Create / Edit | 🟡 Partial | v1.2 toggle behavior is clear. Field-level validation is "existing baseline" with no written rules |
+| Create / Edit | 🟡 Partial | v1.2 toggle behavior is clear. Field-level validation is "existing baseline" with no written rules. Edit may drop attachments, address and contact (G-35) |
 | Details & actions | 🔴 Not ready | Permission flags blocked (Q13). Status transitions, step order and status 7 handling undefined |
 | Progress | 🟢 Mostly ready | 0–100 int confirmed (Q7). Who may update is blocked (Q13) |
 | Workload / Assignment | 🔴 Blocked | Status field doesn't exist yet (Q12). Date window contradicts "today" (Q17) |
 | Errors & UI states | 🟡 Partial | States listed. Retry behavior, timeouts and error messages undefined (Q24) |
 | Arabic / English | 🟡 Partial | Toggle direction defined. Whether backend names are localized is TBD |
 | Regression (old module) | 🟢 Ready | Isolation rules and shared classes clearly listed |
+| Concurrency / double submit | 🟡 Partial | Only concurrent page loads are covered. No rules for double submission, late responses or stale details (G-36–G-38) |
+| Multi-assignee / recurring | 🔴 Not ready | One card or one per assignee, count and progress semantics, and occurrence vs series actions are undefined (G-39, G-40) |
 
-**Numbers:** 191 test cases written (45 P0). 108 have fully documented expected results, 66 have at least one [PO-CONFIRM] or [ASSUMED-IN-CODE] part, and 17 are blocked (Q12, Q13, Q14, Q19 or the undocumented create baseline). 31 specification gaps found, 9 of them critical.
+**Numbers:** 223 test cases written (46 P0). 111 have fully documented expected results, 95 have at least one [PO-CONFIRM] or [ASSUMED-IN-CODE] part, and 17 are blocked (Q12, Q13, Q14, Q19 or the undocumented create baseline). 49 specification gaps found, 9 of them critical.
 
 **Process observations**
 - The spec is marked **Approved** while three backend questions (Q12–Q14) block core behavior and ten more (Q15–Q24) aren't sent yet. QA recommends "Approved with open items" until at least Q14, Q16 and Q19 are answered.
 - The v1.2 change (Visit default) records "Reason: requested by the user" (CL line 20) but no product-owner confirmation. All other product decisions cite a PO answer. Traceability gap.
 - BR §12.4 "State (2026-10-18) … No app code has changed yet" is stale: T10.1 and T10.2 are ticked as done on 2026-10-21.
+- (v1.3, 2026-10-27) Q12–Q14 have waited 9 days with no answer, and Q15–Q24 still haven't been sent. G-01 to G-06 depend on Q14, Q16, Q19 and Q23, so QA recommends sending Q15–Q24 now.
 
 ---
 
@@ -90,6 +99,24 @@ Severity: **Critical** = a test cannot have a defined expected result, or the sp
 | G-29 | Ambiguous | Low | "Creator" (searchable, displayed) — the list item has only `assignByName`. Is assigner = creator? | BR §5.2, §6.6, API §4.1 | Wrong field shown/searched. | Is `assignByName` the creator? |
 | G-30 | Undefined | Low | Localization: are `priorityName`, `statusName`, `typeName`, `actionName` localized by `langId`? Is `langId` "ar" for Arabic? What happens to the screen when the language changes? | API §1.2, §3.4 | English labels in the Arabic UI. | Does the backend localize lookup names by `langId`? |
 | G-31 | Traceability | Low | v1.2 "Visit default" has no product-owner approval recorded. `isEnabled = false` activities: visible in lists or hidden? | CL v1.2, API §3.18 | Disabled items may still appear and be actionable. | Confirm v1.2 with the PO. Should disabled activities appear in the lists and dashboard? |
+| G-32 | Contradiction | High | Privacy is controlled in two places, and neither maps cleanly to the request. BR §6.2 and §7.3 define a Privacy filter (`isPrivate`, default true = private included with public), and BR §6.1 has a "Private only" scope chip. The list and dashboard requests have no `isPrivate` field, only `onlyMe`, which the scope drives (API §1.7). What `isPrivate = false` does is undefined. | BR §6.1, §6.2, §7.3; API §1.7, §3.1–3.2 | FLT-04 and FLT-21 can't check the request. Turning privacy off may do nothing. | Is the Privacy filter separate from the Scope chip? If so, which request field carries it, and does `isPrivate = false` exclude private activities? |
+| G-33 | Contradiction | Low | BR §11 asks for unit tests of "workload classification", but Q4 says the app computes no thresholds and only displays the backend status. | BR §11, §6.5, Q4 | Developers may write or keep client-side classification to satisfy the test plan. | Remove "workload classification" from BR §11, or rename it to "workload status mapping". |
+| G-34 | Test design | Medium | The sort field isn't sent, only `direction`. Sorting by scheduled start (Q8) happens on the backend. If test data is created in the same order it is scheduled, sorting by creation date would also pass. | BR §6.7, API §3.2 | A backend that sorts by `createdAt` would go unnoticed. | (QA action, no question) Use data whose creation order differs from its scheduled order (SRT-05). |
+| G-35 | Undefined API | High | Edit goes through `InsertVisitOrTask` with the activity ID, but the repository always sends `attachments = []`, `addressText = null`, `companyContactId` / `companyContactEmail = null` and `companyId` = the logged-in company. If the backend replaces the record, every edit deletes the existing attachments, address and contact, and can move the activity to another company. | API §3.10 | Silent data loss on edit. | On update, does the backend replace every field or only the ones sent? Are existing attachments kept when `attachments = []`? Which `companyId` must an update send? |
+| G-36 | Missing rule | High | No rule against double submission of Save (create/edit), steps (check-in/out, start, complete), change status, reschedule, add note or progress. The requests carry no idempotency key. | BR §5.3, §5.4, §8.2; API §3.10–3.19 | Duplicate activities, steps or notes from a double tap or a retry after a timeout. | Must the app disable each action while its request is in flight? Does the backend reject duplicates? |
+| G-37 | Missing rule | High | BR §8.1 prevents concurrent page requests but says nothing about responses that arrive out of order: a slow search response arriving after a newer one, or page 2 of the old filter arriving after the filter changed. | BR §6.6, §8.1 | The list shows results for an old query, or mixes two filters. | Must the app ignore (or cancel) every response except the one for the latest query? |
+| G-38 | Missing rule | Medium | No rule for acting on stale details: another user changes the status (for example, the manager cancels) while the details screen is open, and the user then starts or completes it. | BR §5.4 | Actions on cancelled or completed activities; unclear error. | What does the backend return for an action the current status doesn't allow? Must the app reload details after a failed action? |
+| G-39 | Ambiguous | High | An activity with several assignees has one occurrence (`detailsid`) per assignee. Undefined: whether a manager's list shows it once per assignee, whether dashboard counts are per activity or per occurrence, and whether progress is per occurrence or rolled up to the master. | BR §5.1, §5.2, §7.5; API §3.1, §3.19, §4.1 | Cards that look duplicated, dashboard totals that don't match the list, wrong progress. | For a multi-assignee activity: one card or one per assignee? Do counts count activities or occurrences? Is progress per assignee? |
+| G-40 | Missing rule | Medium | Recurring activities: does reschedule or change status apply to one occurrence or the whole series? What happens to completed occurrences when the master is edited (new dates, days or assignees)? | BR §5.3, §5.4; API §3.10, §3.15, §3.16 | History lost or rewritten; duplicated occurrences. | Which actions apply to one occurrence and which to the series? How does editing a master affect past and completed occurrences? |
+| G-41 | Missing rule | High | On create, `onlyMe` means "only the creator sees it" (Q16), but a private activity still has assignees. Undefined: whether an assignee can see a private activity assigned to them. | API §3.10, §4.1; Q16 | An employee may never see a task assigned to them, or private data may leak to assignees. | Can an assignee see a private activity assigned to them? Can a private activity be assigned to someone else at all? |
+| G-42 | Missing rule | Medium | No rule for applied filters, scope and selected employees on logout, user switch or logged-in company switch. WP1 mentions persisted filters, so persistence may exist. | BR §7.3, WP1; API §1.2 | The next user or company inherits the previous filters and employee IDs; wrong or empty results. | Are filters persisted? Must they reset on logout and on company switch? |
+| G-43 | Missing rule | Medium | No rule for opening details (deep link, notification, stale list) of an activity that was deleted, disabled or is no longer accessible to the user. | BR §5.4, §8.2; API §3.7, §3.18 | Crash, blank screen, or a disabled or private activity shown to the wrong user. | What does `GetVisitOrTaskDetails` return in those cases, and what must the app show? |
+| G-44 | Missing rule | Medium | Create sends `companyId` = the logged-in company, but the assign-to picker can list employees from other companies in the user's tree. | BR §6.3, §6.5; API §3.10 | Activity saved under the wrong company; the assignee can't see it. | Can an activity be assigned across companies? If so, which `companyId` is sent? |
+| G-45 | Test risk | Medium | Weekly days use 1 = Saturday … 7 = Friday (API §1.6), while Dart's `DateTime.weekday` uses 1 = Monday … 7 = Sunday. A mapping error shifts every weekly schedule by two days. | API §1.6, §3.10 | Weekly activities created on the wrong days. | (QA action, no question) Test every weekday (CRT-24). |
+| G-46 | Missing validation | Medium | No rule for Arabic-Indic digits (٠–٩) typed into progress, search, dates or times. | BR §6.6, §7.5 | Progress rejected or saved as 0; numeric searches don't match. | Must numeric inputs accept and normalize Arabic-Indic digits? |
+| G-47 | Missing validation | Medium | Reschedule sends one `newDate` with `newFromTime` / `newToTime`, plus `startDateTime` / `endDateTime`. Undefined: an end before the start, an activity that crosses midnight, and which pair the backend trusts. | API §3.16 | Invalid schedules saved, or the two pairs disagree. | What are the reschedule validation rules? Which fields are authoritative? |
+| G-48 | Missing rule | Medium | No limits for attachments and step files (size, count, types), and no rule for a failed or partial multipart upload. | API §1.3, §3.10, §3.12–3.14 | Large uploads time out; a step saved without its files, or files without the step. | Maximum file size, count and types? Is a step saved when a file upload fails? |
+| G-49 | Contradiction | Medium | The dashboard's `totalTasksCurrent` / `totalTasksPrevious` (and the Visit equivalents) are computed by the backend with its own split. The list uses the app's split at today 00:00 (Q2). | BR §7.2; API §3.1 | The dashboard and the list can show different Current/Previous counts. | Does the backend use the same today-00:00 split, and the same time zone, as Q2? |
 
 ---
 
@@ -114,6 +141,8 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | DSH-10 | Tasks quick filter on dashboard | Dashboard loaded | — | 1) Tap Tasks chip | [DOC] Activity view restricted to Tasks (list `typeId`=1). [PO-CONFIRM G-11] whether donut/summaries also refresh | P0 | Positive | BR §10 Dashboard |
 | DSH-11 | Late counts | — | `tasksLate`=2, `visitsLate`=1 | 1) Open dashboard | [PO-CONFIRM G-23] Where and whether late counts show; definition of late | P3 | Positive | API §3.1 |
 | DSH-12 | Dashboard follows filter sheet | Dashboard loaded | Filter: Status=Pending, Priority=High | 1) Apply filter 2) Observe dashboard | [PO-CONFIRM G-11] Dashboard request carries `statusId`=1. Priority cannot be sent (no field) | P2 | Integration | BR §6.1, API §3.1 |
+| DSH-13 | Dashboard and list Current/Previous counts match | Activities on both sides of today 00:00 | TS-08 dataset (10 activities) | 1) Read the dashboard Current/Previous summary counts 2) Count list items under Current and under Previous | [PO-CONFIRM G-49] The counts match (backend uses the Q2 split) | P2 | Integration | BR §7.2, API §3.1, G-49 |
+| DSH-14 | Multi-assignee activity in the counts | One Task assigned to E1 and E2 | — | 1) Open dashboard as M1 | [PO-CONFIRM G-39] `taskCount` counts it once or twice; record which | P1 | Boundary | API §3.1, G-39 |
 
 ### 3.2 Current / Previous time scope (Module: Quick filters — time)
 
@@ -145,7 +174,7 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | QF-06 | Scope All | M1 | Allowed companies C1, C2 | 1) Select Scope All | [ASSUMED-IN-CODE] `onlyMe`=true, all allowed IDs. [PO-CONFIRM G-02] Results include team + mine + private | P1 | Integration | BR §6.1, API §1.7, Q16 |
 | QF-07 | Scope My team | M1 | — | 1) Select My team | [ASSUMED-IN-CODE] `onlyMe`=false, all allowed IDs | P1 | Integration | API §1.7 |
 | QF-08 | Scope My activities | M1 | — | 1) Select My activities | [PO-CONFIRM G-01] `onlyMe`=false; ID list = own IDs (BR) or allowed IDs (API). Results only M1's activities | P1 | Integration | API §1.7, T5.3 |
-| QF-09 | Scope Private only | M1 has 2 private, 5 public | — | 1) Select Private | [DOC] Only the 2 private activities appear, each with a privacy indicator. Request per API: `onlyMe`=true, own IDs | P1 | Positive | BR §6.1, §5.2 |
+| QF-09 | Scope Private only | M1 has 2 private, 5 public | — | 1) Select Private | [DOC] Only the 2 private activities appear, each with a privacy indicator. [PO-CONFIRM G-01] Request: `onlyMe`=true; ID list = own IDs (BR T5.3) or allowed IDs (API §1.7) | P1 | Positive | BR §6.1, §5.2 |
 | QF-10 | Status chip | — | Completed (4) | 1) Select Status Completed | [DOC] `statusId`=4; every item shows Completed | P1 | Positive | BR §6.1 |
 | QF-11 | Priority chip | — | High (id 3) | 1) Select Priority High | [DOC] `priorityId`=3 (single int); every item High | P1 | Positive | BR §6.1, API §3.2 |
 | QF-12 | Department chip | E1 in D1, E2 in D2 | D1 | 1) Select Department D1 | [ASSUMED-IN-CODE Q15] No department field; `employeeId` contains only D1 employees; only E1's activities | P1 | Integration | BR §6.1, Q15 |
@@ -160,7 +189,7 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | FLT-01 | Apply status and priority | List on page 3 | In Progress (2), High (3) | 1) Open Filter 2) Pick both 3) Apply | [DOC] Request `statusId`=2, `priorityId`=3, `skip`=0. List refreshes | P0 | Positive | BR §10 Filtering, §8.1 |
 | FLT-02 | Dismiss keeps applied filters | Applied Status=Pending | — | 1) Open Filter 2) Change to Completed 3) Dismiss (swipe down / back) 4) Reopen | [DOC] No new request; list still Pending; sheet shows Pending | P0 | Negative | BR §5.5, §10 |
 | FLT-03 | Reset only clears the draft | Applied Status=Pending, Priority=High | — | 1) Open Filter 2) Reset 3) Dismiss | [DOC] Draft cleared to defaults; after Dismiss applied filters are still Pending/High. [PO-CONFIRM G-12] list of defaults | P1 | Positive | BR §5.5 |
-| FLT-04 | Reset then Apply | As FLT-03 | — | 1) Reset 2) Apply | [DOC] Request with defaults (`statusId`=null, `priorityId`=null, privacy default true) | P1 | Positive | BR §5.5, §7.3 |
+| FLT-04 | Reset then Apply | As FLT-03 | — | 1) Reset 2) Apply | [DOC] Request with defaults (`statusId`=null, `priorityId`=null). [PO-CONFIRM G-32] How the privacy default appears in the request (there is no `isPrivate` field) | P1 | Positive | BR §5.5, §7.3 |
 | FLT-05 | Visits → Tasks clears Visit-only | — | Category "Field", Execution "On-site" | 1) Type Visits 2) Pick category + execution 3) Switch to Tasks 4) Apply | [DOC] Category and execution hidden; request `categoryId`=[], `executionTypeId`=null | P0 | Positive | BR §7.4, §10 |
 | FLT-06 | Visit-only hidden for All | — | — | 1) Type All | [DOC] Category and execution type hidden. [PO-CONFIRM G-21] whether earlier values are cleared | P1 | Boundary | BR §6.2 |
 | FLT-07 | Category change reloads execution types | Type Visits | Category A → B | 1) Pick A, execution X 2) Change to B | [DOC] `GetTaskExecutionTypeList` called with `{"id": B}`. [PO-CONFIRM G-21] X cleared | P1 | Integration | API §3.5 |
@@ -177,10 +206,12 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | FLT-18 | Empty company list fallback | Company list returns [] | — | 1) Open Filter | [DOC] Current company used "where permitted". [PO-CONFIRM] when it's permitted | P2 | Boundary | BR §6.3 |
 | FLT-19 | Department change clears out-of-scope employees | E1 in D1 | — | 1) Pick D1, E1 2) Change to D2 | [DOC] E1 cleared | P1 | Positive | BR §7.4 |
 | FLT-20 | Parent department | D1 has child D1a with E3 | — | 1) Pick D1 | [PO-CONFIRM G-20] Whether E3's activities are included | P2 | Boundary | G-20 |
-| FLT-21 | Privacy default | M1 has private + public | — | 1) Open Filter without changes 2) Apply | [DOC] `isPrivate` default true → private and public both listed | P1 | Positive | BR §7.3 |
+| FLT-21 | Privacy default | M1 has private + public | — | 1) Open Filter without changes 2) Apply | [DOC] Privacy default (`isPrivate` = true) → private and public both listed. [PO-CONFIRM G-32] Which request field carries it (lists only have `onlyMe`) | P1 | Positive | BR §7.3 |
 | FLT-22 | Priority lookup fails | `GetPriorityList` returns failure | — | 1) Open Filter | [DOC] Lookup error state in the priority section; sheet still usable | P2 | Negative | BR §8.2 |
 | FLT-23 | Priority lookup empty | Returns [] | — | 1) Open Filter | [DOC] "No available options" state | P2 | Boundary | BR §8.2 |
 | FLT-24 | Full applied state sent | Applied: Type Visits, Status Pending | — | 1) Open Filter 2) Change only Priority to Low 3) Apply | [DOC] Request still includes `typeId`=2 and `statusId`=1 plus the new priority | P1 | Regression | BR §8.1 |
+| FLT-25 | Privacy filter turned off | M1 has private and public activities | Privacy off | 1) Open Filter 2) Turn privacy off 3) Apply 4) Capture request | [PO-CONFIRM G-32] Which request field changes; whether private activities disappear | P1 | Integration | BR §6.2, §7.3, G-32 |
+| FLT-26 | Privacy filter vs Private-only chip | — | Scope Private only; privacy off in the sheet | 1) Select Private only 2) Turn privacy off in the sheet 3) Apply | [PO-CONFIRM G-32] Which one wins; the request doesn't contradict itself | P2 | Integration | BR §6.1, §7.3, G-32 |
 
 ### 3.5 Search (Module: Activities List — Search)
 
@@ -198,6 +229,8 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | SRC-10 | Search + filter | Status=Pending applied | "Audit" | 1) Type "Audit" | [DOC] Request has `statusId`=1 and `searchValue`="Audit" | P1 | Integration | BR §8.1 |
 | SRC-11 | Search on Main | Main chip active | "Audit" | 1) Type "Audit" | [DOC] `GetVisitAndTaskList` receives `searchValue`="Audit" | P2 | Integration | API §3.3 |
 | SRC-12 | Very long input | — | 500 characters | 1) Paste | [PO-CONFIRM] Max length; no crash | P3 | Boundary | G-06 |
+| SRC-13 | Out-of-order search responses | Slow network: the "Au" response is delayed 3 s, "Audit" 1 s | "Au", then "Audit" | 1) Type "Au" and pause past the debounce 2) Type "dit" | [PO-CONFIRM G-37] Results for "Audit" stay on screen after the late "Au" response arrives | P1 | Negative | BR §6.6, G-37 |
+| SRC-14 | Arabic-Indic digits | Title "Visit 2026" exists | "٢٠٢٦" | 1) Type "٢٠٢٦" | [PO-CONFIRM G-46] Digits normalized or sent as typed; record whether "Visit 2026" is found | P2 | Boundary | BR §6.6, G-46 |
 
 ### 3.6 Sorting (Module: Activities List — Sort)
 
@@ -207,6 +240,7 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | SRT-02 | Oldest first | List on page 2 | — | 1) Choose Oldest first | [DOC] `direction`="asc", `skip`=0; order reversed | P1 | Positive | BR §6.7, §8.1 |
 | SRT-03 | Sort kept on refresh/filter | Oldest first selected | — | 1) Pull to refresh 2) Apply a status filter | [DOC] `direction` stays "asc" both times | P1 | Regression | BR §6.7 |
 | SRT-04 | Same start time | 3 activities at 2026-10-21 09:00 across 2 pages | pageSize such that they split | 1) Scroll both pages | [DOC] No duplicates or missing items. [PO-CONFIRM] tie-break order | P2 | Boundary | BR §8.1 |
+| SRT-05 | Sort uses scheduled start, not creation date | — | A: created 10-01, scheduled 10-25. B: created 10-10, scheduled 10-18. C: created 10-20, scheduled 10-22 | 1) Open list (newest first) 2) Switch to oldest first | [DOC] Newest first: A, C, B. Oldest first: B, C, A. (Sorting by creation would give C, B, A) | P1 | Positive | BR §6.7 Q8, G-34 |
 
 ### 3.7 Pagination (Module: Activities List — Paging)
 
@@ -224,6 +258,8 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | PAG-10 | Main list without total | Main chip | Page 1 = 10 items, page 2 = 3 | 1) Scroll | [DOC] Requests page 2 (full page = maybe more); stops after 3 | P2 | Boundary | API §3.3 |
 | PAG-11 | Pull-to-refresh | Page 2 loaded | — | 1) Pull to refresh | [DOC] Refreshing state; page 1 reloaded with `skip`=0. [PO-CONFIRM] old items kept if refresh fails | P1 | Positive | BR §8.2 |
 | PAG-12 | `totalCount`=0 with empty items | — | `{"totalCount":0,"items":[]}` | 1) Open list | [DOC] Empty state; no further requests | P1 | Boundary | BR §10 |
+| PAG-13 | Filter change while a page is loading | Page 1 loaded; page 2 slow (3 s) | — | 1) Scroll to the end 2) Before page 2 returns, apply Status=Completed | [DOC] Only results for the new filter are listed; the late page 2 isn't appended. The new request uses the full new filter state with `skip`=0 | P1 | Negative | BR §8.1, G-37 |
+| PAG-14 | Multi-assignee activity in a manager's list | One Task assigned to E1 and E2; M1 on Scope All | — | 1) Open list as M1 | [PO-CONFIRM G-39] One card or two (one per `detailsid`); deduplication doesn't drop a card | P1 | Boundary | BR §5.2, §8.1, G-39 |
 
 ### 3.8 List item display (Module: Activities List — Item)
 
@@ -261,6 +297,14 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | CRT-16 | Edit Visit — type locked | Visit from Main list | — | 1) Edit | [DOC] Toggle shows Visit, locked | P1 | Regression | BR §5.3 |
 | CRT-17 | After create | — | — | 1) Create 2) Return to dashboard | [PO-CONFIRM G-27] List and dashboard refreshed | P2 | Integration | G-27 |
 | CRT-18 | Location for Visit | Location permission denied | — | 1) Create Visit | [BLOCKED – undocumented G-14] Whether location is mandatory | P2 | Negative | G-14 |
+| CRT-19 | Edit keeps existing attachments | Task with 2 attachments | — | 1) Main chip 2) Edit the Task 3) Change only the title 4) Save 5) Reopen details | [PO-CONFIRM G-35] Both attachments are still there, although the update sends `attachments`=[] | P0 | Regression | API §3.10, G-35 |
+| CRT-20 | Edit keeps address and contact | Visit with address, contact name, contact ID and email | — | 1) Edit the Visit 2) Change only the description 3) Save 4) Reopen | [PO-CONFIRM G-35] Address, contact ID and email unchanged, although the update sends them as `null` | P1 | Regression | API §3.10, G-35 |
+| CRT-21 | Edit an activity from another company | M1 logged in to C1; Task belongs to C2 | — | 1) Edit the Task 2) Save 3) Capture request | [PO-CONFIRM G-35] Task stays in C2, although the request sends `companyId`=C1 | P1 | Negative | API §3.10, G-35 |
+| CRT-22 | Double tap Save | Valid Visit form; slow network | — | 1) Tap Save twice quickly | [PO-CONFIRM G-36] One `InsertVisitOrTask` request; one activity created | P1 | Negative | BR §5.3, G-36 |
+| CRT-23 | Assign an employee from another company | M1 logged in to C1; E2 in C2 | Assign [E2] | 1) Create a Task assigned to E2 2) Log in as E2 | [PO-CONFIRM G-44] Allowed or blocked. If allowed, E2 sees it and its `companyId` is correct | P1 | Integration | API §3.10, G-44 |
+| CRT-24 | Weekly day mapping | — | Each day Saturday … Friday, one at a time | 1) Create a weekly activity on one day 2) Capture `weeklyDays` 3) Check the occurrence dates | [DOC] Saturday=1, Sunday=2, Monday=3 … Friday=7; occurrences fall on the chosen day | P1 | Boundary | API §1.6, G-45 |
+| CRT-25 | Edit a recurring activity with completed occurrences | Weekly Task: 2 occurrences Completed, 3 upcoming | Change the weekly days | 1) Edit 2) Save 3) Check past and upcoming occurrences | [PO-CONFIRM G-40] Completed occurrences keep their history; no duplicate occurrences | P1 | Boundary | API §3.10, G-40 |
+| CRT-26 | Attachment too large or unsupported | — | 50 MB file; `.exe` file | 1) Attach 2) Save | [PO-CONFIRM G-48] Clear error before upload; no partial activity created | P2 | Negative | API §1.3, G-48 |
 
 ### 3.10 Details and actions (Module: Activity Details)
 
@@ -286,6 +330,15 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | DET-18 | Empty note | — | "" | 1) Submit | [PO-CONFIRM] blocked or sent | P2 | Negative | API §3.17 |
 | DET-19 | Disable activity | Master 55 enabled | — | 1) Disable | [DOC] `{"id":55,"isEnabled":false}`. [PO-CONFIRM G-31] effect on lists | P1 | Integration | API §3.18 |
 | DET-20 | Timeline | — | Entries actionId 0–4, `modifiedAt`="10/21/2026 9:05:00 AM" | 1) Open timeline | [DOC] Each action labeled; author from `modifiedByNAme`; date parsed. [BLOCKED] master vs occurrence ID | P2 | Positive | API §3.9 |
+| DET-21 | Double tap a step | Pending activity; slow network | — | 1) Tap Start twice quickly | [PO-CONFIRM G-36] One request; one timeline entry | P1 | Negative | API §3.13, G-36 |
+| DET-22 | Stale status | E1 has details open (Pending); M1 cancels it meanwhile | — | 1) As E1, tap Start | [PO-CONFIRM G-38] Backend rejects; the app shows the error and reloads details showing Cancelled | P1 | Negative | BR §5.4, G-38 |
+| DET-23 | Check in twice | `isCheckedIn`=true | — | 1) Open details | [PO-CONFIRM G-17] Check-in isn't offered again | P1 | Negative | API §4.2, G-17 |
+| DET-24 | Check out without check-in | `hasCheckOut`=true, `isCheckedIn`=false | — | 1) Open details | [PO-CONFIRM G-17] Check-out isn't offered until checked in | P1 | Negative | API §3.12, G-17 |
+| DET-25 | Reschedule with end before start | — | 2026-10-25, 10:00–09:00 | 1) Reschedule | [PO-CONFIRM G-47] Not submitted; validation message | P1 | Negative | API §3.16, G-47 |
+| DET-26 | Reschedule across midnight | — | 2026-10-25 22:00 → 2026-10-26 01:00 | 1) Reschedule 2) Capture request | [PO-CONFIRM G-47] Allowed or blocked. If allowed, `newDate`, the times and `startDateTime`/`endDateTime` agree | P2 | Boundary | API §3.16, G-47 |
+| DET-27 | Reschedule one occurrence of a recurring activity | Weekly Task | Move the 10-23 occurrence to 10-24 | 1) Reschedule 2) Check the other occurrences | [PO-CONFIRM G-40] Only the 10-23 occurrence moves | P1 | Boundary | API §3.16, G-40 |
+| DET-28 | Open details that are gone or not accessible | Notification or deep link to an activity that was deleted, disabled, or made private by another user | — | 1) Open the link | [PO-CONFIRM G-43] Error or "not available" message; no crash; no private data shown | P1 | Negative | BR §5.4, G-43 |
+| DET-29 | Step upload fails partway | Complete step with 2 files; connection drops during upload | — | 1) Submit 2) Restore the network 3) Reopen | [PO-CONFIRM G-48] The step is saved with both files or not at all; the user can retry | P2 | Negative | API §3.14, G-48 |
 
 ### 3.11 Progress (Module: Activity Progress)
 
@@ -303,6 +356,9 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | PRG-10 | Never updated | `details.progress`=null | — | 1) Open details | [PO-CONFIRM G-25] display | P2 | Boundary | API §4.2 |
 | PRG-11 | Progress on Completed | Status 4 | — | 1) Open details | [BLOCKED Q13] + [PO-CONFIRM G-25] | P1 | Negative | BR §7.5 |
 | PRG-12 | Decrease progress | Current 80 | 40 | 1) Save | [PO-CONFIRM G-25] | P2 | Boundary | G-25 |
+| PRG-13 | Arabic-Indic digits | App in Arabic | "٥٠" | 1) Enter progress 2) Save | [PO-CONFIRM G-46] Saved as 50, or input blocked; never saved as 0 | P2 | Boundary | BR §7.5, G-46 |
+| PRG-14 | Progress with several assignees | Task assigned to E1 and E2 | E1 sets 80 | 1) As E1, save 80 2) As E2, open the Task 3) As M1, open the master | [PO-CONFIRM G-39] E2's progress unchanged; record what M1 sees (per assignee or rolled up) | P1 | Boundary | BR §7.5, G-39 |
+| PRG-15 | Double tap Save on progress | Slow network | 60 | 1) Tap Save twice | [PO-CONFIRM G-36] One request | P2 | Negative | API §3.19, G-36 |
 
 ### 3.12 Assignment and workload (Module: Assigned-to picker)
 
@@ -332,6 +388,9 @@ Steps are numbered within the cell. "Req" = requirement reference.
 | PERM-05 | `canEdit` fallback | `assignedTo` empty; top-level `canEdit`=true | — | 1) Open item | [DOC] Top-level value used | P2 | Boundary | API §4.1 |
 | PERM-06 | Others' private activity | M1 private activity assigned to nobody else | — | 1) Log in as E1 2) All scopes + search title | [DOC] Never visible to E1 | P1 | Negative | API §3.10 Q16 |
 | PERM-07 | Forged master route | E1 opens a master route (deep link with `isMaster`=true) | — | 1) Open link | [PO-CONFIRM] Must be denied by role; security check | P1 | Negative | BR §3 |
+| PERM-08 | Private activity assigned to someone else | M1 creates a private Task assigned to E1 | — | 1) Log in as E1 2) Open the list and search for it | [PO-CONFIRM G-41] Whether E1 sees it. If such assignment is blocked instead, the create form says so | P1 | Negative | API §3.10, Q16, G-41 |
+| PERM-09 | Filters after a user switch | M1 applies Scope My team and employee E2 | — | 1) Log out 2) Log in as E1 3) Open Activities | [PO-CONFIRM G-42] Filters reset to defaults; no M1 IDs in E1's requests | P1 | Negative | BR §7.3, G-42 |
+| PERM-10 | Logged-in company switch | M1 in C1 with filters applied | — | 1) Switch the logged-in company to C2 2) Open Activities | [PO-CONFIRM G-42] Filters and selected employees reset; envelope `companyId`=C2 | P2 | Negative | API §1.2, G-42 |
 
 ### 3.14 API and error handling (Module: Integration)
 
@@ -413,6 +472,16 @@ Status: ✅ covered with defined expected results · 🟡 covered, part of the e
 | Arabic / English | BR §5.3, API §1.2 | L10N-01–L10N-05, CRT-03, SRC-07 | 🟡 (G-30) |
 | Isolation from old module | BR §2, §4.1, §9.2, §10 | REG-01–REG-06 | ✅ |
 | Fakes removed / test fixtures (WP3, WP5) | BR §9.3, §12 | — | ⚪ Developer-level (analyzer, unit tests); outside black-box QA |
+| Sort field is scheduled start (v1.3) | BR §6.7 Q8 | SRT-05 | ✅ |
+| Privacy filter vs scope (v1.3) | BR §6.1, §6.2, §7.3 | FLT-25, FLT-26 | 🟡 (G-32) |
+| Edit keeps existing data (v1.3) | API §3.10 | CRT-19–CRT-21 | 🟡 (G-35) |
+| Double submission, late responses, stale details (v1.3) | BR §8.1, §5.4 | CRT-22, DET-21, PRG-15, PAG-13, SRC-13, DET-22 | ✅ / 🟡 (G-36–G-38) |
+| Multi-assignee and recurring (v1.3) | BR §5.1, §5.2, §7.5 | DSH-14, PAG-14, PRG-14, CRT-25, DET-27 | 🟡 (G-39, G-40) |
+| Private assignment, session and company switch, deep links (v1.3) | API §1.2, §3.10, Q16 | PERM-08–PERM-10, DET-28 | 🟡 (G-41–G-43) |
+| Cross-company assignment and weekday mapping (v1.3) | API §1.6, §3.10 | CRT-23, CRT-24 | 🟡 (G-44) / ✅ |
+| Step and reschedule edge cases, uploads (v1.3) | API §1.3, §3.12–3.16 | DET-23–DET-26, DET-29, CRT-26 | 🟡 (G-17, G-47, G-48) |
+| Arabic-Indic digits (v1.3) | BR §6.6, §7.5 | SRC-14, PRG-13 | 🟡 (G-46) |
+| Dashboard vs list counts (v1.3) | BR §7.2, API §3.1 | DSH-13 | 🟡 (G-49) |
 
 ---
 
@@ -459,11 +528,40 @@ Grouped by who answers. Order = what to ask first.
 29. **(G-31)** Are disabled activities listed? PO sign-off of v1.2.
 30. Page size for the list and Main list.
 
+### Added in v1.3
+
+Must answer before testing sign-off:
+
+31. **(G-35)** On update, does `InsertVisitOrTask` replace every field or only the ones sent? Are existing attachments, address and contact kept? Which `companyId` must an update send?
+32. **(G-39)** For a multi-assignee activity: one card or one per assignee? Do dashboard counts count activities or occurrences? Is progress per assignee?
+33. **(G-41)** Can an assignee see a private activity assigned to them? Can a private activity be assigned to someone else at all?
+34. **(G-32)** Is the Privacy filter separate from the Scope chip? Which request field carries it, and what does `isPrivate = false` do?
+
+Should answer before release:
+
+35. **(G-36)** Must actions be disabled while their request is in flight? Does the backend reject duplicates?
+36. **(G-37)** Must the app ignore responses for anything but the latest query?
+37. **(G-38)** What does the backend return for an action the current status no longer allows?
+38. **(G-40)** Which actions apply to one occurrence and which to the series? How does editing a master affect completed occurrences?
+39. **(G-42)** Are filters persisted? Must they reset on logout and on company switch?
+40. **(G-43)** What do details return for a deleted, disabled or inaccessible activity?
+41. **(G-44)** Can an activity be assigned across companies, and which `companyId` is sent?
+42. **(G-47)** Reschedule validation rules, and which date/time fields are authoritative?
+43. **(G-48)** File size, count and type limits; is a step saved when an upload fails?
+44. **(G-49)** Does the dashboard's Current/Previous split match Q2?
+
+Nice to answer:
+
+45. **(G-46)** Must numeric inputs accept Arabic-Indic digits?
+46. **(G-33)** Remove or rename "workload classification" in BR §11.
+47. **(G-34, G-45)** QA actions only, no question: SRT-05 and CRT-24 cover them.
+48. Send Q15–Q24 to the backend now (see the process observations in §1).
+
 ---
 
 ## 6. Recommended minimum suites
 
-### 6.1 Smoke suite (≈ 20 cases, run on every build)
+### 6.1 Smoke suite (22 rows, 24 cases, run on every build)
 
 | # | Case | Why |
 |---|---|---|
@@ -488,6 +586,7 @@ Grouped by who answers. Order = what to ask first.
 | 19 | CRT-05 / CRT-06 | Create Visit and Task |
 | 20 | PRG-01, PRG-08 | Progress success and failure |
 | 21 | REG-01 | Old module unaffected |
+| 22 | CRT-19 | Edit doesn't drop attachments (v1.3) |
 
 Add **ASG-04, ASG-06** once Q12 is answered and **PERM-02** once Q13 is answered.
 
@@ -497,4 +596,5 @@ Add **ASG-04, ASG-06** once Q12 is answered and **PERM-02** once Q13 is answered
 - Always include the regression-type cases: TS-02, TS-11, TS-12, SRT-03, PAG-05, FLT-24, CRT-15, CRT-16, REG-01–REG-07, API-04.
 - Run the localization pass (L10N-01, L10N-02, CRT-03) in Arabic and repeat the smoke suite once in Arabic.
 - Run the error pass (DSH-06–DSH-08, LST-07, PAG-06, API-03, API-05, ASG-06, PRG-08) with a proxy or mock that forces `success=false`, HTTP 500, timeout and offline.
-- **Test data set to keep stable:** activities at 2026-10-20 23:59:59, 2026-10-21 00:00:00, yesterday 10:00, far past, far future, one recurring weekly activity, one private, one disabled, one in each status 1/2/3/4/5/7, 25+ items for paging.
+- (v1.3) Run the concurrency pass (CRT-22, DET-21, PRG-15, PAG-13, SRC-13, DET-22) on a throttled network, and the edit data pass (CRT-19–CRT-21) on activities with attachments, an address and a contact.
+- **Test data set to keep stable:** activities at 2026-10-20 23:59:59, 2026-10-21 00:00:00, yesterday 10:00, far past, far future, one recurring weekly activity, one private, one disabled, one in each status 1/2/3/4/5/7, 25+ items for paging. Added in v1.3: one activity assigned to two employees, one private activity assigned to someone else, one activity in another company, one activity with attachments, an address and a contact, and three activities whose creation order differs from their scheduled order.

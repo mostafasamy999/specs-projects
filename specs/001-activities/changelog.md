@@ -14,6 +14,20 @@ For a new entry, copy this template:
 
 ---
 
+## 2026-10-27 — QA review v1.3 (no requirement change) — More gaps and test cases
+
+- **Change:** updated the QA review and renamed it from `qa/qa-review-v1.2.md` to `qa/qa-review-v1.3.md`.
+  - Corrected QF-09, FLT-04, FLT-21 and the smoke-suite count.
+  - Added gaps G-32 to G-49 (49 in total, still 9 critical).
+  - Added 32 test cases (223 in total, 46 P0).
+  - Added the matching coverage rows, questions 31–48 and the v1.3 regression passes and test data.
+- **Reason:** a second review against business-requirements v1.2 and api-contracts v1.2 found scenarios the first review missed.
+- **Affected area:** `qa/qa-review-v1.3.md`. No change to business-requirements, api-contracts or open-questions.
+- **Decisions:**
+  - The spec stays at v1.2, because no requirement changed.
+  - The new gaps aren't numbered questions yet. If the product owner or backend confirms them, they move to `open-questions.md` as Q25+.
+  - The most urgent new gap is G-35: edit always sends `attachments = []`, `null` address and contact, and the logged-in `companyId`, so editing an activity may delete or move its data.
+
 ## 2026-10-21 — v1.2 — Visit is the default type on Add Activity
 
 - **Change:** a new activity now starts as a Visit (it used to start as a Task). The Add Activity toggle shows Visit at the start and Task at the end.
