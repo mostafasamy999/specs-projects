@@ -21,7 +21,7 @@ Checks common to every scenario (not repeated below): no "Something went wrong" 
 | DSH-05 | Tasks summary: pending 0, in progress 0, completed = N | Req: E1 `statusId` = 4 | — |
 | DSH-06 | Compare Tasks total with `#activities_results_count` under the same filter | Req: E1 has no priority | Per A-02 |
 | DSH-07 | Compare dashboard totals with the Main `#activities_results_count` | Req: E1 has no Main field | Per A-02 |
-| DSH-08 | Tasks summary contains "<n> pending", where n counts D8 | List: Status · Pending + Type · Tasks count = dashboard pending (Maestro `testcases/DSH-02-maestro.yaml` does this check) | D8 not counted only as late |
+| DSH-08 | Tasks summary contains "<n> pending", where n counts D8 | List: Status · Pending + Type · Tasks count = dashboard pending (Maestro `maestro/qa-testcases/DSH-02-maestro.yaml` does this check) | D8 not counted only as late |
 | DSH-09 | `#activities_message` + `#activities_retry_button`, then `#activities_dashboard_total` after Retry | — | No overlay after the failure |
 | DSH-10 | Visits summary rows read "0" | — | No empty number text |
 | DSH-11 | `#activities_chip_type` text "Type · Tasks", selected. Every `#activities_card` contains "TASK" | Req: E2 `typeId` = 1 | No card contains "VISIT" |

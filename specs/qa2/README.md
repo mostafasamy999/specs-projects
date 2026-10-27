@@ -15,7 +15,7 @@ This is a second, independent set of test scenarios, written fresh from the spec
 | 4 | [04-test-scenarios.md](04-test-scenarios.md) | Test data, then each scenario as Given / When / Then |
 | 5 | [05-oracles.md](05-oracles.md) | How to check each scenario: screen, data, request log, and what must not happen |
 
-The skill's Step 6 (test code) isn't here. Maestro flows live in `qa/maestro/`, and 122 scenarios are marked **M** (Maestro can check them). Step 7 (review) is the **Review** column in the matrix.
+The skill's Step 6 (test code) isn't here. Maestro flows live in `maestro/` (the P0 ones from here in `maestro/qa2-testcases/`), and 122 scenarios are marked **M** (Maestro can check them). Step 7 (review) is the **Review** column in the matrix.
 
 ## Numbers
 

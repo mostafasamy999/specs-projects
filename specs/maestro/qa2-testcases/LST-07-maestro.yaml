@@ -25,7 +25,7 @@ env:
 - assertVisible:
     id: "activities_results_count"
     text: "${BULK_COUNT} activities"
-    label: "Needs ${BULK_COUNT} test activities (run qa2/setup/create_bulk.yaml)"
+    label: "Needs ${BULK_COUNT} test activities (run qa2-testcases/setup/create_bulk.yaml)"
 - evalScript: ${output.i = 0}
 - repeat:
     times: ${BULK_COUNT}

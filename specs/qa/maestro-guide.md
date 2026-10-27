@@ -1,18 +1,19 @@
 # Maestro guide — writing UI flows for 001 New Activities
 
-Read this before writing or changing a Maestro flow in `qa/maestro/`. It is written for an AI assistant (and for people) who need to turn a test case from the QA review into a flow that runs the same way every time.
+Read this before writing or changing a Maestro flow in `maestro/`. It is written for an AI assistant (and for people) who need to turn a test case from the QA review into a flow that runs the same way every time.
 
 ## 1. What you are working with
 
 | Item | Where |
 |---|---|
 | Test cases (source of truth) | `qa/qa-review-v*.md` §3. Every case has an ID (`QF-01`), steps and an expected result. |
-| Flows | `qa/maestro/flows/<area>/<ID>.yaml`, one file per test case |
-| Shared steps | `qa/maestro/subflows/` |
-| Which case has a flow | `qa/maestro/COVERAGE.md` (generated, see §8) |
+| Flows | `maestro/flows/<area>/<ID>.yaml`, one file per test case |
+| Step-by-step test cases | `maestro/qa-testcases/<ID>-maestro.yaml` (QA review §3) and `maestro/qa2-testcases/<ID>-maestro.yaml` (qa2 scenarios, own IDs). Run by path; the default run covers `flows/**` only |
+| Shared steps | `maestro/subflows/` |
+| Which case has a flow | `maestro/COVERAGE.md` (generated, see §8) |
 | Element ids in the app | `lib/src/core/utils/semantics_ids.dart` in the app repo `~/StudioProjects/talentlink` |
-| Credentials and device | `qa/maestro/.env` (local only, never committed). Template: `.env.example` |
-| Runner | `qa/maestro/run.sh` |
+| Credentials and device | `maestro/.env` (local only, never committed). Template: `.env.example` |
+| Runner | `maestro/run.sh` |
 | What is out of date | `qa/sync-status.md`, written by `python3 -I qa/sync_check.py` (see §9) |
 
 App package: `com.ilead.talent.link.talent_link.dev` (development flavor). Flows use `${APP_ID}`.
@@ -110,7 +111,7 @@ Useful state checks:
 ## 7. Running
 
 ```bash
-cd qa/maestro
+cd maestro
 cp .env.example .env              # once; fill in the test account and DEVICE
 ./run.sh                          # every flow
 ./run.sh flows/quick_filters/QF-01.yaml

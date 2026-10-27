@@ -8,7 +8,7 @@
 # synced: CL-10
 #
 # Not checked here: that no 4th page request is sent (request log only).
-# Run qa2/setup/create_bulk.yaml once first.
+# Run qa2-testcases/setup/create_bulk.yaml once first.
 # ─────────────────────────────────────────────────────────────────────────────
 appId: ${APP_ID}
 tags: [qa2, LST-06, P0, list]
@@ -24,7 +24,7 @@ env:
 - assertVisible:
     id: "activities_results_count"
     text: "${BULK_COUNT} activities"
-    label: "Needs ${BULK_COUNT} test activities (run qa2/setup/create_bulk.yaml)"
+    label: "Needs ${BULK_COUNT} test activities (run qa2-testcases/setup/create_bulk.yaml)"
 # When: scroll through every page; Then: each title loads
 - evalScript: ${output.i = 0}
 - repeat:

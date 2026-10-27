@@ -15,6 +15,7 @@ import sys
 
 QA = os.path.dirname(os.path.abspath(__file__))
 CHANGELOG = os.path.join(QA, '..', 'changelog.md')
+MAESTRO = os.path.join(QA, '..', 'maestro')
 
 
 def read_changes():
@@ -40,8 +41,8 @@ def main():
     for path in sorted(glob.glob(os.path.join(QA, 'qa-review-v*.md'))):
         items.append(('Test cases', os.path.basename(path),
                       synced(path, r'\*\*Synced to changelog:\*\*\s*CL-(\d+)')))
-    for path in sorted(glob.glob(os.path.join(QA, 'maestro', '**', '*.yaml'), recursive=True)):
-        rel = os.path.relpath(path, os.path.join(QA, 'maestro'))
+    for path in sorted(glob.glob(os.path.join(MAESTRO, '**', '*.yaml'), recursive=True)):
+        rel = os.path.relpath(path, MAESTRO)
         if rel == 'config.yaml':
             continue
         items.append(('Maestro', rel, synced(path, r'^# synced: CL-(\d+)')))

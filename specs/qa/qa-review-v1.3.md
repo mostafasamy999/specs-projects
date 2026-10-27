@@ -4,7 +4,7 @@
 **Synced to changelog:** CL-10 (update this after checking the review against a newer changelog entry; see `qa/sync-status.md`)
 **Reviewer role:** Senior QA Analyst (requirements review + test design only; no code read, no code changed)
 **Review date:** 2026-10-21 (v1.2), updated 2026-10-27 (v1.3)
-**Spec baseline:** `specs/001-activities/` v1.2 (Approved, last updated 2026-10-21). The spec itself hasn't changed since v1.2.
+**Spec baseline:** `specs/` v1.2 (Approved, last updated 2026-10-21). The spec itself hasn't changed since v1.2.
 
 **What changed in v1.3**
 - Corrected QF-09 (it marked a request as confirmed that G-01 says is contradictory), FLT-04 and FLT-21 (they expected an `isPrivate` field the requests don't have) and the smoke-suite count.
@@ -609,12 +609,12 @@ Add **ASG-04, ASG-06** once Q12 is answered and **PERM-02** once Q13 is answered
 |---|---|
 | Build | `talentlink` `enhance/activities` @ `425fc38f` + Maestro selectors (uncommitted), flavor `development`, **profile** build |
 | Device / backend / account | As R1 (emulator `Medium_Phone_API_36.0`, `test.talentlink360.com`, Team Leader employee 317) |
-| How | `qa/maestro/run.sh testcases/<ID>-maestro.yaml` |
+| How | `maestro/run.sh qa-testcases/<ID>-maestro.yaml` |
 
 | Case | Maestro file | Result | Evidence |
 |---|---|---|---|
-| DSH-01 | `testcases/DSH-01-maestro.yaml` | **Fail → DEF-08.** Dashboard opens first; title, Add, Filter, overview (Tasks/Visits) and both summaries show. But there's no Back button (Activities is a bottom-nav tab) and no quick filters on the dashboard (they only show in the list), and BR §5.1 requires both. | Flow passed with 2 warnings (optional checks) |
-| DSH-02 | `testcases/DSH-02-maestro.yaml` | **Fail → DEF-09.** The list shows 1 Task with status Pending (#2780), but the dashboard's Tasks row shows `0 pending · 1 late`. Visits show the same thing: 1 Pending visit (#2794), dashboard Pending 0. | `Assertion is false: "1 pending" is visible`; screenshot of the dashboard at 13:14 |
+| DSH-01 | `qa-testcases/DSH-01-maestro.yaml` | **Fail → DEF-08.** Dashboard opens first; title, Add, Filter, overview (Tasks/Visits) and both summaries show. But there's no Back button (Activities is a bottom-nav tab) and no quick filters on the dashboard (they only show in the list), and BR §5.1 requires both. | Flow passed with 2 warnings (optional checks) |
+| DSH-02 | `qa-testcases/DSH-02-maestro.yaml` | **Fail → DEF-09.** The list shows 1 Task with status Pending (#2780), but the dashboard's Tasks row shows `0 pending · 1 late`. Visits show the same thing: 1 Pending visit (#2794), dashboard Pending 0. | `Assertion is false: "1 pending" is visible`; screenshot of the dashboard at 13:14 |
 
 | ID | Severity | Summary | Steps | Expected | Actual |
 |---|---|---|---|---|---|
