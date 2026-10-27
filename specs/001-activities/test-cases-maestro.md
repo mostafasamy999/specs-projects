@@ -41,21 +41,27 @@ Check these by running the app with `flutter run` and reading the request log (t
 
 ## Running
 
-From `qa/maestro/`, copy `.env.example` to `.env` once (test account, `DEVICE`), then:
+All commands below run from this folder (`specs/001-activities/`). The scripts find their own location, so they also work from anywhere else.
+
+Once, create the env file and fill in the test account and `DEVICE`:
 
 ```bash
-./run.sh
+cp qa/maestro/.env.example qa/maestro/.env
 ```
 
-`./run.sh <flow.yaml>` runs one flow. `./run.sh --include-tags=smoke` runs the smoke suite. Results go to `results/report.xml`. The default run covers `flows/**` only (`config.yaml`), so pass `testcases/` files by path. Use a profile or debug-from-`flutter run` build. Details are in [maestro-guide.md](qa/maestro-guide.md) §7.
+Run every flow:
+
+```bash
+qa/maestro/run.sh
+```
+
+`qa/maestro/run.sh flows/quick_filters/QF-01.yaml` runs one flow (the flow path is relative to `qa/maestro/`). `qa/maestro/run.sh --include-tags=smoke` runs the smoke suite. Results go to `qa/maestro/results/report.xml`. The default run covers `flows/**` only (`config.yaml`), so pass `testcases/` files by path. Use a profile or debug-from-`flutter run` build. Details are in [maestro-guide.md](qa/maestro-guide.md) §7.
 
 After adding or changing flows, regenerate the coverage index:
 
 ```bash
-python3 -I maestro/coverage.py
+python3 -I qa/maestro/coverage.py
 ```
-
-(Run it from `qa/`.)
 
 ## Keeping QA in sync with the changelog
 
