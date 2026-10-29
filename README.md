@@ -36,5 +36,5 @@ Day-to-day steps are in [how to use](how%20to%20use).
 
 | ID | Feature | Version | Status | Start here |
 |---|---|---|---|---|
-| [001](specs/business-requirements.md) | New Activities: Visits & Tasks | v1.2 approved | Waiting on backend Q12–Q14. Q15–Q24 not sent yet. | [§12.4 Where we stopped](specs/business-requirements.md#124-where-we-stopped-and-whats-next) |
+| [001](specs/001-activities/feature-overview.md) | New Activities: Visits & Tasks | v1.2 approved | Waiting on backend Q12–Q14. Q15–Q24 not sent yet. | [Next tasks](specs/001-activities/next-tasks-open-questions.md) |
 | [002](specs/002-print-logs/feature-overview.md) | Print Logs: Buffer + PrintLogsFile with transaction IDs | v1.0 | Built and unit tested on `feature/report_issue`, not committed. Device check of IDs pending. No Maestro flows. | [Next tasks](specs/002-print-logs/next-tasks-open-questions.md) |

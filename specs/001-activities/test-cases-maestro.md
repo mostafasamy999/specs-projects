@@ -41,7 +41,7 @@ Check these by running the app with `flutter run` and reading the request log (t
 
 ## Running
 
-All commands below run from this folder (`specs/`). The scripts find their own location, so they also work from anywhere else.
+All commands below run from this folder (`specs/001-activities/`). The scripts find their own location, so they also work from anywhere else.
 
 Once, create the env file and fill in the test account and `DEVICE`:
 

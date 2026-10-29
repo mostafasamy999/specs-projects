@@ -1,6 +1,6 @@
 Every change to the module follows the same loop: **update the spec first, then the code, then sync the docs.**
 
-The specs are on the `talentlink` branch of `~/work/specs-projects`, checked out at `~/work/specs-talentlink`. The module's files sit directly in `specs/` (Maestro flows in `specs/maestro/`). Among them:
+The specs are on the `talentlink` branch of `~/work/specs-projects`, checked out at `~/work/specs-talentlink`. Each feature has its own folder: `specs/001-activities/` (New Activities, Maestro flows in `specs/001-activities/maestro/`) and `specs/002-print-logs/` (Print Logs). The steps below use 001. Among its files:
 - `business-requirements.md`: behavior, rules, current state, plan and tasks
 - `api-contracts.md`: endpoints and data contracts
 - `open-questions.md`: everything that is still unclear (the only place questions are tracked)
@@ -11,7 +11,7 @@ The specs are on the `talentlink` branch of `~/work/specs-projects`, checked out
 - Check `open-questions.md` for backend answers that came in (step 5).
 
 **1. Write the change into the spec (before coding)**
-- Open `specs/business-requirements.md` and edit the affected section, for example §6.1 for a new quick filter or §6.5 for workload.
+- Open `specs/001-activities/business-requirements.md` and edit the affected section, for example §6.1 for a new quick filter or §6.5 for workload.
 - If the change touches an endpoint, field or format, update `api-contracts.md` too.
 - Bump the version in `business-requirements.md` (v1.1 → v1.2), and add a `changelog.md` entry saying what changed and why.
 - If anything is unclear (API field, rule, threshold), add it to `open-questions.md` as the next number (Q25, Q26 and so on). Don't guess.
@@ -24,7 +24,7 @@ The specs are on the `talentlink` branch of `~/work/specs-projects`, checked out
 Start a Claude session in `~/StudioProjects/talentlink` and paste:
 
 ```
-Read ~/work/specs-talentlink/specs/{business-requirements.md,api-contracts.md,open-questions.md}.
+Read ~/work/specs-talentlink/specs/001-activities/{business-requirements.md,api-contracts.md,open-questions.md}.
 Implement the "Change v1.2: <name>" tasks from §12.3. Follow the constraints in §9.
 Tick each task only after its Verify step passes.
 ```
@@ -32,7 +32,7 @@ Tick each task only after its Verify step passes.
 To pick up the v1.1 gap work instead, paste:
 
 ```
-Read ~/work/specs-talentlink/specs/{business-requirements.md,api-contracts.md,open-questions.md}.
+Read ~/work/specs-talentlink/specs/001-activities/{business-requirements.md,api-contracts.md,open-questions.md}.
 Implement T1.1, T1.2 and T3.1 from §12.3, then T5.1–T5.6.
 Follow the constraints in §9 (don't touch the old Visit/Task module; run the full build_runner, no --build-filter).
 Tick each task in §12.3 only after its Verify step passes.
