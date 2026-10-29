@@ -1,8 +1,8 @@
 # 002 Print Logs — Current state: codebase, logic, tech (LOW-LEVEL)
 
-> **Doc v1.0 · 2026-10-29 · synced to changelog CL-4**
-> Code read from `~/StudioProjects/talentlink`, branch `feature/report_issue` @ `195a68df`, plus the uncommitted changes listed in §1 (the whole feature).
-> Audience: an AI or dev changing this feature cold. Rules (R1–R16): [user-scenarios-rules.md](user-scenarios-rules.md).
+> **Doc v1.1 · 2026-10-29 · synced to changelog CL-5**
+> Code read from `~/StudioProjects/talentlink`, branch `feature/report_issue` @ `292d9199` (CL-1 to CL-4), plus the uncommitted CL-5 changes: `app_lifecycle_logger.dart`, `init_app.dart` and `app_lifecycle_logger_test.dart`.
+> Audience: an AI or dev changing this feature cold. Rules (R1–R20): [user-scenarios-rules.md](user-scenarios-rules.md).
 
 All paths are relative to `lib/src/` unless they start with `test/`.
 
@@ -17,10 +17,13 @@ All paths are relative to `lib/src/` unless they start with `test/`.
 | Web / tests | `core/utils/logging/print_logs/log_file_stub.dart`: `MemoryLogFile`, `createLogFile()` | new |
 | Transaction IDs | `core/utils/logging/print_logs/log_sequence.dart`: `LogSequence` | new |
 | Buffer + archive logic | `core/utils/logging/print_logs/print_log_store.dart`: `PrintLogStore` | new |
+| Lifecycle prints | `core/utils/logging/app_lifecycle_logger.dart`: `AppLifecycleLogger` | new |
+| App start | `lib/init_app.dart`: `AppLifecycleLogger.instance.start()` right after `installErrorHandlers()` | changed |
 | Report issue submit | `presentation/blocs/report_issue/report_issue_cubit.dart`: `submit()` | changed |
 | DI | `di/bloc_injector.dart`: `ReportIssueCubit(..., PrintLogStore.instance)` | changed |
 | Tests: store | `test/core/print_log_store_test.dart` (9 tests) | new |
 | Tests: submit | `test/core/report_issue_submit_test.dart` (2 tests) | new |
+| Tests: lifecycle | `test/core/app_lifecycle_logger_test.dart` (4 tests) | new |
 
 Before this feature, `app_log_manager.dart` and `AppLogger` didn't save prints anywhere. They went only to the console and Crashlytics. There was no "keep the last 100 prints" logic in the code.
 
@@ -42,6 +45,11 @@ printLog(msg, tag)                       app_log_manager.dart
                    │    fails → archive.dropOldestHalf(), archive.append(pending)
                    │    fails again → keep buffer, return
                    └─ buffer.clear()
+
+AppLifecycleLogger                       started in initApp
+ ├─ start(): printLog("══════ APP LIFECYCLE: start → <state> · <meaning> ══════", tag: LIFECYCLE)
+ └─ didChangeAppLifecycleState(s): same state → nothing; else printLog("… <last> → <s> …")
+      └─ goes through AppLogger.log like any print → console, Crashlytics, PrintLogStore
 
 ReportIssueCubit.submit()                (send button)
  ├─ canSubmit? no → return               (R14)
@@ -83,15 +91,22 @@ A `StringBuffer` version of the same contract. Used on web through the condition
 ### 3.7 `ReportIssueCubit.submit()`
 The constructor gets a 4th argument, `PrintLogStore`. After `emit(submitting)`, it runs `await _printLogs.flush(); if (isClosed) return;`, then sends.
 
+### 3.8 `AppLifecycleLogger`
+- `with WidgetsBindingObserver`, with `start()` / `stop()`, like `RuntimeDiagnostics` and `LogUploader`. `instance` is the app's single instance. `start()` runs once, and calling it again does nothing.
+- The print function is injected (`log:`, default `printLog`), so it doesn't depend on `AppLogger` directly and tests capture the text.
+- It keeps `_last` (initially `WidgetsBinding.instance.lifecycleState`, which may be `null` → `unknown`). It skips a state that equals `_last`.
+- `describe(from, to)` is static and builds the R18 text. The meanings come from an exhaustive `switch` on `AppLifecycleState?`, so a new Flutter state fails to compile instead of printing nothing.
+- It doesn't flush the buffer on `paused` / `detached`. Leftover buffer entries are moved on the next launch (R12).
+
 ## 4. Design (OOP / SOLID)
 
 | Principle | Where |
 |---|---|
-| Single responsibility | `LogFile` = storage. `LogSequence` = numbering. `PrintLogStore` = buffer/archive policy. `AppLogger` = formatting and fan-out. |
+| Single responsibility | `LogFile` = storage. `LogSequence` = numbering. `PrintLogStore` = buffer/archive policy. `AppLogger` = formatting and fan-out. `AppLifecycleLogger` = turning lifecycle events into prints. |
 | Open/closed | New storage (encrypted, remote) = a new `LogFile`, with no change to the store. |
 | Liskov | `IoLogFile` and `MemoryLogFile` are used the same way, and the tests swap one for the other. |
 | Interface segregation | `LogFile` has only the 5 operations the store needs. |
-| Dependency inversion | The store gets its files and sequence through the constructor, `AppLogger` gets the store, and `ReportIssueCubit` gets it through DI. |
+| Dependency inversion | The store gets its files and sequence through the constructor, `AppLogger` gets the store, `ReportIssueCubit` gets it through DI, and `AppLifecycleLogger` gets its print function. |
 
 ## 5. Tests
 
@@ -108,14 +123,18 @@ The constructor gets a 4th argument, `PrintLogStore`. After `emit(submitting)`, 
 | io file drops oldest half in place keeping whole lines (10,000 lines, real file) | R9 |
 | submit moves the buffer into the print file before sending | R13 |
 | submit does not touch the logs when the form is incomplete | R14 |
+| start prints the first state | R17–R19 |
+| every change prints from → to with its meaning, in order | R17, R18, R20 |
+| detached and an unknown first state are described | R19, R20 |
+| start twice prints once, and stop ends the prints | R19 |
 
 Run:
 
 ```bash
-flutter test test/core/print_log_store_test.dart test/core/report_issue_submit_test.dart
+flutter test test/core/print_log_store_test.dart test/core/report_issue_submit_test.dart test/core/app_lifecycle_logger_test.dart
 ```
 
-Last run 2026-10-29: 11/11 passed. `flutter analyze` on the changed files reports only the existing `avoid_print` warning in `app_logger.dart`.
+Last run 2026-10-29: 15/15 passed. `flutter analyze` on the changed files reports only the existing `avoid_print` warning in `app_logger.dart`.
 
 ## 6. Known limits
 

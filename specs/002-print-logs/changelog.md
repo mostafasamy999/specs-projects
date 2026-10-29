@@ -4,14 +4,26 @@
 
 | | |
 |---|---|
-| Spec version | **v1.0** |
-| Latest entry | **CL-4**: sequential transaction IDs |
-| App code | Built on `feature/report_issue` (uncommitted). 11 unit tests pass |
+| Spec version | **v1.1** |
+| Latest entry | **CL-5**: lifecycle prints |
+| App code | `feature/report_issue`: CL-1 to CL-4 in `292d9199`, CL-5 uncommitted. 15 unit tests pass |
 | QA | Unit tests only. No Maestro flows (agreed: the files aren't visible on screen) |
 
 Newest first, using the same entry template as 001.
 
 ---
+
+## CL-5 · 2026-10-29 — v1.1 — Obvious print on every app lifecycle change
+
+- **Change:** new `AppLifecycleLogger`, started in `initApp`, prints `[LIFECYCLE] ══════ APP LIFECYCLE: <from> → <to> · <meaning> ══════` at start and on every change (R17–R20). The entries go through `printLog`, so they land in the console, Crashlytics and the print files with a transaction ID.
+- **Reason:** the request was an obvious print on app lifecycle changes that can be searched and fetched. It shows when the user left, came back or closed the app between the other prints.
+- **Affected area:** user-scenarios-rules R17–R20, S5, §3 (search command) · tech §1, §2, §3.8, §4, §5 · overview
+- **QA impact:** new `test/core/app_lifecycle_logger_test.dart` (4 tests). No Maestro flows.
+- **Decisions:**
+  - It uses a separate observer class instead of adding to `RuntimeDiagnostics`, because that class writes to `ApiLogStore` and has a different job.
+  - The tag `LIFECYCLE`, the `APP LIFECYCLE` text and the `═` bars are the search keys and the visual marker.
+  - It doesn't flush the buffer when the app goes to the background (not asked). The next launch moves it (R12).
+  - Not on web, because the web entry points don't call `initApp`.
 
 ## CL-4 · 2026-10-29 — v1.0 — Sequential transaction ID on every print
 

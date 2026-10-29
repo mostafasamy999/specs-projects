@@ -1,6 +1,6 @@
 # 002 Print Logs — User scenarios and rules
 
-> **Doc v1.0 · 2026-10-29 · spec v1.0 · synced to changelog CL-4**
+> **Doc v1.1 · 2026-10-29 · spec v1.1 · synced to changelog CL-5**
 > What the feature must do. How the code does it: [current-state-codebase-logic-tech.md](current-state-codebase-logic-tech.md).
 
 ## 1. Rules
@@ -23,6 +23,10 @@
 | R14 | Nothing moves when the report can't be sent (title or description empty, a voice note is recording, or it's already sending). | Same condition as the send button. |
 | R15 | A failure in file logging never crashes the app and never creates a log about itself. | Avoid a crash or an endless loop of logs. |
 | R16 | Web has no file system: the same rules apply to memory and are lost when the tab closes. | Same behavior where possible. |
+| R17 | Every app lifecycle change (`resumed`, `inactive`, `hidden`, `paused`, `detached`) prints one entry with the tag **`[LIFECYCLE]`**, saved like any other print (R1–R16). | Shows when the user left, came back or closed the app, between the other prints. |
+| R18 | Format: `══════ APP LIFECYCLE: <from> → <to> · <meaning> ══════`. The `═` bars make it stand out when scrolling, and `[LIFECYCLE]` / `APP LIFECYCLE` are the search keys. | Must be obvious and easy to search and fetch. |
+| R19 | When the app starts (`initApp`), one entry prints the first state, with `start` as `<from>`, for example `start → resumed`. If the platform hasn't reported a state yet, it prints `start → unknown · not reported yet`, and the next change starts `from unknown`. | Every session's lifecycle history starts with a known state. |
+| R20 | Meanings: `resumed` → `in the foreground` · `inactive` → `visible but not focused` (call, app switcher, system dialog) · `hidden` → `not visible` · `paused` → `in the background` · `detached` → `engine detached, app closing`. The same state twice in a row prints nothing. | Readers don't need to know Flutter's state names. |
 
 ## 2. Scenarios
 
@@ -33,6 +37,16 @@
 **S3. Report an issue.** The user fills the title and description and taps send. The buffer (any size) moves into the big file, and then the report is sent. Prints made during the move are saved right after it, in the buffer.
 
 **S4. Full disk.** Appending to the big file fails. The oldest half of the big file is deleted and the append is tried again. If it works, the buffer is cleared. If not, the buffer keeps its entries until the next batch.
+
+**S5. User leaves and comes back.** The user presses home, then opens the app again. The file shows, in order and between the other prints:
+```
+TX-000310 2026-10-29T15:02:11.104000 [LIFECYCLE] ══════ APP LIFECYCLE: resumed → inactive · visible but not focused ══════
+TX-000311 2026-10-29T15:02:11.230000 [LIFECYCLE] ══════ APP LIFECYCLE: inactive → hidden · not visible ══════
+TX-000312 2026-10-29T15:02:11.231000 [LIFECYCLE] ══════ APP LIFECYCLE: hidden → paused · in the background ══════
+TX-000313 2026-10-29T15:04:40.877000 [LIFECYCLE] ══════ APP LIFECYCLE: paused → hidden · not visible ══════
+TX-000314 2026-10-29T15:04:40.878000 [LIFECYCLE] ══════ APP LIFECYCLE: hidden → inactive · visible but not focused ══════
+TX-000315 2026-10-29T15:04:40.901000 [LIFECYCLE] ══════ APP LIFECYCLE: inactive → resumed · in the foreground ══════
+```
 
 ## 3. Where the files are and how to read them
 
@@ -49,6 +63,14 @@
 ```bash
 adb exec-out run-as com.ilead.talent.link.talent_link.dev cat app_flutter/print_logs/PrintLogsFile.txt > PrintLogsFile.txt
 ```
+
+**Search lifecycle entries only:**
+
+```bash
+adb exec-out run-as com.ilead.talent.link.talent_link.dev cat app_flutter/print_logs/PrintLogsFile.txt app_flutter/print_logs/Buffer.txt | grep "\[LIFECYCLE\]"
+```
+
+In Android Studio's Logcat, or in the console, filter by `APP LIFECYCLE`.
 
 Notes:
 - Release builds fail with `run-as: package not debuggable`.
