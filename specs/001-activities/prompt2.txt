@@ -11,3 +11,8 @@ submitted successfully
 when filter list at this data will shown accuretly (type, start , end , create and status )
 
 and when submit has issue("Leave is already applied in this period!") => select diff time
+
+
+
+---------------
+plz respect my time ie make changes of this proj and specs and maestro before run ( don't run 10 times like)
