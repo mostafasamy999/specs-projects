@@ -1,0 +1,166 @@
+# One try at a one-day leave, from the Requests list back to it.
+#   New → Leave → type → start (n months ahead, see plan_start.js) → end
+#   (= start) → Submit, then reads the dialog:
+#   - "already applied" (DUPLICATE_TEXT)  → Ok (the form closes) → state 'retry'
+#   - any other dialog after Submit      → Ok → state 'done' (the list checks
+#                                           decide whether it really saved)
+#   - any other dialog before Submit      → Ok → state 'fatal'
+# The leave form shows its errors in MassageDialogWidget (id
+# massage_dialog_message), and its Ok pops the form: LeaveBackEvent on an
+# error, LeaveBackToHomeEvent (to the home tabs) on success.
+# Params (from runFlow env, so no env: header here: a subflow's own env:
+# overrides what the caller passes): LEAVE_TYPE ("" = first in the list),
+# DUPLICATE_TEXT
+# Uses output.*: initIso, attempt, state, message (see scripts/).
+# synced: 2026-11-05 (app c1aae2e3)
+appId: ${APP_ID}
+---
+# ── Open the leave form ─────────────────────────────────────────────────────
+# The FAB's accessibility label is exactly "New" (CollapsingLabelFabWidget).
+# It shows once the screen's lookups have loaded.
+- extendedWaitUntil:
+    visible: "New"
+    timeout: 60000
+- tapOn: "New"
+- extendedWaitUntil:
+    visible: "(?s).*Make New Request.*"
+    timeout: 20000
+# Anchored: the same sheet has Short Leave, Leave Encashment, Half Day Leave.
+- tapOn: "^Leave$"
+- extendedWaitUntil:
+    visible:
+      id: "leave_type_field"
+    timeout: 90000
+- waitForAnimationToEnd
+
+# ── Type (radio sheet, confirmed with "Select") ─────────────────────────────
+- tapOn:
+    id: "leave_type_field"
+- extendedWaitUntil:
+    visible:
+      id: "request_type_list_item"
+    timeout: 30000
+- runFlow:
+    when:
+      true: ${LEAVE_TYPE == ''}
+    commands:
+      - tapOn:
+          id: "request_type_list_item"
+          index: 0
+- runFlow:
+    when:
+      true: ${LEAVE_TYPE != ''}
+    commands:
+      - tapOn: ${LEAVE_TYPE}
+- tapOn: "Select"
+- waitForAnimationToEnd
+
+# ── Start date: find which day the wheel opens on, then turn it ────────────
+# Empty, the wheel opens on the first allowed day: today, or tomorrow when
+# today is blocked for this account. Done without turning keeps that day.
+- tapOn:
+    id: "leave_start_date_field"
+- tapOn: "Done"
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "(?s).*${output.todayIso}.*"
+    commands:
+      - evalScript: ${output.initIso = output.todayIso}
+- runFlow:
+    when:
+      notVisible: "(?s).*${output.todayIso}.*"
+    commands:
+      - evalScript: ${output.initIso = output.tomorrowIso}
+- runScript: ../scripts/plan_start.js
+- evalScript: "${console.log('try ' + output.attempt + ': leave on ' + output.leaveIso + ' (wheel opened on ' + output.initIso + ')')}"
+
+# The wheel reopens on the picked day. Swipes: slow and short, so each one
+# moves exactly one row (same sheet as the activities wheel: y 88% → 85%).
+# Columns (en): month ~28%, day ~55%, year ~78% of the width.
+- tapOn:
+    id: "leave_start_date_field"
+- waitForAnimationToEnd
+- repeat:
+    while:
+      true: ${output.ySwipes > 0}
+    times: 5
+    commands:
+      - swipe:
+          start: 78%, 88%
+          end: 78%, 85%
+          duration: 900
+      - waitForAnimationToEnd
+      - evalScript: ${output.ySwipes = output.ySwipes - 1}
+- repeat:
+    while:
+      true: ${output.mSwipes > 0}
+    times: 12
+    commands:
+      - swipe:
+          start: 28%, 88%
+          end: 28%, 85%
+          duration: 900
+      - waitForAnimationToEnd
+      - evalScript: ${output.mSwipes = output.mSwipes - 1}
+- tapOn: "Done"
+- waitForAnimationToEnd
+- assertVisible:
+    text: "(?s).*${output.leaveIso}.*"
+    label: "Start date is the planned day (if not, recalibrate the wheel swipes in try_leave.yaml)"
+
+# ── End date: its wheel opens on the start (its minimum); Done keeps it ─────
+- tapOn:
+    id: "leave_end_date_field"
+- tapOn: "Done"
+- waitForAnimationToEnd
+
+# ── Balance check runs now (CalculateInCaseNewLeave); an overlap shows here ─
+- extendedWaitUntil:
+    visible:
+      id: "massage_dialog_message"
+    timeout: 15000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: "massage_dialog_message"
+    commands:
+      - copyTextFrom:
+          id: "massage_dialog_message"
+      - evalScript: "${output.message = maestro.copiedText; output.state = output.message.toLowerCase().indexOf(DUPLICATE_TEXT.toLowerCase()) >= 0 ? 'retry' : 'fatal'}"
+      - evalScript: "${console.log('try ' + output.attempt + ' before submit: ' + output.state + ': ' + output.message)}"
+      - tapOn: "Ok"
+
+# ── Submit (only when the form is still open) ───────────────────────────────
+- runFlow:
+    when:
+      visible:
+        id: "leave_type_field"
+    commands:
+      - takeScreenshot: results/lv-flt-01-form
+      - tapOn: "Submit"
+      # Submit is ignored while the balance check is still loading: tap again
+      # if nothing answered.
+      - extendedWaitUntil:
+          visible:
+            id: "massage_dialog_message"
+          timeout: 60000
+          optional: true
+      - runFlow:
+          when:
+            notVisible:
+              id: "massage_dialog_message"
+          commands:
+            - tapOn: "Submit"
+            - extendedWaitUntil:
+                visible:
+                  id: "massage_dialog_message"
+                timeout: 90000
+      - copyTextFrom:
+          id: "massage_dialog_message"
+      - evalScript: "${output.message = maestro.copiedText; output.state = output.message.toLowerCase().indexOf(DUPLICATE_TEXT.toLowerCase()) >= 0 ? 'retry' : 'done'}"
+      - evalScript: "${console.log('try ' + output.attempt + ' after submit: ' + output.state + ': ' + output.message)}"
+      - takeScreenshot: results/lv-flt-01-submit-dialog
+      - tapOn: "Ok"
+- waitForAnimationToEnd

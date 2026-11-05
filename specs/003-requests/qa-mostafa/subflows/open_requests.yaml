@@ -1,0 +1,12 @@
+# Launches the app (keeping the session), logs in if needed and opens the
+# Requests tab (My Requests). Ends when the list has loaded: a card (each
+# has "Timeline") or the empty message.
+# synced: 2026-11-05 (app c1aae2e3)
+appId: ${APP_ID}
+---
+- launchApp:
+    stopApp: true
+- runFlow: ../../../001-activities/maestro/subflows/dismiss_system_dialogs.yaml
+- runFlow: ../../../001-activities/maestro/subflows/login.yaml
+- runFlow: ../../../001-activities/maestro/subflows/dismiss_system_dialogs.yaml
+- runFlow: back_to_requests.yaml

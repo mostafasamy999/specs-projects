@@ -1,0 +1,12 @@
+# From the home tabs: taps Requests and waits for the list. Also used after a
+# successful submit, which pops back to the home tabs (Routes.main).
+# synced: 2026-11-05 (app c1aae2e3)
+appId: ${APP_ID}
+---
+- extendedWaitUntil:
+    visible:
+      id: "bottom_nav_requests_tab"
+    timeout: 120000
+- tapOn:
+    id: "bottom_nav_requests_tab"
+- runFlow: wait_for_list.yaml

@@ -1,0 +1,9 @@
+# Waits until the Requests list has loaded: a card (every card shows
+# "Timeline") or the empty message. The test server can be slow.
+# synced: 2026-11-05 (app c1aae2e3)
+appId: ${APP_ID}
+---
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible: "(?s).*Timeline.*|(?s).*Requests are empty.*"
+    timeout: 120000

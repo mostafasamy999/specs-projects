@@ -1,0 +1,18 @@
+# In the open filter sheet, selects the status chip STATUS. The list behind
+# the sheet has a quick status bar with the same words, so only a chip below
+# the sheet's own "STATUS" label is tapped (the bar sits above the sheet).
+# Tapping the selected chip again would clear it: call only to change it.
+# Params (runFlow env): STATUS, e.g. "Pending"
+# synced: 2026-11-05 (app c1aae2e3)
+appId: ${APP_ID}
+---
+- scrollUntilVisible:
+    element:
+      text: "STATUS"
+    direction: DOWN
+    timeout: 10000
+    centerElement: true
+- tapOn:
+    text: ${STATUS}
+    below:
+      text: "STATUS"

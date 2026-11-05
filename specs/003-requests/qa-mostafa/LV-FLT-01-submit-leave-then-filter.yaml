@@ -1,0 +1,138 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa-mostafa LV-FLT-01 — Submit a leave, then find it with the Requests filter
+# Given:    the user is logged in, on Requests (My Requests)
+# When:     they create a one-day leave of type LEAVE_TYPE, starting the same
+#           day next month, and submit. If the app answers "Leave is already
+#           applied in this period!", they reopen the form and pick the same
+#           day one month later (up to 6 tries).
+# Then:     1. submit succeeds (a dialog that isn't the overlap message)
+#           2. the filter finds exactly that leave, and each field matters:
+#              Request type REQUEST_TYPE + Requested date = leave day
+#                + Create date = today + Status NEW_STATUS        → shown
+#              same, Status NEG_STATUS                           → hidden
+#              same, Requested date = yesterday                  → hidden
+#              same, Create date = yesterday                     → hidden
+#              all back to the first set                         → shown
+# Source: specs/003-requests/prompt (Mostafa, 2026-11-05)
+# Creates one leave request on the test backend each run.
+# synced: 2026-11-05 (app c1aae2e3)
+#
+# Run:  qa-mostafa/run.sh   (from specs/003-requests, or by its full path)
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa-mostafa, LV-FLT-01, P0, leave, requests, filter]
+env:
+  LEAVE_TYPE: ""                       # "" = first type in the list
+  REQUEST_TYPE: "Leave"                # filter's Request Type row
+  NEW_STATUS: "Pending"                # status of a just-submitted leave
+  NEG_STATUS: "Approved"
+  DUPLICATE_TEXT: "already applied"    # part of "Leave is already applied in this period!"
+---
+- runScript: scripts/test_data.js
+- runFlow: subflows/open_requests.yaml
+
+# ── When: submit, moving a month on after each "already applied" ───────────
+# times is a literal (Maestro reads it before variables exist).
+- repeat:
+    while:
+      true: ${output.state == 'retry'}
+    times: 6
+    commands:
+      - runFlow:
+          file: subflows/try_leave.yaml
+          env:
+            LEAVE_TYPE: ${LEAVE_TYPE}
+            DUPLICATE_TEXT: ${DUPLICATE_TEXT}
+      - runFlow:
+          when:
+            true: ${output.state == 'retry'}
+          commands:
+            - runFlow: subflows/wait_for_list.yaml
+
+# ── Then 1: submitted (the message is in maestro.log: "after submit: ...") ──
+- assertTrue:
+    condition: ${output.state == 'done'}
+    label: "Leave submitted (not 'fatal', and not still overlapping after 6 tries; message in maestro.log)"
+- runFlow: subflows/back_to_requests.yaml
+- takeScreenshot: results/lv-flt-01-list-after-submit
+
+# ── Then 2a: every field set to the leave's values → shown ─────────────────
+- runFlow: subflows/open_filter.yaml
+- runFlow:
+    file: subflows/pick_filter_request_type.yaml
+    env: { REQUEST_TYPE: "${REQUEST_TYPE}" }
+- runFlow:
+    file: subflows/pick_filter_date.yaml
+    env: { SECTION: "REQUESTED DATE", FIELD: "START DATE", VALUE: "${output.leaveUs}" }
+- runFlow:
+    file: subflows/pick_filter_date.yaml
+    env: { SECTION: "REQUESTED DATE", FIELD: "END DATE", VALUE: "${output.leaveUs}" }
+- runFlow:
+    file: subflows/pick_filter_date.yaml
+    env: { SECTION: "CREATE DATE", FIELD: "START DATE", VALUE: "${output.todayUs}" }
+- runFlow:
+    file: subflows/pick_filter_date.yaml
+    env: { SECTION: "CREATE DATE", FIELD: "END DATE", VALUE: "${output.todayUs}" }
+- runFlow:
+    file: subflows/pick_filter_status.yaml
+    env: { STATUS: "${NEW_STATUS}" }
+- takeScreenshot: results/lv-flt-01-filter-sheet
+- runFlow:
+    file: subflows/apply_and_expect.yaml
+    env: { SHOWN: "true", WHY: "type, requested day, created today, status" }
+- takeScreenshot: results/lv-flt-01-filtered
+
+# ── Then 2b: status → NEG_STATUS → hidden ──────────────────────────────────
+- runFlow: subflows/open_filter.yaml
+- runFlow:
+    file: subflows/pick_filter_status.yaml
+    env: { STATUS: "${NEG_STATUS}" }
+- runFlow:
+    file: subflows/apply_and_expect.yaml
+    env: { SHOWN: "false", WHY: "status ${NEG_STATUS}" }
+
+# ── Then 2c: status back; requested date → yesterday → hidden ──────────────
+- runFlow: subflows/open_filter.yaml
+- runFlow:
+    file: subflows/pick_filter_status.yaml
+    env: { STATUS: "${NEW_STATUS}" }
+- runFlow:
+    file: subflows/pick_filter_date.yaml
+    env: { SECTION: "REQUESTED DATE", FIELD: "START DATE", VALUE: "${output.yesterdayUs}" }
+- runFlow:
+    file: subflows/pick_filter_date.yaml
+    env: { SECTION: "REQUESTED DATE", FIELD: "END DATE", VALUE: "${output.yesterdayUs}" }
+- runFlow:
+    file: subflows/apply_and_expect.yaml
+    env: { SHOWN: "false", WHY: "requested date = yesterday" }
+
+# ── Then 2d: requested back; create date → yesterday → hidden ──────────────
+- runFlow: subflows/open_filter.yaml
+- runFlow:
+    file: subflows/pick_filter_date.yaml
+    env: { SECTION: "REQUESTED DATE", FIELD: "START DATE", VALUE: "${output.leaveUs}" }
+- runFlow:
+    file: subflows/pick_filter_date.yaml
+    env: { SECTION: "REQUESTED DATE", FIELD: "END DATE", VALUE: "${output.leaveUs}" }
+- runFlow:
+    file: subflows/pick_filter_date.yaml
+    env: { SECTION: "CREATE DATE", FIELD: "START DATE", VALUE: "${output.yesterdayUs}" }
+- runFlow:
+    file: subflows/pick_filter_date.yaml
+    env: { SECTION: "CREATE DATE", FIELD: "END DATE", VALUE: "${output.yesterdayUs}" }
+- runFlow:
+    file: subflows/apply_and_expect.yaml
+    env: { SHOWN: "false", WHY: "create date = yesterday" }
+
+# ── Then 2e: create date back → shown again ────────────────────────────────
+- runFlow: subflows/open_filter.yaml
+- runFlow:
+    file: subflows/pick_filter_date.yaml
+    env: { SECTION: "CREATE DATE", FIELD: "START DATE", VALUE: "${output.todayUs}" }
+- runFlow:
+    file: subflows/pick_filter_date.yaml
+    env: { SECTION: "CREATE DATE", FIELD: "END DATE", VALUE: "${output.todayUs}" }
+- runFlow:
+    file: subflows/apply_and_expect.yaml
+    env: { SHOWN: "true", WHY: "all fields back to the leave's values" }
+- takeScreenshot: results/lv-flt-01-end

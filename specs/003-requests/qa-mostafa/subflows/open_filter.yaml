@@ -1,0 +1,13 @@
+# Opens the Requests filter sheet. The app bar's filter icon has no id or
+# label (RequestFilterIconWidget inside an InkWell), so it's tapped by its
+# place: the app bar's only action, top right (same spot as on Activities).
+# The sheet keeps the last applied values.
+# synced: 2026-11-05 (app c1aae2e3)
+appId: ${APP_ID}
+---
+- tapOn:
+    point: "92%, 7%"
+- extendedWaitUntil:
+    visible: "Apply"
+    timeout: 20000
+- waitForAnimationToEnd

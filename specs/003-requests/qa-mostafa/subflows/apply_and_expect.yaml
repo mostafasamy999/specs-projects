@@ -1,0 +1,27 @@
+# Taps Apply in the filter sheet, waits for the list and checks it.
+# The filters set before this narrow the list to the test's leave only:
+# leave type + its exact day + created today + its status. The app refuses a
+# second leave on the same day, so any card left is that leave.
+# Params (runFlow env): SHOWN "true" (a card must show) | "false" (the list
+# must be empty), WHY (used in the failure label)
+# synced: 2026-11-05 (app c1aae2e3)
+appId: ${APP_ID}
+---
+- tapOn: "Apply"
+- runFlow: wait_for_list.yaml
+- runFlow:
+    when:
+      true: ${SHOWN == 'true'}
+    commands:
+      - assertVisible:
+          text: "(?s).*Timeline.*"
+          label: "Leave is listed: ${WHY}"
+      - assertNotVisible:
+          text: "(?s).*Requests are empty.*"
+- runFlow:
+    when:
+      true: ${SHOWN == 'false'}
+    commands:
+      - assertVisible:
+          text: "(?s).*Requests are empty.*"
+          label: "Leave is filtered out: ${WHY}"

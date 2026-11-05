@@ -1,0 +1,30 @@
+# In the open filter sheet, sets Request Type. The field opens a searchable
+# list screen; a tap on a row picks it and closes the screen (single select).
+# Maestro matches text ignoring case, so "Request Type" finds both the
+# section label "REQUEST TYPE" and the field under it: try the second match
+# (the field), and the first if no list screen opened.
+# Params (runFlow env): REQUEST_TYPE, the row text, e.g. "Leave"
+# synced: 2026-11-05 (app c1aae2e3)
+appId: ${APP_ID}
+---
+- tapOn:
+    text: "Request Type"
+    index: 1
+- extendedWaitUntil:
+    visible: "Search"
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      notVisible: "Search"
+    commands:
+      - tapOn:
+          text: "Request Type"
+          index: 0
+      - extendedWaitUntil:
+          visible: "Search"
+          timeout: 10000
+- tapOn: "^${REQUEST_TYPE}$"
+- extendedWaitUntil:
+    visible: "Apply"
+    timeout: 10000

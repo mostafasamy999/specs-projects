@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="RZ8R10Y5LSA" tests="1" failures="1" time="305.0">
+    <testcase id="LV-FLT-01-submit-leave-then-filter" name="LV-FLT-01-submit-leave-then-filter" classname="LV-FLT-01-submit-leave-then-filter" file="LV-FLT-01-submit-leave-then-filter.yaml" time="305.0" status="ERROR">
+      <properties>
+        <property name="tags" value="qa-mostafa, LV-FLT-01, P0, leave, requests, filter"/>
+      </properties>
+      <failure>Assertion is false: id: massage_dialog_message is visible</failure>
+    </testcase>
+  </testsuite>
+</testsuites>
