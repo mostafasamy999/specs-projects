@@ -34,7 +34,9 @@ The flow also uses the shared subflows in `../maestro/subflows/` (login, open da
 
 ## Run
 
-From `specs/001-activities/`, with `maestro/.env` filled in (`DEVICE` must match `adb devices`):
+Shortest: from `qa-mostafa/`, run `./run.sh` (it works from any folder by its full path too).
+
+Or from `specs/001-activities/`, with `maestro/.env` filled in (`DEVICE` must match `adb devices`):
 
 ```bash
 maestro/run.sh ../qa-mostafa/CRT-FLT-01-create-task-then-filter.yaml
