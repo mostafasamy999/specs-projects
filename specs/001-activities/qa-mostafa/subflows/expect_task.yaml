@@ -1,0 +1,41 @@
+# Searches the list for TITLE and checks whether its card is there.
+# Params: TITLE, SHOWN ("true" = the card must show, "false" = it must not),
+#         WHY (short reason, used in the failure label)
+# Start on the list view with the filter under test already applied.
+# A card is the activities_card node (no text) holding one node whose text
+# is all its lines joined ("TASK\n#2811\nHigh\n..."): match inside that.
+# synced: CL-10
+appId: ${APP_ID}
+---
+# The search survives filter changes, so type only when the box doesn't
+# already hold TITLE. (Re-typing taps mid-text, and eraseText then clears
+# only up to the cursor, leaving a mangled query.)
+- runFlow:
+    when:
+      notVisible:
+        id: "activities_search_field"
+        text: ${TITLE}
+    commands:
+      - runFlow:
+          file: ../../maestro/subflows/search_list.yaml
+          env:
+            QUERY: ${TITLE}
+- runFlow: ../../maestro/subflows/wait_for_results.yaml
+- runFlow:
+    when:
+      true: ${SHOWN == 'true'}
+    commands:
+      - assertVisible:
+          text: "(?s).*${TITLE}.*"
+          childOf:
+            id: "activities_card"
+          label: "Task is listed: ${WHY}"
+- runFlow:
+    when:
+      true: ${SHOWN == 'false'}
+    commands:
+      - assertNotVisible:
+          text: "(?s).*${TITLE}.*"
+          childOf:
+            id: "activities_card"
+          label: "Task is filtered out: ${WHY}"

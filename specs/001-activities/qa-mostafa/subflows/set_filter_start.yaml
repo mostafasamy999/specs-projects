@@ -1,0 +1,32 @@
+# In the open filter sheet, moves "Start date and time" forward one day at a
+# time until the field shows EXPECTED (e.g. "Thu, 5 Nov 2026 · 00:00").
+# The sheet opens with the current month (1st, 00:00 → last day), so the
+# start wheel begins on the 1st at 00:00 and each pass adds one day.
+# Each pass: open the wheel, swipe the day column up one row, Done.
+# The field is one node: "Start date and time\nSun, 1 Nov 2026 · 00:00".
+# Params: EXPECTED (the date part of the field)
+# Swipe points are fixed (Maestro can't build them from variables): to
+# calibrate for another screen, edit the swipe below (see README).
+# No hideKeyboard here: nothing is focused, and on Android it can act as
+# Back and close the sheet.
+# synced: CL-10
+appId: ${APP_ID}
+---
+- repeat:
+    while:
+      notVisible: "(?s)Start date and time.${EXPECTED}"
+    times: 32
+    commands:
+      - tapOn: "(?s)Start date and time.*"
+      - waitForAnimationToEnd
+      # Slow, short swipe: the wheel snaps to the next day without a fling.
+      - swipe:
+          start: 25%, 88%
+          end: 25%, 85%
+          duration: 900
+      - waitForAnimationToEnd
+      - tapOn: "Done"
+      - waitForAnimationToEnd
+- assertVisible:
+    text: "(?s)Start date and time.${EXPECTED}"
+    label: "Filter start is ${EXPECTED} (if not, recalibrate the wheel swipe)"

@@ -1,0 +1,155 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# qa-mostafa CRT-FLT-01 — Create a task, then find it with every filter
+# Given:    the user is logged in and on Activities
+# When:     they create Task "QA-M-<timestamp>" (priority PRIORITY, Private,
+#           start = end = now rounded up to 5 min) and submit
+# Then:     1. "Activity created" shows and the app returns to Activities
+#           2. the list (default: current month) shows the task as a TASK,
+#              with PRIORITY, Private, status Pending and today's start time
+#           3. each filter keeps or drops it correctly:
+#              Status   Pending → shown     NEG_STATUS   → hidden
+#              Priority PRIORITY → shown    NEG_PRIORITY → hidden
+#              Scope    Private / My Activity / All → shown
+#              Dates    from today 00:00 → shown   from tomorrow 00:00 → hidden
+# Source: qa-mostafa/prompt (specs/001-activities/prompt.txt)
+# Creates one activity on the test backend each run.
+# synced: CL-10
+#
+# Run (from specs/001-activities):  maestro/run.sh ../qa-mostafa/CRT-FLT-01-create-task-then-filter.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+appId: ${APP_ID}
+tags: [qa-mostafa, CRT-FLT-01, P0, create, filter_sheet, quick_filters]
+env:
+  PRIORITY: "High"
+  NEG_PRIORITY: "Low"
+  STATUS: "Pending"
+  NEG_STATUS: "Completed"
+---
+# Test data (title, expected dates). Worked out on the machine running
+# Maestro, so it must use the same time zone as the device.
+- runScript: scripts/test_data.js
+
+- runFlow: ../maestro/subflows/open_dashboard.yaml
+
+# ── When: create and submit (subflow waits for "Activity created" → Ok) ──────
+- runFlow:
+    file: subflows/create_task.yaml
+    env:
+      TITLE: ${output.title}
+      PRIORITY: ${PRIORITY}
+
+# ── Then 2: the list shows it with the right data ───────────────────────────
+- runFlow:
+    when:
+      visible:
+        id: "activities_dashboard_total"
+    commands:
+      - tapOn:
+          id: "activities_view_toggle"
+- runFlow: ../maestro/subflows/wait_for_results.yaml
+- runFlow:
+    file: subflows/expect_task.yaml
+    env:
+      TITLE: ${output.title}
+      SHOWN: "true"
+      WHY: "default list after submit"
+# One node per card: "TASK\n#2811\nHigh\nPrivate\n<title>\nPending\n
+# Assigned by...\nStart\n5 Nov 2026 · 14:25\nEnd\n5 Nov 2026 · 14:25"
+- assertVisible:
+    childOf:
+      id: "activities_card"
+    text: "(?s)TASK.*${PRIORITY}.*Private.*${output.title}.*${STATUS}.*Start.${output.startOnCard}.End.${output.startOnCard}.*"
+    label: "Card: TASK, ${PRIORITY}, Private, ${STATUS}, start and end ${output.startOnCard}"
+- takeScreenshot: results/qa-mostafa-CRT-FLT-01-card
+
+# ── Then 3a: Status ─────────────────────────────────────────────────────────
+- runFlow:
+    file: subflows/pick_quick_option.yaml
+    env: { CHIP: status, OPTION: "${STATUS}" }
+- runFlow:
+    file: subflows/expect_task.yaml
+    env: { TITLE: "${output.title}", SHOWN: "true", WHY: "Status ${STATUS}" }
+- runFlow:
+    file: subflows/pick_quick_option.yaml
+    env: { CHIP: status, OPTION: "${NEG_STATUS}" }
+- runFlow:
+    file: subflows/expect_task.yaml
+    env: { TITLE: "${output.title}", SHOWN: "false", WHY: "Status ${NEG_STATUS}" }
+- runFlow:
+    file: subflows/pick_quick_option.yaml
+    env: { CHIP: status, OPTION: "All" }
+
+# ── Then 3b: Priority ───────────────────────────────────────────────────────
+- runFlow:
+    file: subflows/pick_quick_option.yaml
+    env: { CHIP: priority, OPTION: "${PRIORITY}" }
+- runFlow:
+    file: subflows/expect_task.yaml
+    env: { TITLE: "${output.title}", SHOWN: "true", WHY: "Priority ${PRIORITY}" }
+- runFlow:
+    file: subflows/pick_quick_option.yaml
+    env: { CHIP: priority, OPTION: "${NEG_PRIORITY}" }
+- runFlow:
+    file: subflows/expect_task.yaml
+    env: { TITLE: "${output.title}", SHOWN: "false", WHY: "Priority ${NEG_PRIORITY}" }
+- runFlow:
+    file: subflows/pick_quick_option.yaml
+    env: { CHIP: priority, OPTION: "All" }
+
+# ── Then 3c: Scope (private task: Private, My Activity and All include it) ──
+# My Team is not checked: whether it lists the user's own private tasks is
+# not written down in the spec.
+- runFlow:
+    file: ../maestro/subflows/select_scope.yaml
+    env: { SCOPE: private }
+- runFlow:
+    file: subflows/expect_task.yaml
+    env: { TITLE: "${output.title}", SHOWN: "true", WHY: "Scope Private" }
+- runFlow:
+    file: ../maestro/subflows/select_scope.yaml
+    env: { SCOPE: myActivities }
+- runFlow:
+    file: subflows/expect_task.yaml
+    env: { TITLE: "${output.title}", SHOWN: "true", WHY: "Scope My Activity" }
+- runFlow:
+    file: ../maestro/subflows/select_scope.yaml
+    env: { SCOPE: all }
+- runFlow:
+    file: subflows/expect_task.yaml
+    env: { TITLE: "${output.title}", SHOWN: "true", WHY: "Scope All" }
+
+# ── Then 3d: Start / end date-time (filter sheet) ───────────────────────────
+# From today 00:00 to the end of the month: the task (today) is inside.
+- tapOn:
+    id: "activities_filter_button"
+- extendedWaitUntil:
+    visible:
+      id: "activities_filter_apply"
+    timeout: 20000
+- runFlow:
+    file: subflows/set_filter_start.yaml
+    env: { EXPECTED: "${output.fromToday}" }
+- tapOn:
+    id: "activities_filter_apply"
+- runFlow: ../maestro/subflows/wait_for_results.yaml
+- runFlow:
+    file: subflows/expect_task.yaml
+    env: { TITLE: "${output.title}", SHOWN: "true", WHY: "from ${output.fromToday}" }
+
+# From tomorrow 00:00: the task (today) is before the range.
+- tapOn:
+    id: "activities_filter_button"
+- extendedWaitUntil:
+    visible:
+      id: "activities_filter_apply"
+    timeout: 20000
+- runFlow:
+    file: subflows/set_filter_start.yaml
+    env: { EXPECTED: "${output.fromTomorrow}" }
+- tapOn:
+    id: "activities_filter_apply"
+- runFlow: ../maestro/subflows/wait_for_results.yaml
+- runFlow:
+    file: subflows/expect_task.yaml
+    env: { TITLE: "${output.title}", SHOWN: "false", WHY: "from ${output.fromTomorrow}" }
+- takeScreenshot: results/qa-mostafa-CRT-FLT-01-end

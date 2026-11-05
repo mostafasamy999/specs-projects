@@ -1,0 +1,21 @@
+i need to make maestro to test this sinario
+at /Users/mostafasamy/work/specs-talentlink/specs/001-activities/qa-mostafa
+
+when make task with title X and date ............
+and then submit
+and see list at activity screen
+
+---------------
+acceptance criateria
+submitted successfully
+when filter list at this data will shown accuretly (stutus, priority , scope , start end datetime )
+
+
+--------------
+Check	Result
+Task created and submitted (“Activity created”)	passed
+Card in the list shows TASK, High, Private, Pending, and the correct start and end time	passed
+Status: shown for Pending, hidden for Completed	passed
+Priority: shown for High, hidden for Low	passed
+Scope: shown for Private, My Activity and All	passed
+Start date filter: shown from today 00:00, hidden from tomorrow 00:00	passed

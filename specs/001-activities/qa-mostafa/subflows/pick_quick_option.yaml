@@ -1,0 +1,16 @@
+# Opens a quick-filter chip and picks one option from its sheet.
+# Params: CHIP (status | priority), OPTION (the option text: All, Pending, High, ...)
+# Start on the list view. Ends on it with the results loaded.
+# synced: CL-10
+appId: ${APP_ID}
+---
+- runFlow:
+    file: ../../maestro/subflows/tap_chip.yaml
+    env:
+      CHIP: ${CHIP}
+- waitForAnimationToEnd
+# index 0: the sheet's row, not the same word on a card behind it.
+- tapOn:
+    text: ${OPTION}
+    index: 0
+- runFlow: ../../maestro/subflows/wait_for_results.yaml

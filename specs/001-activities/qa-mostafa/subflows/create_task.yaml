@@ -1,0 +1,55 @@
+# Creates a private Task titled TITLE with priority PRIORITY, starting now
+# (the wheel rounds up to the next 5 minutes) and ending at the same time.
+# Private fixes the people to the logged-in user, so no people picker.
+# Start on the Activities screen (dashboard or list). Ends back on it.
+# Params: TITLE, PRIORITY (a priority name as the form shows it: Low | Medium | High)
+# Creates real data on the test backend: TITLE must start with "QA-M-".
+# synced: CL-10
+appId: ${APP_ID}
+---
+- tapOn:
+    id: "activities_add_button"
+- extendedWaitUntil:
+    visible:
+      id: "activity_create_save_button"
+    timeout: 30000
+- tapOn:
+    id: "activity_create_type_task"
+- tapOn: "Enter a title"
+- inputText: ${TITLE}
+- hideKeyboard
+# Priority chips come from GetPriorityList; the label above them is "Priority".
+- tapOn: ${PRIORITY}
+- tapOn:
+    id: "activity_create_private_toggle"
+# The labels above the fields aren't tappable; the fields read "Select..."
+# until set. Start is the first; once set, End is the only one left.
+# Expected card time = now rounded up to 5 min, taken as the wheel opens.
+- runScript: ../scripts/start_slot.js
+- tapOn:
+    text: "Select\\.\\.\\."
+    index: 0
+- tapOn: "Done"
+- waitForAnimationToEnd
+# Closing the wheel puts focus back in the title; its keyboard hides End.
+- hideKeyboard
+- tapOn:
+    text: "Select\\.\\.\\."
+    index: 0
+- tapOn: "Done"
+- waitForAnimationToEnd
+- hideKeyboard
+- takeScreenshot: results/qa-mostafa-create-form
+# Submit
+- tapOn:
+    id: "activity_create_save_button"
+# The dialog reads title and subtitle as one node:
+# "Activity created\nIt's now in your activities list."
+- extendedWaitUntil:
+    visible: "(?s)Activity created.*"
+    timeout: 60000
+- tapOn: "Ok"
+- extendedWaitUntil:
+    visible:
+      id: "activities_dashboard_total|activities_search_field"
+    timeout: 60000

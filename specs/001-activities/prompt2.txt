@@ -1,0 +1,13 @@
+i need to make maestro to test this sinario
+at /Users/mostafasamy/work/specs-talentlink/specs/003-requests/qa-mostafa
+
+when make leave with type X and date ............
+and then submit
+and see list at requests screen
+
+---------------
+acceptance criateria
+submitted successfully
+when filter list at this data will shown accuretly (type, start , end , create and status )
+
+and when submit has issue("Leave is already applied in this period!") => select diff time
