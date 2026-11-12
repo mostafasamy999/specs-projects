@@ -19,8 +19,8 @@ Done in CL-2: the UI against sample data (route, #ShiftsScreen, both tabs, perio
 |---|---|---|---|---|
 | Q1 | Does every user see #ShiftsScreen (My shift), or does My shift also need an ESS permission? | Product | Assumed: everyone (R3) | Decides whether the More row is always shown. |
 | Q2 | What `referenceId` will shift events have in the calendar response? | Backend | Open | Without it, tapping a shift event opens #RequestDetails (R8). |
-| Q3 | Does the week start on Saturday? | Product | Assumed: Saturday (R10) | Period bar and "current week". |
-| Q4 | Max date range in the filter? | Product | Assumed: 31 days (R12) | Long ranges make big team lists. |
+| Q3 | ~~Does the week start on Saturday?~~ | Product | **Resolved 2026-11-12: no fixed week** (R9, R10) | The period is 7 days from today the first time, then what the user selects. |
+| Q4 | ~~Max date range in the filter?~~ | Product | **Resolved 2026-11-12: no limit** (R12) | Backend: a long range means a big response for My team; decide paging or a server cap. |
 | Q5 | How does the app know a week is assigned vs day off? (a published flag per week / day from the API) | Backend | Open | "Day off" vs "Not assigned yet" (R16, R17). |
 | Q6 | Should tapping an employee in My team open anything (their week)? | Product | Assumed: no (R24) | Possible next step. |
 | Q7 | Should the manager also appear in My team? | Product | Assumed: no (R25) | Avoid duplicates. |

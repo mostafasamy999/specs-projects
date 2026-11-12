@@ -1,6 +1,6 @@
 # 004 Shifts — User scenarios and rules
 
-> **Doc v0.3 · 2026-11-12 · spec v0.3 · synced to changelog CL-3**
+> **Doc v0.4 · 2026-11-12 · spec v0.4 · synced to changelog CL-8**
 > What the feature must do. Where it goes in the code: [current-state-codebase-logic-tech.md](current-state-codebase-logic-tech.md).
 > Rules marked **(Assumed)** are not confirmed yet; each one points to a question in [next-tasks-open-questions.md](next-tasks-open-questions.md).
 
@@ -47,10 +47,10 @@
 
 | # | Rule | Why |
 |---|---|---|
-| R9 | On open (from More) the period is the **current week**. | Shifts are assigned per week. |
-| R10 | The week starts on **Saturday** and ends on Friday. **(Assumed, Q3)** | From the example given (Saturday … Friday). |
-| R11 | Previous / next moves the period by one week. A small **Today** chip appears in the period bar whenever the shown period is not the current week; it goes back to the current week. | Quick week browsing. From the approved design. |
-| R12 | A date range picked in the filter replaces the period and the caption reads "Custom range". The previous / next arrows are **dimmed and do nothing** while a custom range is on; **Today** clears it (the other filters stay). A picked range that is exactly one Saturday – Friday week counts as that week, not as a custom range. Max range: 31 days (the other end moves when it would be longer). **(Assumed, Q4)** | Lets the user see "any date". Changed from "arrows move by the range length" to follow the approved design. |
+| R9 | The first time the screen opens (from More) the period is **today and the next 6 days** (7 days). From a Home calendar event it is 7 days starting at that event's day. | Product owner, 2026-11-12: no fixed week, "only the first time displays the current 7 days". Replaces the Saturday – Friday week. |
+| R10 | There is no fixed week start. The 7 is only the first period; after that the length is **whatever the user selects**. | Replaces "the week starts on Saturday" (Q3 closed). |
+| R11 | The previous / next arrows move the period by **its own length** (7 days at first, 3 days after selecting a 3-day range) and reload. They always work, on a selected range too. | Product owner. |
+| R12 | A date range picked in the filter replaces the period, with **no limit on its length**; picking a "from" after "to" (or the reverse) moves the other end. | Product owner. |
 | R13 | The period bar always shows the period in use. | The user knows what they're looking at. |
 
 ### My shift tab
@@ -73,21 +73,22 @@
 | R22 | An employee with 2 shifts on the same day appears under both shifts. | Each group is complete. |
 | R23 | Employees with no shift that day are listed in a "Day off" group at the end of the day. Days of a not-assigned week show "Not assigned yet" for the whole day. | Same meaning as My shift. |
 | R24 | Employee items are read only, no tap action. **(Assumed, Q6)** | Nothing else to show yet. |
-| R36 | When the filter has a department, the employee list in the filter offers only that department's employees; picking another department clears an employee that no longer fits. | The two fields can't contradict each other. |
+| R36 | Picking a department in the picker picks all its employees; picking every employee of a department picks the department. The filter keeps the picked department ids and employee ids. | Behavior of the shared picker. |
 | R37 | The day the screen was opened on from the Home calendar (R2), when it isn't today, has a light red border and background. Today keeps the red border and the Today chip. | The user sees which day they came for. |
+| R38 | Tapping the **period title** ("12 – 18 Nov 2026") opens a small bottom sheet with only the start and end day, in the same frame, header, date fields and Cancel / Apply as the main filter. **Apply** sets the period and reloads both tabs; the other filters stay. **Reset** (header) goes back to 7 days from today, also keeping the other filters. | Product owner: a quick way to change only the dates. |
 | R25 | The manager's own shifts are on My shift, not in My team. **(Assumed, Q7)** | Avoid showing them twice. |
 
 ### Filter
 
 | # | Rule | Why |
 |---|---|---|
-| R26 | The filter icon in the app bar opens a **bottom sheet with apply and reset**. Same pattern as the Requests tab filter. | Answer 9. |
+| R26 | The filter icon in the app bar opens a bottom sheet built like the Activities filter: title with **Reset** at the end, the shift type as chips (tap the chosen chip again to clear it; there is no "All" chip), on My team **one field for departments and employees** ("Company · department · employee", placeholder "Any department") that opens the shared department tree picker with search, Clear and Cancel / Select, the start and end day on one line, then **Cancel** and **Apply**. | Product owner: one field like the Activities screen. |
 | R27 | My shift fields: **date range, shift type**. | Answer 8. |
-| R28 | My team fields: **date range, shift type, department, employee** (search in a list). | Answer 8. |
+| R28 | My team fields: **date range, shift type, and the one department / employee field** (multi-select: departments with their employees). The field reads like "Sales · Khalid Mansour" or "Sales · 3 employees". | Same field as Activities. |
 | R29 | **Both tabs share one period and one filter.** Changing the week, Today, Apply, Reset or pull to refresh reloads both tabs (the team one only for managers), so switching tabs never waits for data. The My shift tab shows only the range and type fields; department and employee still apply to My team while My shift is shown. | Answer from the product owner, 2026-11-12. Replaces "each tab keeps its own filter". |
-| R30 | **Apply** reloads with the filter and closes the sheet. **Reset** puts the filter back to default (current week, all) and reloads. Dismissing the sheet keeps the old filter. | Same as Requests. |
-| R31 | The filter icon shows a count of active filter fields (date range counts when it isn't the current week). | The user sees a filter is on. |
-| R32 | Shift type filter hides days and groups with no matching shift on My team (the day off groups go too). On My shift, days stay visible, and days with no matching shift show "No matching shift". The type filter is applied on the phone, so the API must send every shift of the day. **(Assumed, Q8)** | My shift should still read as a week, and "No matching shift" must differ from "Day off". |
+| R30 | **Apply** reloads both tabs with the filter and closes the sheet. **Reset** (header) puts the filter back to 7 days from today with no field and reloads. Cancel, swipe down and the picker sheets' Cancel drop the draft: nothing changes until Apply. | Same as Activities. |
+| R31 | The filter icon shows a count of active filter fields. The **period counts as one whenever its from or to differs from the first period** (7 days from today), including after the arrows moved it. Then shift type, and on My team the department / employee field (one count, however many are picked). Reset brings it back to 0. | The user sees the screen is not showing the default view. |
+| R32 | The shift type is sent to the API (both tabs). The API returns only matching shifts, and **leaves out** any assigned day with none of that type, on My shift and on My team (no day off either). Nothing is filtered or hidden on the phone and there is no "No matching shift" placeholder. When nothing is left, the tab shows an empty state ("No shifts to show." / "No team members to show."). A not-assigned day still shows "Not assigned yet". **(Assumed, Q8)** | Answer from the product owner, 2026-11-12. Replaces the "No matching shift" days. |
 | R33 | Pull to refresh reloads with the current filter. | Standard in the app. |
 
 ### States

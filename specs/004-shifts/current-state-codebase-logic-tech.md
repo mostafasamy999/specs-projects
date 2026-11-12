@@ -14,7 +14,7 @@ All paths are relative to `lib/src/`.
 | Repository + use cases | `domain/repositories/shifts/`, `domain/usecase/shifts/` (my shifts, team shifts, filter options) | |
 | Sample data | `data/repositories/shifts/fake_shifts_repository.dart` | Registered in `di/repository_injector.dart`. **Replace with the real repository when the API exists** and delete the file |
 | Cubit | `presentation/blocs/shifts/shifts_cubit.dart` + `shifts_state.dart` | One shared period / filter for both tabs, each with its own status / data (R29). Every change reloads both. A newer load of a tab wins over a slow older one |
-| Screen | `presentation/screens/shifts/shifts_screen.dart`, `shifts_args.dart`, `widgets/` | One scroll view: tabs, period bar, then the list. Team days use `SliverMainAxisGroup` + `PinnedHeaderSliver` for the sticky day header |
+| Screen | `presentation/screens/shifts/shifts_screen.dart`, `shifts_args.dart`, `widgets/` | Built on the general `SliverOrganizerWidget` (as the Requests screen): the tabs and period bar are the pre-fixed children (floating: they hide on scroll down and return on scroll up), the days are the main content (`SliverOrganizerContent.list` for My shift, with its empty child; a custom sliver for My team, with `PinnedHeaderSliver` day headers) |
 | Route | `config/routes/routes_manager.dart`: `Routes.shifts`, `ShiftsArgs(focusDate)` | |
 | More entry | `more_items_widget.dart`: "Shifts" row after the upcoming calendar | Shown to everyone (R3) |
 | Strings | `lib/l10n/intl_en.arb`, `intl_ar.arb` (+ generated) | New keys: shifts, myShift, myTeam, dayOff, shiftNotAssignedYet, noMatchingShift, shiftType, shiftThisWeek / NextWeek / LastWeek / CustomRange, shiftsLoadError(+Hint), shiftsEmptyTeam(+Hint), allEmployees, allDepartments, searchDepartments, shiftMorning / Evening / Night (sample data only) |
@@ -65,18 +65,20 @@ A shift event needs its own `referenceId` and must be checked **before** the "an
 No endpoints are defined in this spec. When the API is designed, the screen needs:
 
 **My shift (period from – to)**
-- per day: date, `isAssigned` (week published or not), list of shifts. Send **all** shifts of the day: the shift type filter is applied on the phone, which is how "No matching shift" differs from "Day off"
-- per shift: id, name, start time, end time, shift type id
+- per day: date, `isAssigned` (week published or not), list of shifts. Takes `typeId` (optional). With it, returns only shifts of that type and leaves out assigned days with none of that type
+- per shift: id, name, start time, end time, shift type id, branch name, visits count, tasks count
 
-**My team (period from – to, filter: shift type, department, employee)**
+**My team (period from – to, filter: shift type, department ids, employee ids)**
+- department / employee: the lists of ids from the one picker. An employee matches when in the employee ids or under one of the department ids; both empty means everyone
+- with a shift type: only groups of that type, no day off group, and an assigned day with none of that type is left out
 - per day: date, `isAssigned`, list of shift groups + day-off employees
 - per shift group: shift name, start, end, list of employees
-- per employee: id, name, department name
+- per employee: id, name, department name; in a shift group also branch name, visits count, tasks count (not in the day-off group)
 - scope: everyone under the logged-in manager (full hierarchy)
 
 **Filter lists**
 - shift types (id, name)
-- departments under the manager, employees under the manager
+- the department tree under the manager with each department's employees (same shape as the Activities tree)
 
 **Home calendar**
 - shift events in the existing calendar response: new `referenceId`, title = shift name, start / end time, date
