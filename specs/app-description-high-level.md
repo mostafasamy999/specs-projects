@@ -204,7 +204,7 @@ Create request screens ( one form each, all end with submit and return to the ca
 - #CheckInScreen — offline attendance ( face on device ), from offline banner
 
 ---
-
+ 
 ## Same feature in more than one place
 - profile: #HomeScreen header, #MoreScreen profile card
 - notifications: #HomeScreen header, #MoreScreen account settings
