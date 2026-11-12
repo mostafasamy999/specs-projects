@@ -1,6 +1,6 @@
 # 004 Shifts — Feature overview (HIGH-LEVEL)
 
-> **Doc v0.1 · 2026-11-12 · spec v0.1 draft · synced to changelog CL-1**
+> **Doc v0.2 · 2026-11-12 · spec v0.2 · synced to changelog CL-2**
 
 ## What it is
 
@@ -38,7 +38,7 @@ The screen opens from **More** (work overview) and from a **shift event** in the
 
 ## Status
 
-**Spec draft v0.1. Nothing built.** Waiting on the API (out of scope for now) and the open questions in [next-tasks-open-questions.md](next-tasks-open-questions.md).
+**UI built on `feautre/shift` against sample data (CL-2).** #ShiftsScreen with My shift, My team, period bar and filter sheet, the More entry, English and Arabic. 27 tests pass (unit and widget). **Not done:** the Home calendar shift event (needs Q2), the real API (out of scope for now), and the team permission id (Q9, a stand-in is used). Nothing checked on a device yet. See [next-tasks-open-questions.md](next-tasks-open-questions.md).
 
 ## Where to look next
 

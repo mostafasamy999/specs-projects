@@ -1,10 +1,30 @@
 # 004 Shifts — Current state: codebase, logic, tech (LOW-LEVEL)
 
-> **Doc v0.1 · 2026-11-12 · synced to changelog CL-1**
-> Code read from `~/StudioProjects/talentlink`, branch `testflight`, on 2026-11-12. Nothing for shifts exists yet; this lists where the feature plugs in and what to reuse.
+> **Doc v0.3 · 2026-11-12 · synced to changelog CL-3**
+> Code in `~/StudioProjects/talentlink`, branch `feautre/shift`, 2026-11-12. §0 lists what is built; §1–§3 are where it plugs in and what it reuses.
 > Audience: an AI or dev building this feature cold. Rules (R1–R35): [user-scenarios-rules.md](user-scenarios-rules.md).
 
 All paths are relative to `lib/src/`.
+
+## 0. What is built (CL-2)
+
+| Piece | Path | Notes |
+|---|---|---|
+| Entities | `domain/entities/shifts/`: `shift.dart`, `shift_day.dart`, `team_shift.dart`, `shift_filter.dart` | `ShiftFilter` holds the period + filters of one tab; `shiftWeekStart()` is the Saturday rule |
+| Repository + use cases | `domain/repositories/shifts/`, `domain/usecase/shifts/` (my shifts, team shifts, filter options) | |
+| Sample data | `data/repositories/shifts/fake_shifts_repository.dart` | Registered in `di/repository_injector.dart`. **Replace with the real repository when the API exists** and delete the file |
+| Cubit | `presentation/blocs/shifts/shifts_cubit.dart` + `shifts_state.dart` | One shared period / filter for both tabs, each with its own status / data (R29). Every change reloads both. A newer load of a tab wins over a slow older one |
+| Screen | `presentation/screens/shifts/shifts_screen.dart`, `shifts_args.dart`, `widgets/` | One scroll view: tabs, period bar, then the list. Team days use `SliverMainAxisGroup` + `PinnedHeaderSliver` for the sticky day header |
+| Route | `config/routes/routes_manager.dart`: `Routes.shifts`, `ShiftsArgs(focusDate)` | |
+| More entry | `more_items_widget.dart`: "Shifts" row after the upcoming calendar | Shown to everyone (R3) |
+| Strings | `lib/l10n/intl_en.arb`, `intl_ar.arb` (+ generated) | New keys: shifts, myShift, myTeam, dayOff, shiftNotAssignedYet, noMatchingShift, shiftType, shiftThisWeek / NextWeek / LastWeek / CustomRange, shiftsLoadError(+Hint), shiftsEmptyTeam(+Hint), allEmployees, allDepartments, searchDepartments, shiftMorning / Evening / Night (sample data only) |
+| Tests | `test/presentation/blocs/shifts/shifts_cubit_test.dart` (18), `test/presentation/screens/shifts/shifts_screen_test.dart` (9: both tabs, filter, picker, states, Arabic) | Set `SHIFTS_SHOT_DIR=<folder>` when running the screen test to also save a PNG per step |
+
+**Not built:** the Home calendar shift event and its tap (§1 row "Home calendar tap", needs Q2); the real API; the real team permission (§1 row "Permission").
+
+**Stand-ins to remove:**
+- The team tab uses `checkEssPermission(RequestTypeId.myTeamAttendance)` with a `TODO(spec 004 Q9)` in `shifts_screen.dart`. Replace it with the new shift-team permission.
+- The shift icon (sun / sunset / moon) comes from the start time (`Shift.partOfDay`), not from the API. Material icons are used in place of the design's Lucide icons.
 
 ## 1. Where it plugs in
 
@@ -45,7 +65,7 @@ A shift event needs its own `referenceId` and must be checked **before** the "an
 No endpoints are defined in this spec. When the API is designed, the screen needs:
 
 **My shift (period from – to)**
-- per day: date, `isAssigned` (week published or not), list of shifts
+- per day: date, `isAssigned` (week published or not), list of shifts. Send **all** shifts of the day: the shift type filter is applied on the phone, which is how "No matching shift" differs from "Day off"
 - per shift: id, name, start time, end time, shift type id
 
 **My team (period from – to, filter: shift type, department, employee)**
